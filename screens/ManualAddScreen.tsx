@@ -18,7 +18,7 @@ export default function ManualAddScreen() {
   const [frequency, setFrequency] = useState<'weekly' | 'monthly'>('weekly');
   
   const navigation = useNavigation();
-  const { db } = useBasic();
+  const { db, isSignedIn } = useBasic();
 
   const handleAdd = async () => {
     if (!fullName.trim()) {
@@ -28,6 +28,13 @@ export default function ManualAddScreen() {
 
     if (!isOnline && !isLocal) {
       Alert.alert('Error', 'Please select at least one friend type');
+      return;
+    }
+
+    if (!isSignedIn) {
+      Alert.alert('Authentication Required', 'Please sign in to add friends', [
+        { text: 'OK', onPress: () => (navigation as any).navigate('Login') }
+      ]);
       return;
     }
 
@@ -59,6 +66,8 @@ export default function ManualAddScreen() {
         console.error('Error adding friend:', error);
         Alert.alert('Error', 'Failed to add friend. Please try again.');
       }
+    } else {
+      Alert.alert('Database Error', 'Database not available. Please try signing in again.');
     }
   };
 
@@ -77,6 +86,12 @@ export default function ManualAddScreen() {
       </View>
 
       <View style={styles.content}>
+        {!isSignedIn && (
+          <View style={styles.warningContainer}>
+            <Text style={styles.warningText}>⚠️ You need to sign in to add friends</Text>
+          </View>
+        )}
+
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Full Name</Text>
           <TextInput
@@ -140,7 +155,11 @@ export default function ManualAddScreen() {
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+          <TouchableOpacity 
+            style={[styles.addButton, !isSignedIn && styles.addButtonDisabled]} 
+            onPress={handleAdd}
+            disabled={!isSignedIn}
+          >
             <Text style={styles.addButtonText}>Add</Text>
           </TouchableOpacity>
         </View>
@@ -179,6 +198,19 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingVertical: 30,
+  },
+  warningContainer: {
+    backgroundColor: '#FFF3CD',
+    borderColor: '#FFEAA7',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+  },
+  warningText: {
+    color: '#856404',
+    textAlign: 'center',
+    fontSize: 14,
   },
   inputContainer: {
     marginBottom: 30,
@@ -258,6 +290,9 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     marginLeft: 10,
+  },
+  addButtonDisabled: {
+    backgroundColor: '#CCCCCC',
   },
   addButtonText: {
     fontSize: 16,

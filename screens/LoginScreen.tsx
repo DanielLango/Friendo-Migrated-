@@ -40,18 +40,6 @@ export default function LoginScreen() {
     }
   };
 
-  const handleSkipLogin = () => {
-    // For demo purposes, allow skipping login
-    Alert.alert(
-      'Demo Mode',
-      'Skip login for demo purposes?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Skip', onPress: () => navigation.navigate('Onboarding') }
-      ]
-    );
-  };
-
   const handleSocialLogin = (platform: string) => {
     Alert.alert('Coming Soon', `${platform} login will be available soon!`);
   };
@@ -60,6 +48,10 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>LOGIN</Text>
+        
+        <Text style={styles.subtitle}>
+          Please sign in with Basic Tech to use the Friendo app
+        </Text>
         
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
@@ -108,16 +100,8 @@ export default function LoginScreen() {
           disabled={isLoading}
         >
           <Text style={styles.loginButtonText}>
-            {isLoading ? 'SIGNING IN...' : 'LOGIN'}
+            {isLoading ? 'SIGNING IN...' : 'SIGN IN WITH BASIC TECH'}
           </Text>
-        </TouchableOpacity>
-
-        {/* Demo skip button */}
-        <TouchableOpacity 
-          style={styles.skipButton}
-          onPress={handleSkipLogin}
-        >
-          <Text style={styles.skipButtonText}>Skip Login (Demo)</Text>
         </TouchableOpacity>
 
         <View style={styles.socialContainer}>
@@ -162,8 +146,15 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
     color: '#333333',
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 40,
+    color: '#666666',
+    lineHeight: 22,
   },
   inputContainer: {
     marginBottom: 20,
@@ -223,24 +214,11 @@ const styles = StyleSheet.create({
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 15,
+    marginBottom: 30,
   },
   loginButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  skipButton: {
-    backgroundColor: '#8000FF',
-    borderRadius: 8,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 30,
-  },
-  skipButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   socialContainer: {
