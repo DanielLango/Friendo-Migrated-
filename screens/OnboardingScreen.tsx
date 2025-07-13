@@ -12,11 +12,11 @@ export default function OnboardingScreen() {
   const navigation = useNavigation();
 
   const handleContinueWithSyncing = () => {
-    navigation.navigate('Sync' as never);
+    (navigation as any).navigate('Sync');
   };
 
   const handleContinueWithoutSyncing = () => {
-    navigation.navigate('ManualAdd' as never);
+    (navigation as any).navigate('ManualAdd');
   };
 
   return (

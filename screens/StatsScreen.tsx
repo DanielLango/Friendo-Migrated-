@@ -23,7 +23,7 @@ export default function StatsScreen() {
   const [showMemoModal, setShowMemoModal] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [memoText, setMemoText] = useState('');
-  const navigation = useNavigation();
+  const navigation = useNavigation<StatsScreenNavigationProp>();
   const { db } = useBasic();
 
   useEffect(() => {
@@ -37,17 +37,18 @@ export default function StatsScreen() {
         const meetings = await db.from('meetings').getAll();
         
         const currentYear = new Date().getFullYear();
-        const yearMeetings = meetings?.filter(meeting => 
-          new Date(meeting.date).getFullYear() === currentYear
-        ) || [];
+        const yearMeetings = (meetings || []).filter((meeting: any) => {
+          const meetingDate = typeof meeting.date === 'string' ? meeting.date : String(meeting.date);
+          return new Date(meetingDate).getFullYear() === currentYear;
+        });
 
-        const stats = friends?.map(friend => {
-          const friendMeetings = yearMeetings.filter(meeting => meeting.friendId === friend.id);
+        const stats = (friends || []).map((friend: any) => {
+          const friendMeetings = yearMeetings.filter((meeting: any) => meeting.friendId === friend.id);
           return {
-            friend,
+            friend: friend as Friend,
             meetingCount: friendMeetings.length,
           };
-        }) || [];
+        });
 
         // Sort by meeting count (descending)
         stats.sort((a, b) => b.meetingCount - a.meetingCount);

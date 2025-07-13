@@ -28,7 +28,7 @@ export default function MainScreen() {
     if (db) {
       try {
         const friendsData = await db.from('friends').getAll();
-        setFriends(friendsData || []);
+        setFriends((friendsData || []) as any);
       } catch (error) {
         console.error('Error loading friends:', error);
       }
@@ -39,7 +39,7 @@ export default function MainScreen() {
     if (db) {
       try {
         const meetingsData = await db.from('meetings').getAll();
-        setMeetings(meetingsData || []);
+        setMeetings((meetingsData || []) as any);
       } catch (error) {
         console.error('Error loading meetings:', error);
       }
@@ -47,7 +47,7 @@ export default function MainScreen() {
   };
 
   const handleScheduleNext = (friend: Friend) => {
-    navigation.navigate('MeetingCreate' as never, { friend });
+    (navigation as any).navigate('MeetingCreate', { friend });
   };
 
   const handleMeetingPress = (meeting: Meeting) => {
@@ -56,11 +56,11 @@ export default function MainScreen() {
   };
 
   const handleStats = () => {
-    navigation.navigate('Stats' as never);
+    (navigation as any).navigate('Stats');
   };
 
   const handleAddMore = () => {
-    navigation.navigate('Sync' as never);
+    (navigation as any).navigate('Sync');
   };
 
   const handleProfile = () => {

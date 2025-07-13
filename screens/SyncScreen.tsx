@@ -26,7 +26,7 @@ export default function SyncScreen() {
           { 
             text: `Continue as User`, 
             onPress: () => {
-              navigation.navigate('ContactSelect' as never, { source: source.id });
+              (navigation as any).navigate('ContactSelect', { source: source.id });
             }
           }
         ]
@@ -37,7 +37,7 @@ export default function SyncScreen() {
   };
 
   const handleManualAdd = () => {
-    navigation.navigate('ManualAdd' as never);
+    (navigation as any).navigate('ManualAdd');
   };
 
   return (

@@ -62,7 +62,7 @@ export default function ContactSelectScreen() {
             createdAt: Date.now(),
           });
         }
-        navigation.navigate('Main' as never);
+        navigation.navigate('Main');
       } catch (error) {
         console.error('Error saving friends:', error);
       }

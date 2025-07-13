@@ -53,7 +53,7 @@ export default function ManualAddScreen() {
             setIsOnline(false);
             setIsLocal(false);
           }},
-          { text: 'Go to Main', onPress: () => navigation.navigate('Main' as never) }
+          { text: 'Go to Main', onPress: () => (navigation as any).navigate('Main') }
         ]);
       } catch (error) {
         console.error('Error adding friend:', error);

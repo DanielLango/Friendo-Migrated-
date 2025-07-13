@@ -15,12 +15,24 @@ import MainScreen from './screens/MainScreen';
 import StatsScreen from './screens/StatsScreen';
 import MeetingCreateScreen from './screens/MeetingCreateScreen';
 
-const Stack = createStackNavigator();
+export type RootStackParamList = {
+  Login: undefined;
+  Onboarding: undefined;
+  Sync: undefined;
+  ContactSelect: { source: string };
+  ManualAdd: undefined;
+  Main: undefined;
+  Stats: undefined;
+  MeetingCreate: { friend: any };
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 function AppContent() {
   return (
     <NavigationContainer>
       <Stack.Navigator 
+        id="RootStack"
         initialRouteName="Login"
         screenOptions={{
           headerShown: false,
@@ -42,7 +54,7 @@ function AppContent() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <BasicProvider project_id={schema.project_id} schema={schema}>
+      <BasicProvider project_id={schema.project_id} schema={schema as any}>
         <AppContent />
       </BasicProvider>
     </SafeAreaProvider>
