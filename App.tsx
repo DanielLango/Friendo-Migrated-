@@ -1,154 +1,50 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, TouchableOpacity, Animated } from 'react-native';
-import { useState, useEffect, useRef } from 'react';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { BasicProvider } from '@basictech/expo';
+import { schema } from './basic.config';
 
-export default function App() {
-  const [theme, setTheme] = useState('light');
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+// Screens
+import LoginScreen from './screens/LoginScreen';
+import OnboardingScreen from './screens/OnboardingScreen';
+import SyncScreen from './screens/SyncScreen';
+import ContactSelectScreen from './screens/ContactSelectScreen';
+import ManualAddScreen from './screens/ManualAddScreen';
+import MainScreen from './screens/MainScreen';
+import StatsScreen from './screens/StatsScreen';
+import MeetingCreateScreen from './screens/MeetingCreateScreen';
 
-  useEffect(() => {
-    // Fade in animation when component mounts
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 4,
-        tension: 40,
-        useNativeDriver: true,
-      })
-    ]).start();
-  });
+const Stack = createStackNavigator();
 
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  };
-
-  const logoSource = theme === 'light' 
-    ? require('./assets/images/appacella-logo-blue.png')
-    : require('./assets/images/appacella-logo-white.png');
-
+function AppContent() {
   return (
-    <View style={[
-      styles.container,
-      { backgroundColor: theme === 'light' ? '#f0f8ff' : '#1a1a2e' }
-    ]}>
-      <Animated.View style={[
-        styles.content,
-        { 
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }]
-        }
-      ]}>
-        <Image 
-          source={logoSource} 
-          style={styles.logo} 
-          resizeMode="contain"
-        />
-        
-        <Text style={[
-          styles.title,
-          { color: theme === 'light' ? '#333' : '#fff' }
-        ]}>
-          Welcome to Kiki
-        </Text>
-        
-        <Text style={[
-          styles.subtitle,
-          { color: theme === 'light' ? '#666' : '#ccc' }
-        ]}>
-          Tell the AI what to make!
-        </Text>
-
-        <View style={styles.reactContainer}>
-          <Text style={[
-            styles.poweredBy,
-            { color: theme === 'light' ? '#666' : '#ccc' }
-          ]}>
-            Powered by
-          </Text>
-          <Image 
-            source={require('./assets/images/react-logo.png')} 
-            style={styles.reactLogo} 
-            resizeMode="contain"
-          />
-        </View>
-      </Animated.View>
-
-      <TouchableOpacity 
-        style={[
-          styles.themeToggle,
-          { backgroundColor: theme === 'light' ? '#333' : '#f0f8ff' }
-        ]} 
-        onPress={toggleTheme}
+    <NavigationContainer>
+      <Stack.Navigator 
+        initialRouteName="Login"
+        screenOptions={{
+          headerShown: false,
+        }}
       >
-        <Text style={{ 
-          color: theme === 'light' ? '#fff' : '#333',
-          fontWeight: 'bold'
-        }}>
-          {theme === 'light' ? '🌙' : '☀️'}
-        </Text>
-      </TouchableOpacity>
-      
-      <StatusBar style={theme === 'light' ? 'dark' : 'light'} />
-    </View>
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+        <Stack.Screen name="Sync" component={SyncScreen} />
+        <Stack.Screen name="ContactSelect" component={ContactSelectScreen} />
+        <Stack.Screen name="ManualAdd" component={ManualAddScreen} />
+        <Stack.Screen name="Main" component={MainScreen} />
+        <Stack.Screen name="Stats" component={StatsScreen} />
+        <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  content: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  logo: {
-    width: 200,
-    height: 100,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 18,
-    marginBottom: 30,
-    textAlign: 'center',
-  },
-  reactContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 40,
-  },
-  poweredBy: {
-    fontSize: 14,
-    marginRight: 6,
-  },
-  reactLogo: {
-    width: 24,
-    height: 24,
-  },
-  themeToggle: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    padding: 10,
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <BasicProvider project_id={schema.project_id} schema={schema}>
+        <AppContent />
+      </BasicProvider>
+    </SafeAreaProvider>
+  );
+}
