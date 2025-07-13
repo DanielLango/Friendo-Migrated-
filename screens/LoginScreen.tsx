@@ -10,6 +10,10 @@ import {
 } from 'react-native';
 import { useBasic } from '@basictech/expo';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../App';
+
+type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -18,20 +22,34 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   
   const { login, isLoading, isSignedIn } = useBasic();
-  const navigation = useNavigation();
+  const navigation = useNavigation<LoginScreenNavigationProp>();
 
   React.useEffect(() => {
     if (isSignedIn) {
-      navigation.navigate('Onboarding' as never);
+      navigation.navigate('Onboarding');
     }
   }, [isSignedIn, navigation]);
 
   const handleLogin = async () => {
     try {
       await login();
+      // If login succeeds, navigation will happen via useEffect
     } catch (error) {
+      console.error('Login error:', error);
       Alert.alert('Login Error', 'Failed to sign in. Please try again.');
     }
+  };
+
+  const handleSkipLogin = () => {
+    // For demo purposes, allow skipping login
+    Alert.alert(
+      'Demo Mode',
+      'Skip login for demo purposes?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Skip', onPress: () => navigation.navigate('Onboarding') }
+      ]
+    );
   };
 
   const handleSocialLogin = (platform: string) => {
@@ -92,6 +110,14 @@ export default function LoginScreen() {
           <Text style={styles.loginButtonText}>
             {isLoading ? 'SIGNING IN...' : 'LOGIN'}
           </Text>
+        </TouchableOpacity>
+
+        {/* Demo skip button */}
+        <TouchableOpacity 
+          style={styles.skipButton}
+          onPress={handleSkipLogin}
+        >
+          <Text style={styles.skipButtonText}>Skip Login (Demo)</Text>
         </TouchableOpacity>
 
         <View style={styles.socialContainer}>
@@ -197,11 +223,24 @@ const styles = StyleSheet.create({
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 30,
+    marginBottom: 15,
   },
   loginButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  skipButton: {
+    backgroundColor: '#8000FF',
+    borderRadius: 8,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 30,
+  },
+  skipButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: 'bold',
   },
   socialContainer: {
