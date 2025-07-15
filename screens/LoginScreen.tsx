@@ -36,7 +36,7 @@ export default function LoginScreen() {
   const handleBasicTechLogin = async () => {
     try {
       await login();
-      // If login succeeds, navigation will happen via useEffect
+      // Navigation will happen via useEffect when isSignedIn changes
     } catch (error) {
       console.error('Login error:', error);
       Alert.alert('Login Error', 'Failed to sign in. Please try again.');

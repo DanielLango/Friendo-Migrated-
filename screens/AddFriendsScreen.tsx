@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,33 @@ const { width } = Dimensions.get('window');
 
 export default function AddFriendsScreen() {
   const [friendCount, setFriendCount] = useState(0);
+  const [totalMeetings, setTotalMeetings] = useState(0);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
   const [pulseAnim] = useState(new Animated.Value(1));
   
   const navigation = useNavigation();
   const { db } = useBasic();
+
+  const loadFriendsCount = useCallback(async () => {
+    if (db) {
+      try {
+        const friends = await db.from('friends').getAll();
+        setFriendCount(friends?.length || 0);
+
+        // Calculate meetings this year
+        const meetings = await db.from('meetings').getAll();
+        const currentYear = new Date().getFullYear();
+        const yearMeetings = (meetings || []).filter((meeting: any) => {
+          const meetingDate = typeof meeting.date === 'string' ? meeting.date : String(meeting.date);
+          return new Date(meetingDate).getFullYear() === currentYear;
+        });
+        setTotalMeetings(yearMeetings.length);
+      } catch (error) {
+        console.error('Error loading friends count:', error);
+      }
+    }
+  }, [db]);
 
   useEffect(() => {
     // Animate screen entrance
@@ -43,7 +64,7 @@ export default function AddFriendsScreen() {
 
   useEffect(() => {
     // Pulse animation for continue button when friends are added
-    if (friendCount > 0) {
+    if (friendCount >= 3) {
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
@@ -59,18 +80,7 @@ export default function AddFriendsScreen() {
         ])
       ).start();
     }
-  }, [friendCount]);
-
-  const loadFriendsCount = async () => {
-    if (db) {
-      try {
-        const friends = await db.from('friends').getAll();
-        setFriendCount(friends?.length || 0);
-      } catch (error) {
-        console.error('Error loading friends count:', error);
-      }
-    }
-  };
+  }, [friendCount, pulseAnim]);
 
   // Listen for navigation focus to update friend count
   useEffect(() => {
@@ -90,7 +100,7 @@ export default function AddFriendsScreen() {
   };
 
   const handleContinueToFriendlist = () => {
-    if (friendCount > 0) {
+    if (friendCount >= 3) {
       (navigation as any).navigate('Main');
     }
   };
@@ -111,9 +121,9 @@ export default function AddFriendsScreen() {
           <View style={styles.iconContainer}>
             <Text style={styles.mainIcon}>👥</Text>
           </View>
-          <Text style={styles.title}>Add Friends</Text>
+          <Text style={styles.title}>Welcome to Friendo!</Text>
           <Text style={styles.subtitle}>
-            Let's build your friendship network! Add your friends to start tracking your connections.
+            Try to think of who are your friends, collect them
           </Text>
         </View>
 
@@ -124,8 +134,8 @@ export default function AddFriendsScreen() {
             <Text style={styles.statLabel}>Friends Added</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>50</Text>
-            <Text style={styles.statLabel}>Recommended</Text>
+            <Text style={styles.statNumber}>{totalMeetings}</Text>
+            <Text style={styles.statLabel}>Meetings This Year</Text>
           </View>
         </View>
 
@@ -159,51 +169,51 @@ export default function AddFriendsScreen() {
         </View>
 
         {/* Progress Indicator */}
-        <View style={styles.progressSection}>
-          <View style={styles.progressBar}>
-            <View 
-              style={[
-                styles.progressFill, 
-                { width: `${Math.min((friendCount / 10) * 100, 100)}%` }
-              ]} 
-            />
+        {friendCount < 3 && (
+          <View style={styles.progressSection}>
+            <View style={styles.progressBar}>
+              <View 
+                style={[
+                  styles.progressFill, 
+                  { width: `${Math.min((friendCount / 3) * 100, 100)}%` }
+                ]} 
+              />
+            </View>
+            <Text style={styles.progressText}>
+              Add {3 - friendCount} more to get started
+            </Text>
           </View>
-          <Text style={styles.progressText}>
-            {friendCount < 10 
-              ? `Add ${10 - friendCount} more to get started` 
-              : 'Great! You\'re ready to go'}
-          </Text>
-        </View>
+        )}
 
         {/* Continue Button */}
         <Animated.View 
           style={[
             styles.continueSection,
-            friendCount > 0 && { transform: [{ scale: pulseAnim }] }
+            friendCount >= 3 && { transform: [{ scale: pulseAnim }] }
           ]}
         >
           <TouchableOpacity 
             style={[
               styles.continueButton,
-              friendCount > 0 ? styles.continueButtonActive : styles.continueButtonDisabled
+              friendCount >= 3 ? styles.continueButtonActive : styles.continueButtonDisabled
             ]}
             onPress={handleContinueToFriendlist}
-            disabled={friendCount === 0}
+            disabled={friendCount < 3}
           >
             <Text style={[
               styles.continueButtonText,
-              friendCount > 0 ? styles.continueButtonTextActive : styles.continueButtonTextDisabled
+              friendCount >= 3 ? styles.continueButtonTextActive : styles.continueButtonTextDisabled
             ]}>
               Continue to Friendlist
             </Text>
-            {friendCount > 0 && (
+            {friendCount >= 3 && (
               <Text style={styles.continueButtonIcon}>→</Text>
             )}
           </TouchableOpacity>
           
-          {friendCount === 0 && (
+          {friendCount < 3 && (
             <Text style={styles.continueHint}>
-              Add at least one friend to continue
+              Add at least 3 friends to continue
             </Text>
           )}
         </Animated.View>
