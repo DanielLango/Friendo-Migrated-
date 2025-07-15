@@ -29,7 +29,7 @@ export default function LoginScreen() {
 
   React.useEffect(() => {
     if (isSignedIn) {
-      navigation.navigate('Onboarding');
+      navigation.navigate('AddFriends');
     }
   }, [isSignedIn, navigation]);
 
@@ -58,9 +58,7 @@ export default function LoginScreen() {
             {
               text: 'Continue to App',
               onPress: () => {
-                // Here you would typically integrate with your backend
-                // For now, we'll proceed to onboarding
-                navigation.navigate('Onboarding');
+                navigation.navigate('AddFriends');
               }
             }
           ]

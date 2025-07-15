@@ -65,9 +65,9 @@ export default function ManualAddScreen() {
             }
           },
           { 
-            text: 'Go to Main', 
+            text: 'Done', 
             style: 'default',
-            onPress: () => (navigation as any).navigate('Main') 
+            onPress: () => (navigation as any).navigate('AddFriends') 
           }
         ]);
       } catch (error) {

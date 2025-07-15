@@ -7,6 +7,7 @@ import { schema } from './basic.config';
 
 // Screens
 import LoginScreen from './screens/LoginScreen';
+import AddFriendsScreen from './screens/AddFriendsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import SyncScreen from './screens/SyncScreen';
 import ContactSelectScreen from './screens/ContactSelectScreen';
@@ -17,6 +18,7 @@ import MeetingCreateScreen from './screens/MeetingCreateScreen';
 
 export type RootStackParamList = {
   Login: undefined;
+  AddFriends: undefined;
   Onboarding: undefined;
   Sync: undefined;
   ContactSelect: { source: string };
@@ -26,7 +28,7 @@ export type RootStackParamList = {
   MeetingCreate: { friend: any };
 };
 
-const Stack = createStackNavigator<RootStackParamList>();
+const Stack = createStackNavigator();
 
 function AppContent() {
   return (
@@ -38,6 +40,7 @@ function AppContent() {
         }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         <Stack.Screen name="Sync" component={SyncScreen} />
         <Stack.Screen name="ContactSelect" component={ContactSelectScreen} />
