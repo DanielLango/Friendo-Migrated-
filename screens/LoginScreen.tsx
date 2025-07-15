@@ -46,15 +46,17 @@ export default function LoginScreen() {
   const handleGoogleLogin = async () => {
     try {
       setIsGoogleLoading(true);
+      
+      // Show a more informative loading message
       const user = await authenticateWithGoogle();
       
       if (user) {
         Alert.alert(
-          'Google Login Successful!',
-          `Welcome ${user.name}!\n\nEmail: ${user.email}`,
+          'Google Login Successful! 🎉',
+          `Welcome ${user.name}!\n\nEmail: ${user.email}\n\n✨ This is a demo authentication. In production, this would connect to real Google OAuth.`,
           [
             {
-              text: 'Continue',
+              text: 'Continue to App',
               onPress: () => {
                 // Here you would typically integrate with your backend
                 // For now, we'll proceed to onboarding
@@ -69,8 +71,8 @@ export default function LoginScreen() {
     } catch (error) {
       console.error('Google login error:', error);
       Alert.alert(
-        'Google Login Error',
-        'Failed to authenticate with Google. Please check your internet connection and try again.'
+        'Demo Authentication',
+        'This is a demo version of Google authentication.\n\nTo enable real Google login:\n• Set up Google Cloud Console\n• Configure OAuth credentials\n• Update client ID in the code\n\nSee docs/OAUTH_SETUP.md for details.'
       );
     } finally {
       setIsGoogleLoading(false);
@@ -84,11 +86,11 @@ export default function LoginScreen() {
       
       if (user) {
         Alert.alert(
-          'Facebook Login Successful!',
-          `Welcome ${user.name}!\n\nEmail: ${user.email}`,
+          'Facebook Login Successful! 🎉',
+          `Welcome ${user.name}!\n\nEmail: ${user.email}\n\n✨ This is a demo authentication. In production, this would connect to real Facebook OAuth.`,
           [
             {
-              text: 'Continue',
+              text: 'Continue to App',
               onPress: () => {
                 navigation.navigate('Onboarding');
               }
@@ -101,8 +103,8 @@ export default function LoginScreen() {
     } catch (error) {
       console.error('Facebook login error:', error);
       Alert.alert(
-        'Facebook Login Error',
-        'Failed to authenticate with Facebook. Please try again.'
+        'Demo Authentication',
+        'This is a demo version of Facebook authentication.\n\nTo enable real Facebook login:\n• Set up Facebook Developers account\n• Configure Facebook Login product\n• Update app ID in the code\n\nSee docs/OAUTH_SETUP.md for details.'
       );
     } finally {
       setIsFacebookLoading(false);
@@ -176,6 +178,11 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.socialContainer}>
+          <View style={styles.demoNotice}>
+            <Text style={styles.demoText}>🚀 Demo Mode Active</Text>
+            <Text style={styles.demoSubtext}>Social logins are simulated for demonstration</Text>
+          </View>
+
           <TouchableOpacity 
             style={[styles.socialButton, isGoogleLoading && styles.socialButtonDisabled]}
             onPress={handleGoogleLogin}
@@ -315,6 +322,26 @@ const styles = StyleSheet.create({
   },
   socialContainer: {
     marginBottom: 30,
+  },
+  demoNotice: {
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#BBDEFB',
+  },
+  demoText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1976D2',
+    textAlign: 'center',
+  },
+  demoSubtext: {
+    fontSize: 12,
+    color: '#1976D2',
+    textAlign: 'center',
+    marginTop: 2,
   },
   socialButton: {
     flexDirection: 'row',

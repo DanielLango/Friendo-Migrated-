@@ -55,12 +55,20 @@ export default function ManualAddScreen() {
         });
 
         Alert.alert('Success', 'Friend added successfully!', [
-          { text: 'Add Another', onPress: () => {
-            setFullName('');
-            setIsOnline(false);
-            setIsLocal(false);
-          }},
-          { text: 'Go to Main', onPress: () => (navigation as any).navigate('Main') }
+          { 
+            text: 'Add Another', 
+            style: 'default',
+            onPress: () => {
+              setFullName('');
+              setIsOnline(false);
+              setIsLocal(false);
+            }
+          },
+          { 
+            text: 'Go to Main', 
+            style: 'default',
+            onPress: () => (navigation as any).navigate('Main') 
+          }
         ]);
       } catch (error) {
         console.error('Error adding friend:', error);

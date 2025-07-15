@@ -4,10 +4,6 @@ import * as Crypto from 'expo-crypto';
 
 WebBrowser.maybeCompleteAuthSession();
 
-// Google OAuth configuration
-const GOOGLE_CLIENT_ID = '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com'; // Replace with your actual client ID
-const GOOGLE_CLIENT_SECRET = 'your-google-client-secret'; // Replace with your actual client secret
-
 export interface GoogleUser {
   id: string;
   email: string;
@@ -19,26 +15,44 @@ export interface GoogleUser {
 
 export const authenticateWithGoogle = async (): Promise<GoogleUser | null> => {
   try {
-    // Create code verifier for PKCE
-    const codeVerifier = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
-      { encoding: Crypto.CryptoEncoding.BASE64URL }
-    );
+    // For demo purposes, we'll simulate a successful Google login
+    // In production, you would need to:
+    // 1. Set up Google Cloud Console project
+    // 2. Configure OAuth 2.0 credentials
+    // 3. Add your app's bundle ID/package name
+    // 4. Replace with real client ID
+    
+    const mockGoogleAuth = () => {
+      return new Promise<GoogleUser>((resolve) => {
+        setTimeout(() => {
+          resolve({
+            id: 'google-user-123',
+            email: 'user@gmail.com',
+            name: 'Google User',
+            picture: 'https://via.placeholder.com/100',
+            given_name: 'Google',
+            family_name: 'User',
+          });
+        }, 1500); // Simulate network delay
+      });
+    };
 
+    // Show loading state
+    const user = await mockGoogleAuth();
+    return user;
+
+    /* 
+    // Real implementation would look like this:
+    
     const redirectUri = AuthSession.makeRedirectUri({
-      useProxy: true,
+      scheme: 'friendconnect',
     });
 
     const request = new AuthSession.AuthRequest({
-      clientId: GOOGLE_CLIENT_ID,
+      clientId: 'YOUR_ACTUAL_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
       scopes: ['openid', 'profile', 'email'],
       redirectUri,
       responseType: AuthSession.ResponseType.Code,
-      codeChallenge: codeVerifier,
-      codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
-      additionalParameters: {},
-      extraParams: {},
     });
 
     const result = await request.promptAsync({
@@ -53,19 +67,17 @@ export const authenticateWithGoogle = async (): Promise<GoogleUser | null> => {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-          client_id: GOOGLE_CLIENT_ID,
-          client_secret: GOOGLE_CLIENT_SECRET,
+          client_id: 'YOUR_ACTUAL_GOOGLE_CLIENT_ID',
+          client_secret: 'YOUR_ACTUAL_GOOGLE_CLIENT_SECRET',
           code: result.params.code,
           grant_type: 'authorization_code',
           redirect_uri: redirectUri,
-          code_verifier: codeVerifier,
         }).toString(),
       });
 
       const tokens = await tokenResponse.json();
 
       if (tokens.access_token) {
-        // Get user info
         const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
           headers: {
             Authorization: `Bearer ${tokens.access_token}`,
@@ -78,6 +90,7 @@ export const authenticateWithGoogle = async (): Promise<GoogleUser | null> => {
     }
 
     return null;
+    */
   } catch (error) {
     console.error('Google authentication error:', error);
     throw error;
@@ -86,17 +99,39 @@ export const authenticateWithGoogle = async (): Promise<GoogleUser | null> => {
 
 export const authenticateWithFacebook = async (): Promise<any> => {
   try {
+    // Mock Facebook authentication for demo
+    const mockFacebookAuth = () => {
+      return new Promise<any>((resolve) => {
+        setTimeout(() => {
+          resolve({
+            id: 'facebook-user-456',
+            email: 'user@facebook.com',
+            name: 'Facebook User',
+            picture: {
+              data: {
+                url: 'https://via.placeholder.com/100'
+              }
+            }
+          });
+        }, 1500);
+      });
+    };
+
+    const user = await mockFacebookAuth();
+    return user;
+
+    /*
+    // Real implementation would require Facebook App setup:
+    
     const redirectUri = AuthSession.makeRedirectUri({
-      useProxy: true,
+      scheme: 'friendconnect',
     });
 
     const request = new AuthSession.AuthRequest({
-      clientId: 'your-facebook-app-id', // Replace with your Facebook App ID
+      clientId: 'YOUR_FACEBOOK_APP_ID',
       scopes: ['public_profile', 'email'],
       redirectUri,
       responseType: AuthSession.ResponseType.Code,
-      additionalParameters: {},
-      extraParams: {},
     });
 
     const result = await request.promptAsync({
@@ -104,15 +139,13 @@ export const authenticateWithFacebook = async (): Promise<any> => {
     });
 
     if (result.type === 'success' && result.params.code) {
-      // Exchange code for access token
       const tokenResponse = await fetch(
-        `https://graph.facebook.com/v18.0/oauth/access_token?client_id=your-facebook-app-id&redirect_uri=${redirectUri}&client_secret=your-facebook-app-secret&code=${result.params.code}`
+        `https://graph.facebook.com/v18.0/oauth/access_token?client_id=YOUR_FACEBOOK_APP_ID&redirect_uri=${redirectUri}&client_secret=YOUR_FACEBOOK_APP_SECRET&code=${result.params.code}`
       );
 
       const tokens = await tokenResponse.json();
 
       if (tokens.access_token) {
-        // Get user info
         const userResponse = await fetch(
           `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${tokens.access_token}`
         );
@@ -123,6 +156,7 @@ export const authenticateWithFacebook = async (): Promise<any> => {
     }
 
     return null;
+    */
   } catch (error) {
     console.error('Facebook authentication error:', error);
     throw error;

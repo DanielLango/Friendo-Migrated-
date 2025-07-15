@@ -32,7 +32,6 @@ function AppContent() {
   return (
     <NavigationContainer>
       <Stack.Navigator 
-        id="RootStack"
         initialRouteName="Login"
         screenOptions={{
           headerShown: false,

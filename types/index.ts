@@ -7,7 +7,7 @@ export interface Friend {
   isLocal: boolean;
   profilePicture?: string;
   city?: string;
-  source: 'facebook' | 'instagram' | 'snapchat' | 'whatsapp' | 'linkedin' | 'telegram' | 'viber' | 'signal' | 'tiktok' | 'pinterest' | 'messenger' | 'apple' | 'google' | 'manual';
+  source: 'facebook' | 'instagram' | 'snapchat' | 'whatsapp' | 'linkedin' | 'telegram' | 'viber' | 'signal' | 'tiktok' | 'pinterest' | 'messenger' | 'apple' | 'google' | 'manual' | 'phone-contacts';
   notificationFrequency: 'days' | 'weekly' | 'monthly';
   notificationDays: number;
   createdAt: number;

@@ -84,7 +84,7 @@ export default function StatsScreen() {
           return {
             friend: friend as Friend,
             meetingCount: friendMeetings.length,
-            lastMeeting: lastMeeting?.date,
+            lastMeeting: lastMeeting?.date ? String(lastMeeting.date) : undefined,
           };
         });
 
