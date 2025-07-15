@@ -13,6 +13,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import { Friend } from '../types';
 import { activityTypes } from '../utils/mockData';
+import { sendFriendInvitation, sendMeetingReminder } from '../utils/emailUtils';
+import { createMeetingEvent, createAndDownloadMeetingICS } from '../utils/calendarUtils';
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -23,10 +25,11 @@ export default function MeetingCreateScreen() {
   const [appleCalendar, setAppleCalendar] = useState(false);
   const [sendInvitation, setSendInvitation] = useState(false);
   const [friendEmail, setFriendEmail] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
   
   const navigation = useNavigation();
   const route = useRoute();
-  const { db } = useBasic();
+  const { db, user } = useBasic();
   
   const friend = (route.params as any)?.friend as Friend;
 
@@ -41,8 +44,16 @@ export default function MeetingCreateScreen() {
       return;
     }
 
-    if (db) {
-      try {
+    if (sendInvitation && !friendEmail.trim()) {
+      Alert.alert('Error', 'Please enter friend\'s email to send invitation');
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      if (db) {
+        // Create meeting in database
         await db.from('meetings').add({
           friendId: friend.id,
           date: selectedDate,
@@ -52,13 +63,42 @@ export default function MeetingCreateScreen() {
           createdAt: Date.now(),
         });
 
-        Alert.alert('Success', 'Meeting scheduled successfully!', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
-      } catch (error) {
-        console.error('Error creating meeting:', error);
-        Alert.alert('Error', 'Failed to schedule meeting. Please try again.');
+        const meetingDate = new Date(selectedDate);
+        
+        // Handle calendar integration
+        if (googleCalendar || outlookCalendar || appleCalendar) {
+          if (googleCalendar || appleCalendar) {
+            // Add to device calendar
+            await createMeetingEvent(friend, meetingDate);
+          }
+          
+          if (outlookCalendar || googleCalendar) {
+            // Create downloadable ICS file
+            await createAndDownloadMeetingICS(friend, meetingDate);
+          }
+        }
+
+        // Send email invitation if requested
+        if (sendInvitation && friendEmail.trim()) {
+          const friendWithEmail = { ...friend, email: friendEmail.trim() };
+          const emailSent = await sendFriendInvitation(friendWithEmail, user?.email || 'friendo-user@example.com');
+          
+          if (emailSent) {
+            Alert.alert('Success', 'Meeting scheduled and invitation sent!');
+          } else {
+            Alert.alert('Partial Success', 'Meeting scheduled but failed to send invitation.');
+          }
+        } else {
+          Alert.alert('Success', 'Meeting scheduled successfully!');
+        }
+
+        navigation.goBack();
       }
+    } catch (error) {
+      console.error('Error creating meeting:', error);
+      Alert.alert('Error', 'Failed to schedule meeting. Please try again.');
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -130,7 +170,7 @@ export default function MeetingCreateScreen() {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Sync to Calendar</Text>
+          <Text style={styles.sectionTitle}>📅 Sync to Calendar</Text>
           
           <TouchableOpacity
             style={styles.checkboxContainer}
@@ -139,7 +179,10 @@ export default function MeetingCreateScreen() {
             <View style={[styles.checkbox, googleCalendar && styles.checkboxChecked]}>
               {googleCalendar && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Google Calendar</Text>
+            <View style={styles.checkboxContent}>
+              <Text style={styles.checkboxLabel}>Google Calendar</Text>
+              <Text style={styles.checkboxSubtext}>Add to device calendar + download ICS</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -149,7 +192,10 @@ export default function MeetingCreateScreen() {
             <View style={[styles.checkbox, outlookCalendar && styles.checkboxChecked]}>
               {outlookCalendar && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Outlook</Text>
+            <View style={styles.checkboxContent}>
+              <Text style={styles.checkboxLabel}>Outlook</Text>
+              <Text style={styles.checkboxSubtext}>Download ICS file for import</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -159,7 +205,10 @@ export default function MeetingCreateScreen() {
             <View style={[styles.checkbox, appleCalendar && styles.checkboxChecked]}>
               {appleCalendar && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Apple Calendar</Text>
+            <View style={styles.checkboxContent}>
+              <Text style={styles.checkboxLabel}>Apple Calendar</Text>
+              <Text style={styles.checkboxSubtext}>Add to device calendar</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -171,7 +220,10 @@ export default function MeetingCreateScreen() {
             <View style={[styles.checkbox, sendInvitation && styles.checkboxChecked]}>
               {sendInvitation && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Also send invitation to the friend?</Text>
+            <View style={styles.checkboxContent}>
+              <Text style={styles.checkboxLabel}>📧 Send invitation to friend</Text>
+              <Text style={styles.checkboxSubtext}>Email invitation with meeting details</Text>
+            </View>
           </TouchableOpacity>
 
           {sendInvitation && (
@@ -179,15 +231,21 @@ export default function MeetingCreateScreen() {
               style={styles.emailInput}
               value={friendEmail}
               onChangeText={setFriendEmail}
-              placeholder="Email of friend:"
+              placeholder="Friend's email address"
               keyboardType="email-address"
               autoCapitalize="none"
             />
           )}
         </View>
 
-        <TouchableOpacity style={styles.createButton} onPress={handleCreateMeeting}>
-          <Text style={styles.createButtonText}>Schedule Meeting</Text>
+        <TouchableOpacity 
+          style={[styles.createButton, isCreating && styles.createButtonDisabled]} 
+          onPress={handleCreateMeeting}
+          disabled={isCreating}
+        >
+          <Text style={styles.createButtonText}>
+            {isCreating ? 'Creating Meeting...' : 'Schedule Meeting'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -283,7 +341,7 @@ const styles = StyleSheet.create({
   },
   checkboxContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 15,
   },
   checkbox: {
@@ -295,6 +353,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 2,
   },
   checkboxChecked: {
     backgroundColor: '#8000FF',
@@ -304,10 +363,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
+  checkboxContent: {
+    flex: 1,
+  },
   checkboxLabel: {
     fontSize: 16,
     color: '#333333',
-    flex: 1,
+    fontWeight: '500',
+  },
+  checkboxSubtext: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 2,
   },
   emailInput: {
     borderWidth: 1,
@@ -317,6 +384,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     marginTop: 10,
+    marginLeft: 32,
   },
   createButton: {
     backgroundColor: '#4CAF50',
@@ -324,6 +392,9 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     marginVertical: 30,
+  },
+  createButtonDisabled: {
+    backgroundColor: '#CCCCCC',
   },
   createButtonText: {
     color: '#FFFFFF',

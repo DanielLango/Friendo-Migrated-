@@ -10,29 +10,62 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { contactSources } from '../utils/mockData';
+import { 
+  syncPhoneContacts, 
+  syncFacebookContacts, 
+  syncInstagramContacts, 
+  syncWhatsAppContacts, 
+  syncLinkedInContacts 
+} from '../utils/contactSyncUtils';
 
 export default function SyncScreen() {
   const [selectedFriends, setSelectedFriends] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
 
-  const handleSourcePress = (source: any) => {
-    if (['facebook', 'instagram', 'whatsapp'].includes(source.id)) {
-      // Simulate OAuth flow
-      Alert.alert(
-        'Permissions',
-        `You will receive: your name and profile picture, friends list and email address.`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: `Continue as User`, 
-            onPress: () => {
-              (navigation as any).navigate('ContactSelect', { source: source.id });
-            }
-          }
-        ]
-      );
-    } else {
-      Alert.alert('Coming Soon', `${source.name} sync will be available soon!`);
+  const handleSourcePress = async (source: any) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+
+    try {
+      let syncResult;
+
+      switch (source.id) {
+        case 'phone':
+          syncResult = await syncPhoneContacts();
+          break;
+        case 'facebook':
+          syncResult = await syncFacebookContacts();
+          break;
+        case 'instagram':
+          syncResult = await syncInstagramContacts();
+          break;
+        case 'whatsapp':
+          syncResult = await syncWhatsAppContacts();
+          break;
+        case 'linkedin':
+          syncResult = await syncLinkedInContacts();
+          break;
+        default:
+          Alert.alert('Coming Soon', `${source.name} sync will be available soon!`);
+          setIsLoading(false);
+          return;
+      }
+
+      if (syncResult.success) {
+        (navigation as any).navigate('ContactSelect', { 
+          source: source.id, 
+          contacts: syncResult.contacts 
+        });
+      } else {
+        Alert.alert('Sync Failed', syncResult.error || 'Failed to sync contacts');
+      }
+    } catch (error) {
+      console.error('Error syncing contacts:', error);
+      Alert.alert('Error', 'An unexpected error occurred while syncing contacts');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -51,11 +84,19 @@ export default function SyncScreen() {
           {contactSources.map((source) => (
             <TouchableOpacity
               key={source.id}
-              style={[styles.iconButton, { borderColor: source.color }]}
+              style={[
+                styles.iconButton, 
+                { borderColor: source.color },
+                isLoading && styles.iconButtonDisabled
+              ]}
               onPress={() => handleSourcePress(source)}
+              disabled={isLoading}
             >
               <Text style={styles.iconEmoji}>{source.icon}</Text>
               <Text style={styles.iconLabel}>{source.name}</Text>
+              {isLoading && (
+                <Text style={styles.loadingText}>...</Text>
+              )}
             </TouchableOpacity>
           ))}
         </View>
@@ -70,6 +111,16 @@ export default function SyncScreen() {
         <Text style={styles.counterText}>
           Number of Friends Selected so far: {selectedFriends}/50
         </Text>
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoTitle}>🔒 Privacy & Security</Text>
+          <Text style={styles.infoText}>
+            • We only access basic profile information{'\n'}
+            • Your contacts are stored securely{'\n'}
+            • You can remove synced data anytime{'\n'}
+            • We never post on your behalf
+          </Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -108,6 +159,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#FAFAFA',
   },
+  iconButtonDisabled: {
+    opacity: 0.6,
+  },
   iconEmoji: {
     fontSize: 24,
     marginBottom: 5,
@@ -118,6 +172,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
   },
+  loadingText: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 2,
+  },
   manualButton: {
     backgroundColor: '#8000FF',
     borderRadius: 8,
@@ -126,7 +185,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   manualButtonText: {
-    color: '#000000',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -135,5 +194,24 @@ const styles = StyleSheet.create({
     color: '#A94EFF',
     textAlign: 'center',
     fontWeight: '500',
+    marginBottom: 30,
+  },
+  infoContainer: {
+    backgroundColor: '#F8F4FF',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E0D4FF',
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 10,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 20,
   },
 });

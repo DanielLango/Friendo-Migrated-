@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "user-app",
+    "scheme": "friendconnect",
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
@@ -15,14 +15,23 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "dev.kiki.userapp.6378f569"
+      "bundleIdentifier": "dev.kiki.userapp.6378f569",
+      "infoPlist": {
+        "NSCalendarsUsageDescription": "This app needs access to your calendar to add meeting events.",
+        "NSContactsUsageDescription": "This app needs access to your contacts to help you find friends."
+      }
     },
     "android": {
       "package": "dev.kiki.userapp.gdhipfgj",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.READ_CONTACTS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -46,7 +55,9 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-mail-composer",
+      "expo-calendar"
     ],
     "experiments": {
       "typedRoutes": true

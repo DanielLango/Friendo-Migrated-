@@ -12,10 +12,7 @@ import { useBasic } from '@basictech/expo';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
-import * as AuthSession from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
-
-WebBrowser.maybeCompleteAuthSession();
+import { authenticateWithGoogle, authenticateWithFacebook } from '../utils/authUtils';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -24,6 +21,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   
   const { login, isLoading, isSignedIn } = useBasic();
   const navigation = useNavigation<LoginScreenNavigationProp>();
@@ -46,39 +45,68 @@ export default function LoginScreen() {
 
   const handleGoogleLogin = async () => {
     try {
-      const redirectUri = AuthSession.makeRedirectUri({
-        useProxy: true,
-      });
-
-      const request = new AuthSession.AuthRequest({
-        clientId: 'YOUR_GOOGLE_CLIENT_ID', // You'll need to configure this
-        scopes: ['openid', 'profile', 'email'],
-        redirectUri,
-        responseType: AuthSession.ResponseType.Code,
-        additionalParameters: {},
-        extraParams: {},
-      });
-
-      const result = await request.promptAsync({
-        authorizationEndpoint: 'https://accounts.google.com/oauth/authorize',
-      });
-
-      if (result.type === 'success') {
-        // Handle successful Google authentication
-        Alert.alert('Success', 'Google login successful!');
-        // You would typically exchange the code for tokens here
-        // and then integrate with your backend authentication
+      setIsGoogleLoading(true);
+      const user = await authenticateWithGoogle();
+      
+      if (user) {
+        Alert.alert(
+          'Google Login Successful!',
+          `Welcome ${user.name}!\n\nEmail: ${user.email}`,
+          [
+            {
+              text: 'Continue',
+              onPress: () => {
+                // Here you would typically integrate with your backend
+                // For now, we'll proceed to onboarding
+                navigation.navigate('Onboarding');
+              }
+            }
+          ]
+        );
       } else {
-        Alert.alert('Cancelled', 'Google login was cancelled');
+        Alert.alert('Login Cancelled', 'Google login was cancelled or failed.');
       }
     } catch (error) {
       console.error('Google login error:', error);
-      Alert.alert('Error', 'Google login failed. Please try again.');
+      Alert.alert(
+        'Google Login Error',
+        'Failed to authenticate with Google. Please check your internet connection and try again.'
+      );
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
   const handleFacebookLogin = async () => {
-    Alert.alert('Facebook Login', 'Facebook authentication would be implemented here with expo-auth-session');
+    try {
+      setIsFacebookLoading(true);
+      const user = await authenticateWithFacebook();
+      
+      if (user) {
+        Alert.alert(
+          'Facebook Login Successful!',
+          `Welcome ${user.name}!\n\nEmail: ${user.email}`,
+          [
+            {
+              text: 'Continue',
+              onPress: () => {
+                navigation.navigate('Onboarding');
+              }
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Login Cancelled', 'Facebook login was cancelled or failed.');
+      }
+    } catch (error) {
+      console.error('Facebook login error:', error);
+      Alert.alert(
+        'Facebook Login Error',
+        'Failed to authenticate with Facebook. Please try again.'
+      );
+    } finally {
+      setIsFacebookLoading(false);
+    }
   };
 
   return (
@@ -149,19 +177,25 @@ export default function LoginScreen() {
 
         <View style={styles.socialContainer}>
           <TouchableOpacity 
-            style={styles.socialButton}
+            style={[styles.socialButton, isGoogleLoading && styles.socialButtonDisabled]}
             onPress={handleGoogleLogin}
+            disabled={isGoogleLoading}
           >
             <Text style={styles.socialIcon}>🔍</Text>
-            <Text style={styles.socialText}>Continue with Google</Text>
+            <Text style={styles.socialText}>
+              {isGoogleLoading ? 'Connecting to Google...' : 'Continue with Google'}
+            </Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={styles.socialButton}
+            style={[styles.socialButton, isFacebookLoading && styles.socialButtonDisabled]}
             onPress={handleFacebookLogin}
+            disabled={isFacebookLoading}
           >
             <Text style={styles.socialIcon}>📘</Text>
-            <Text style={styles.socialText}>Continue with Facebook</Text>
+            <Text style={styles.socialText}>
+              {isFacebookLoading ? 'Connecting to Facebook...' : 'Continue with Facebook'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -293,6 +327,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 10,
     backgroundColor: '#FFFFFF',
+  },
+  socialButtonDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#F5F5F5',
   },
   socialIcon: {
     fontSize: 20,

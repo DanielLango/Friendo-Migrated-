@@ -3501,6 +3501,11 @@ expo-blur@~14.1.5:
   resolved "https://registry.yarnpkg.com/expo-blur/-/expo-blur-14.1.5.tgz#910712389e19286ccdc136275bf569f427aa05ef"
   integrity sha512-CCLJHxN4eoAl06ESKT3CbMasJ98WsjF9ZQEJnuxtDb9ffrYbZ+g9ru84fukjNUOTtc8A8yXE5z8NgY1l0OMrmQ==
 
+expo-calendar@~14.1.4:
+  version "14.1.4"
+  resolved "https://registry.yarnpkg.com/expo-calendar/-/expo-calendar-14.1.4.tgz#2782b613f8b7a13da63caa7952c04e8b52df225f"
+  integrity sha512-4h23qUBqQNIvLsx2FfL6DcmxgZvhCbMqUN55UQIiBeHlCnyrcNu6Fo9c179aWsgh35nbD+mntt1AaEOplHTzeg==
+
 expo-constants@~17.1.7:
   version "17.1.7"
   resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-17.1.7.tgz#35194c1cef51f1ea756333418f1e077be79a012b"
@@ -3508,6 +3513,11 @@ expo-constants@~17.1.7:
   dependencies:
     "@expo/config" "~11.0.12"
     "@expo/env" "~1.0.7"
+
+expo-contacts@~14.2.5:
+  version "14.2.5"
+  resolved "https://registry.yarnpkg.com/expo-contacts/-/expo-contacts-14.2.5.tgz#fe2d933ff425c2c5e3377d53853f4ed7906ef974"
+  integrity sha512-yiVmXrLKBCcBkwsaHFlbs0f7UwE2t7Aa1NBOK4Y06ya0Y5WyE6I/P5ZAtWNjXnKmbV7iNKAiPUzqVaNazhCtWA==
 
 expo-crypto@~14.1.5:
   version "14.1.5"
@@ -3545,6 +3555,11 @@ expo-linking@~7.1.7:
   dependencies:
     expo-constants "~17.1.7"
     invariant "^2.2.4"
+
+expo-mail-composer@~14.1.5:
+  version "14.1.5"
+  resolved "https://registry.yarnpkg.com/expo-mail-composer/-/expo-mail-composer-14.1.5.tgz#357d75172f930cc5533f0ecd4b67f6d169c4448f"
+  integrity sha512-5Zs3UGT3TzYenLd72MKqwVG5f3BmG7Iuwg9r/ZgcDusjSB8YAkwXzsbouERClRP9NekMKz1ETQBfgouxuP6/qw==
 
 expo-modules-autolinking@2.1.14:
   version "2.1.14"
