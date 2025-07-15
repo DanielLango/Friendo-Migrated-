@@ -12,6 +12,10 @@ import { useBasic } from '@basictech/expo';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -30,7 +34,7 @@ export default function LoginScreen() {
     }
   }, [isSignedIn, navigation]);
 
-  const handleLogin = async () => {
+  const handleBasicTechLogin = async () => {
     try {
       await login();
       // If login succeeds, navigation will happen via useEffect
@@ -40,8 +44,41 @@ export default function LoginScreen() {
     }
   };
 
-  const handleSocialLogin = (platform: string) => {
-    Alert.alert('Coming Soon', `${platform} login will be available soon!`);
+  const handleGoogleLogin = async () => {
+    try {
+      const redirectUri = AuthSession.makeRedirectUri({
+        useProxy: true,
+      });
+
+      const request = new AuthSession.AuthRequest({
+        clientId: 'YOUR_GOOGLE_CLIENT_ID', // You'll need to configure this
+        scopes: ['openid', 'profile', 'email'],
+        redirectUri,
+        responseType: AuthSession.ResponseType.Code,
+        additionalParameters: {},
+        extraParams: {},
+      });
+
+      const result = await request.promptAsync({
+        authorizationEndpoint: 'https://accounts.google.com/oauth/authorize',
+      });
+
+      if (result.type === 'success') {
+        // Handle successful Google authentication
+        Alert.alert('Success', 'Google login successful!');
+        // You would typically exchange the code for tokens here
+        // and then integrate with your backend authentication
+      } else {
+        Alert.alert('Cancelled', 'Google login was cancelled');
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      Alert.alert('Error', 'Google login failed. Please try again.');
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    Alert.alert('Facebook Login', 'Facebook authentication would be implemented here with expo-auth-session');
   };
 
   return (
@@ -50,7 +87,7 @@ export default function LoginScreen() {
         <Text style={styles.title}>LOGIN</Text>
         
         <Text style={styles.subtitle}>
-          Please sign in with Basic Tech to use the Friendo app
+          Please sign in to use the Friendo app
         </Text>
         
         <View style={styles.inputContainer}>
@@ -96,7 +133,7 @@ export default function LoginScreen() {
 
         <TouchableOpacity 
           style={styles.loginButton}
-          onPress={handleLogin}
+          onPress={handleBasicTechLogin}
           disabled={isLoading}
         >
           <Text style={styles.loginButtonText}>
@@ -104,21 +141,27 @@ export default function LoginScreen() {
           </Text>
         </TouchableOpacity>
 
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>OR</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
         <View style={styles.socialContainer}>
           <TouchableOpacity 
             style={styles.socialButton}
-            onPress={() => handleSocialLogin('Facebook')}
+            onPress={handleGoogleLogin}
           >
-            <Text style={styles.socialIcon}>📘</Text>
-            <Text style={styles.socialText}>Facebook</Text>
+            <Text style={styles.socialIcon}>🔍</Text>
+            <Text style={styles.socialText}>Continue with Google</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
             style={styles.socialButton}
-            onPress={() => handleSocialLogin('Google')}
+            onPress={handleFacebookLogin}
           >
-            <Text style={styles.socialIcon}>🔍</Text>
-            <Text style={styles.socialText}>Google</Text>
+            <Text style={styles.socialIcon}>📘</Text>
+            <Text style={styles.socialText}>Continue with Facebook</Text>
           </TouchableOpacity>
         </View>
 
@@ -214,12 +257,27 @@ const styles = StyleSheet.create({
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   loginButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E0E0E0',
+  },
+  dividerText: {
+    marginHorizontal: 15,
+    color: '#666666',
+    fontSize: 14,
   },
   socialContainer: {
     marginBottom: 30,
@@ -227,12 +285,14 @@ const styles = StyleSheet.create({
   socialButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 8,
     height: 50,
     paddingHorizontal: 15,
     marginBottom: 10,
+    backgroundColor: '#FFFFFF',
   },
   socialIcon: {
     fontSize: 20,
@@ -241,6 +301,7 @@ const styles = StyleSheet.create({
   socialText: {
     fontSize: 16,
     color: '#333333',
+    fontWeight: '500',
   },
   signupContainer: {
     alignItems: 'center',
