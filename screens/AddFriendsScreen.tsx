@@ -153,7 +153,7 @@ export default function AddFriendsScreen() {
               <Text style={styles.buttonIcon}>👥</Text>
               <View style={styles.buttonTextContainer}>
                 <Text style={styles.buttonTitle}>Add Friend</Text>
-                <Text style={styles.buttonSubtitle}>Start building your friendship network</Text>
+                <Text style={styles.buttonSubtitle}>Build your friendship list</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -287,15 +287,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   statNumber: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#8000FF',
-    marginBottom: 4,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   statLabel: {
     fontSize: 14,
     color: '#666666',
-    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 18,
   },
   actionsSection: {
     marginBottom: 30,

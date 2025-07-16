@@ -48,6 +48,12 @@ export default function FriendRow({
             </Text>
           </View>
         </View>
+        <TouchableOpacity
+          style={styles.scheduleButton}
+          onPress={() => onScheduleNext(friend)}
+        >
+          <Text style={styles.scheduleText}>Schedule next</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Meetings Section */}
@@ -80,13 +86,6 @@ export default function FriendRow({
 
       {/* Actions Section */}
       <View style={styles.actionsSection}>
-        <TouchableOpacity
-          style={styles.scheduleButton}
-          onPress={() => onScheduleNext(friend)}
-        >
-          <Text style={styles.scheduleText}>Log Meeting</Text>
-        </TouchableOpacity>
-        
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={() => setShowNotificationModal(true)}
@@ -190,22 +189,22 @@ const styles = StyleSheet.create({
   },
   actionsSection: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   scheduleButton: {
-    backgroundColor: '#8000FF',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    flex: 1,
-    marginRight: 12,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginLeft: 8,
   },
   scheduleText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: '#4CAF50',
+    fontSize: 12,
     fontWeight: 'bold',
-    textAlign: 'center',
   },
   notificationButton: {
     padding: 8,
