@@ -36,7 +36,17 @@ export default function FriendRow({
     <View style={styles.container}>
       <View style={styles.leftSection}>
         <Text style={styles.avatar}>{friend.profilePicture || '👤'}</Text>
-        <Text style={styles.name}>{friend.name}</Text>
+        <View style={styles.nameContainer}>
+          <Text style={styles.name}>{friend.name}</Text>
+          <View style={styles.friendTypeContainer}>
+            <Text style={styles.friendTypeIcon}>
+              {friend.friendType === 'online' ? '🌐' : '📡'}
+            </Text>
+            <Text style={styles.friendTypeText}>
+              {friend.friendType === 'online' ? 'Online' : 'Local'}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.middleSection}>
@@ -109,10 +119,26 @@ const styles = StyleSheet.create({
     fontSize: 30,
     marginRight: 12,
   },
+  nameContainer: {
+    flex: 1,
+  },
   name: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333333',
+    marginBottom: 2,
+  },
+  friendTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  friendTypeIcon: {
+    fontSize: 12,
+    marginRight: 4,
+  },
+  friendTypeText: {
+    fontSize: 12,
+    color: '#666666',
   },
   middleSection: {
     flex: 2,

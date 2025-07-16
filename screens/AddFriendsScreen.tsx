@@ -143,26 +143,13 @@ export default function AddFriendsScreen() {
         <View style={styles.actionsSection}>
           <TouchableOpacity 
             style={styles.primaryButton}
-            onPress={handleSyncContacts}
-          >
-            <View style={styles.buttonContent}>
-              <Text style={styles.buttonIcon}>🔄</Text>
-              <View style={styles.buttonTextContainer}>
-                <Text style={styles.buttonTitle}>Sync from Contacts</Text>
-                <Text style={styles.buttonSubtitle}>Import from social media & phone</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.secondaryButton}
             onPress={handleManualAdd}
           >
             <View style={styles.buttonContent}>
-              <Text style={styles.buttonIcon}>✏️</Text>
+              <Text style={styles.buttonIcon}>👥</Text>
               <View style={styles.buttonTextContainer}>
-                <Text style={styles.buttonTitleSecondary}>Add Manually</Text>
-                <Text style={styles.buttonSubtitleSecondary}>Enter friend details yourself</Text>
+                <Text style={styles.buttonTitle}>Add Friend</Text>
+                <Text style={styles.buttonSubtitle}>Start building your friendship network</Text>
               </View>
             </View>
           </TouchableOpacity>

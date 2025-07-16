@@ -7,6 +7,7 @@ import { schema } from './basic.config';
 
 // Screens
 import LoginScreen from './screens/LoginScreen';
+import ReflectOnFriendsScreen from './screens/ReflectOnFriendsScreen';
 import AddFriendsScreen from './screens/AddFriendsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import SyncScreen from './screens/SyncScreen';
@@ -18,6 +19,7 @@ import MeetingCreateScreen from './screens/MeetingCreateScreen';
 
 export type RootStackParamList = {
   Login: undefined;
+  ReflectOnFriends: undefined;
   AddFriends: undefined;
   Onboarding: undefined;
   Sync: undefined;
@@ -38,8 +40,10 @@ function AppContent() {
         screenOptions={{
           headerShown: false,
         }}
+        {...({} as any)}
       >
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="ReflectOnFriends" component={ReflectOnFriendsScreen} />
         <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         <Stack.Screen name="Sync" component={SyncScreen} />

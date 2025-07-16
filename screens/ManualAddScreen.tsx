@@ -100,13 +100,14 @@ export default function ManualAddScreen() {
           </View>
         )}
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Full Name</Text>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Nickname of your friend</Text>
+          <Text style={styles.sublabel}>How you like to call the person</Text>
           <TextInput
             style={styles.input}
+            placeholder="e.g., Alex, Johnny, Sarah..."
             value={fullName}
             onChangeText={setFullName}
-            placeholder="Enter friend's name"
           />
         </View>
 
@@ -220,7 +221,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
   },
-  inputContainer: {
+  inputGroup: {
     marginBottom: 30,
   },
   label: {
@@ -272,6 +273,12 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     fontSize: 16,
     color: '#333333',
+  },
+  sublabel: {
+    fontSize: 14,
+    color: '#999999',
+    marginBottom: 8,
+    fontStyle: 'italic',
   },
   buttonContainer: {
     flexDirection: 'row',
