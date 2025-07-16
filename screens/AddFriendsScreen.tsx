@@ -105,6 +105,10 @@ export default function AddFriendsScreen() {
     }
   };
 
+  const handleAddMore = () => {
+    (navigation as any).navigate('ManualAdd');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View 
@@ -272,12 +276,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
-    minWidth: 120,
-    shadowColor: '#8000FF',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 12,
+    shadowRadius: 8,
     elevation: 4,
+    flex: 1,
+    marginHorizontal: 8,
+    minHeight: 100,
+    justifyContent: 'center',
   },
   statNumber: {
     fontSize: 28,

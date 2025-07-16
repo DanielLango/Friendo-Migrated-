@@ -91,7 +91,7 @@ export default function MainScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Friendo</Text>
-        <Text style={styles.subtitle}>Your Friends ({friends.length}/50)</Text>
+        <Text style={styles.subtitle}>Your Friends ({friends.length})</Text>
       </View>
 
       <FlatList
@@ -99,20 +99,21 @@ export default function MainScreen() {
         renderItem={renderFriend}
         keyExtractor={(item) => item.id}
         style={styles.friendsList}
+        contentContainerStyle={styles.friendsListContent}
         showsVerticalScrollIndicator={false}
       />
 
       <View style={styles.bottomNavigation}>
         <TouchableOpacity style={styles.navButton} onPress={handleStats}>
-          <Text style={styles.navButtonText}>Stats</Text>
+          <Text style={styles.navButtonText}>📊 Stats</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.navButton} onPress={handleAddMore}>
-          <Text style={styles.navButtonText}>Add More</Text>
+          <Text style={styles.navButtonText}>➕ Add More</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.navButton} onPress={handleProfile}>
-          <Text style={styles.navButtonText}>Profile</Text>
+          <Text style={styles.navButtonText}>👤 Profile</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -122,17 +123,18 @@ export default function MainScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8F9FA',
   },
   header: {
     paddingHorizontal: 20,
     paddingVertical: 20,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#8000FF',
     marginBottom: 5,
@@ -144,21 +146,25 @@ const styles = StyleSheet.create({
   friendsList: {
     flex: 1,
   },
+  friendsListContent: {
+    paddingVertical: 8,
+  },
   bottomNavigation: {
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
   },
   navButton: {
     flex: 1,
-    paddingVertical: 15,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   navButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '600',
     color: '#8000FF',
   },
 });

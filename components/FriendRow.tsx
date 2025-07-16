@@ -34,23 +34,25 @@ export default function FriendRow({
 
   return (
     <View style={styles.container}>
-      <View style={styles.leftSection}>
+      {/* Friend Info Section */}
+      <View style={styles.friendInfo}>
         <Text style={styles.avatar}>{friend.profilePicture || '👤'}</Text>
-        <View style={styles.nameContainer}>
-          <Text style={styles.name}>{friend.name}</Text>
-          <View style={styles.friendTypeContainer}>
-            <Text style={styles.friendTypeIcon}>
+        <View style={styles.nameSection}>
+          <Text style={styles.name} numberOfLines={1}>{friend.name}</Text>
+          <View style={styles.typeIndicator}>
+            <Text style={styles.typeIcon}>
               {friend.friendType === 'online' ? '🌐' : '📡'}
             </Text>
-            <Text style={styles.friendTypeText}>
+            <Text style={styles.typeText}>
               {friend.friendType === 'online' ? 'Online' : 'Local'}
             </Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.middleSection}>
-        <View style={styles.meetingsRow}>
+      {/* Meetings Section */}
+      <View style={styles.meetingsSection}>
+        <View style={styles.meetingsContainer}>
           {displayMeetings.map((meeting, index) => (
             <TouchableOpacity
               key={meeting.id}
@@ -62,10 +64,10 @@ export default function FriendRow({
           ))}
           {hasMoreMeetings && !showAllMeetings && (
             <TouchableOpacity
-              style={styles.plusToken}
+              style={styles.moreToken}
               onPress={() => setShowAllMeetings(true)}
             >
-              <Text style={styles.plusText}>+</Text>
+              <Text style={styles.moreText}>+{yearMeetings.length - 5}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -76,12 +78,13 @@ export default function FriendRow({
         )}
       </View>
 
-      <View style={styles.rightSection}>
+      {/* Actions Section */}
+      <View style={styles.actionsSection}>
         <TouchableOpacity
           style={styles.scheduleButton}
           onPress={() => onScheduleNext(friend)}
         >
-          <Text style={styles.scheduleText}>Schedule next</Text>
+          <Text style={styles.scheduleText}>Log Meeting</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
@@ -103,102 +106,113 @@ export default function FriendRow({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  leftSection: {
+  friendInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    marginBottom: 12,
   },
   avatar: {
-    fontSize: 30,
+    fontSize: 32,
     marginRight: 12,
   },
-  nameContainer: {
+  nameSection: {
     flex: 1,
+    minWidth: 0, // Important for text truncation
   },
   name: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  friendTypeContainer: {
+  typeIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  friendTypeIcon: {
-    fontSize: 12,
-    marginRight: 4,
+  typeIcon: {
+    fontSize: 14,
+    marginRight: 6,
   },
-  friendTypeText: {
-    fontSize: 12,
+  typeText: {
+    fontSize: 14,
     color: '#666666',
   },
-  middleSection: {
-    flex: 2,
-    alignItems: 'center',
+  meetingsSection: {
+    marginBottom: 12,
   },
-  meetingsRow: {
+  meetingsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
+    alignItems: 'center',
   },
   metToken: {
     backgroundColor: '#4CAF50',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginHorizontal: 2,
-    marginVertical: 2,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 4,
   },
   metText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 'bold',
   },
-  plusToken: {
+  moreToken: {
     backgroundColor: '#FF9800',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginHorizontal: 2,
-    marginVertical: 2,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 4,
   },
-  plusText: {
+  moreText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   showLessText: {
     fontSize: 12,
     color: '#8000FF',
-    marginTop: 5,
+    marginTop: 4,
+    textAlign: 'center',
   },
-  rightSection: {
+  actionsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
   scheduleButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 15,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginBottom: 5,
+    backgroundColor: '#8000FF',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    flex: 1,
+    marginRight: 12,
   },
   scheduleText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   notificationButton: {
-    padding: 5,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
   },
   bellIcon: {
-    fontSize: 16,
+    fontSize: 18,
   },
 });
