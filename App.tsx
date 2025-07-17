@@ -10,7 +10,6 @@ import LoginScreen from './screens/LoginScreen';
 import ReflectOnFriendsScreen from './screens/ReflectOnFriendsScreen';
 import AddFriendsScreen from './screens/AddFriendsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
-import SyncScreen from './screens/SyncScreen';
 import ContactSelectScreen from './screens/ContactSelectScreen';
 import ManualAddScreen from './screens/ManualAddScreen';
 import MainScreen from './screens/MainScreen';
@@ -22,7 +21,6 @@ export type RootStackParamList = {
   ReflectOnFriends: undefined;
   AddFriends: undefined;
   Onboarding: undefined;
-  Sync: undefined;
   ContactSelect: { source: string };
   ManualAdd: undefined;
   Main: undefined;
@@ -46,7 +44,6 @@ function AppContent() {
         <Stack.Screen name="ReflectOnFriends" component={ReflectOnFriendsScreen} />
         <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-        <Stack.Screen name="Sync" component={SyncScreen} />
         <Stack.Screen name="ContactSelect" component={ContactSelectScreen} />
         <Stack.Screen name="ManualAdd" component={ManualAddScreen} />
         <Stack.Screen name="Main" component={MainScreen} />

@@ -165,12 +165,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginTop: 16,
-    marginBottom: 30,
+    marginBottom: 8,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 8,
+    justifyContent: 'center',
   },
   checkbox: {
     width: 20,
