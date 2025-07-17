@@ -60,7 +60,7 @@ export default function MainScreen() {
   };
 
   const handleAddMore = () => {
-    (navigation as any).navigate('Sync');
+    (navigation as any).navigate('ManualAdd');
   };
 
   const handleProfile = () => {

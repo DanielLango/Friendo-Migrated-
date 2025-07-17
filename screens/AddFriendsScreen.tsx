@@ -231,12 +231,12 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingVertical: 10,
   },
   headerSection: {
     alignItems: 'center',
-    marginBottom: 40,
-    marginTop: 20,
+    marginBottom: 30,
+    marginTop: 10,
   },
   iconContainer: {
     width: 80,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   statsSection: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   statCard: {
     backgroundColor: '#FFFFFF',
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   actionsSection: {
-    marginBottom: 30,
+    marginBottom: 20,
   },
   primaryButton: {
     backgroundColor: '#8000FF',
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   progressSection: {
-    marginBottom: 30,
+    marginBottom: 20,
   },
   progressBar: {
     height: 8,
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   continueSection: {
-    marginBottom: 30,
+    marginBottom: 20,
   },
   continueButton: {
     borderRadius: 16,

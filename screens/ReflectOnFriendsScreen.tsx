@@ -103,6 +103,9 @@ export default function ReflectOnFriendsScreen() {
               </View>
               <Text style={styles.checkboxLabel}>Don&apos;t display this page to me anymore</Text>
             </TouchableOpacity>
+
+            {/* Empty row for spacing */}
+            <View style={styles.emptyRow} />
           </Animated.View>
         </ScrollView>
       </LinearGradient>
@@ -165,12 +168,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginTop: 16,
-    marginBottom: 30,
+    marginBottom: 8,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 8,
+    marginBottom: 8,
   },
   checkbox: {
     width: 20,
@@ -193,5 +197,8 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     color: '#C4B5FD',
     fontSize: 14,
+  },
+  emptyRow: {
+    height: 20,
   },
 });
