@@ -36,9 +36,22 @@ export default function FriendRow({
     <View style={styles.container}>
       {/* Friend Info Section */}
       <View style={styles.friendInfo}>
-        <Text style={styles.avatar}>{friend.profilePicture || '👤'}</Text>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={() => setShowNotificationModal(true)}
+        >
+          <Text style={styles.bellIcon}>🔔</Text>
+        </TouchableOpacity>
         <View style={styles.nameSection}>
-          <Text style={styles.name} numberOfLines={1}>{friend.name}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>{friend.name}</Text>
+            <TouchableOpacity
+              style={styles.scheduleButton}
+              onPress={() => onScheduleNext(friend)}
+            >
+              <Text style={styles.scheduleText}>Schedule next</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.typeIndicator}>
             <Text style={styles.typeIcon}>
               {friend.friendType === 'online' ? '🌐' : '📡'}
@@ -48,12 +61,6 @@ export default function FriendRow({
             </Text>
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.scheduleButton}
-          onPress={() => onScheduleNext(friend)}
-        >
-          <Text style={styles.scheduleText}>Schedule next</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Meetings Section */}
@@ -84,16 +91,6 @@ export default function FriendRow({
         )}
       </View>
 
-      {/* Actions Section */}
-      <View style={styles.actionsSection}>
-        <TouchableOpacity
-          style={styles.notificationButton}
-          onPress={() => setShowNotificationModal(true)}
-        >
-          <Text style={styles.bellIcon}>🔔</Text>
-        </TouchableOpacity>
-      </View>
-
       <NotificationModal
         visible={showNotificationModal}
         friend={friend}
@@ -118,22 +115,46 @@ const styles = StyleSheet.create({
   },
   friendInfo: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
-  avatar: {
-    fontSize: 32,
+  notificationButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
     marginRight: 12,
+  },
+  bellIcon: {
+    fontSize: 18,
   },
   nameSection: {
     flex: 1,
-    minWidth: 0, // Important for text truncation
+    minWidth: 0,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   name: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 4,
+    flex: 1,
+    marginRight: 8,
+  },
+  scheduleButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  scheduleText: {
+    color: '#4CAF50',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   typeIndicator: {
     flexDirection: 'row',
@@ -186,32 +207,5 @@ const styles = StyleSheet.create({
     color: '#8000FF',
     marginTop: 4,
     textAlign: 'center',
-  },
-  actionsSection: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  scheduleButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#4CAF50',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginLeft: 8,
-  },
-  scheduleText: {
-    color: '#4CAF50',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  notificationButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#F5F5F5',
-  },
-  bellIcon: {
-    fontSize: 18,
   },
 });

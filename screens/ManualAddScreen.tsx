@@ -15,7 +15,6 @@ export default function ManualAddScreen() {
   const [fullName, setFullName] = useState('');
   const [isOnline, setIsOnline] = useState(false);
   const [isLocal, setIsLocal] = useState(false);
-  const [frequency, setFrequency] = useState<'weekly' | 'monthly'>('weekly');
   
   const navigation = useNavigation();
   const { db, isSignedIn } = useBasic();
@@ -49,8 +48,6 @@ export default function ManualAddScreen() {
           profilePicture: '👤',
           city: '',
           source: 'manual',
-          notificationFrequency: frequency,
-          notificationDays: frequency === 'weekly' ? 7 : 30,
           createdAt: Date.now(),
         });
 
@@ -132,30 +129,6 @@ export default function ManualAddScreen() {
               {isLocal && <Text style={styles.checkmark}>✓</Text>}
             </View>
             <Text style={styles.checkboxLabel}>Local friend</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Frequency Preference:</Text>
-          
-          <TouchableOpacity 
-            style={styles.checkboxContainer}
-            onPress={() => setFrequency('weekly')}
-          >
-            <View style={[styles.checkbox, frequency === 'weekly' && styles.checkboxChecked]}>
-              {frequency === 'weekly' && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.checkboxLabel}>🗓️ Weekly</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.checkboxContainer}
-            onPress={() => setFrequency('monthly')}
-          >
-            <View style={[styles.checkbox, frequency === 'monthly' && styles.checkboxChecked]}>
-              {frequency === 'monthly' && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={styles.checkboxLabel}>🗓️ Monthly</Text>
           </TouchableOpacity>
         </View>
 

@@ -10,10 +10,12 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
+  const [dontShowAgain, setDontShowAgain] = useState(false);
   
   const navigation = useNavigation();
 
@@ -32,7 +34,14 @@ export default function ReflectOnFriendsScreen() {
     ]).start();
   }, []);
 
-  const handleReady = () => {
+  const handleReady = async () => {
+    if (dontShowAgain) {
+      try {
+        await AsyncStorage.setItem('skipReflectionScreen', 'true');
+      } catch (error) {
+        console.error('Error saving preference:', error);
+      }
+    }
     (navigation as any).navigate('AddFriends');
   };
 
@@ -83,6 +92,17 @@ export default function ReflectOnFriendsScreen() {
             <Text style={styles.subtext}>
               You can always change your selection later.
             </Text>
+
+            {/* Don't show again checkbox */}
+            <TouchableOpacity 
+              style={styles.checkboxContainer}
+              onPress={() => setDontShowAgain(!dontShowAgain)}
+            >
+              <View style={[styles.checkbox, dontShowAgain && styles.checkboxChecked]}>
+                {dontShowAgain && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+              <Text style={styles.checkboxLabel}>Don&apos;t display this page to me anymore</Text>
+            </TouchableOpacity>
           </Animated.View>
         </ScrollView>
       </LinearGradient>
@@ -145,5 +165,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginTop: 16,
+    marginBottom: 30,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    borderRadius: 4,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#FFFFFF',
+  },
+  checkmark: {
+    color: '#5D1A94',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  checkboxLabel: {
+    color: '#C4B5FD',
+    fontSize: 14,
   },
 });

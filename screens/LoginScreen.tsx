@@ -11,6 +11,8 @@ import { useBasic } from '@basictech/expo';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
+import FriendoLogo from '../components/FriendoLogo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -19,9 +21,23 @@ export default function LoginScreen() {
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
   React.useEffect(() => {
-    if (isSignedIn) {
-      navigation.navigate('ReflectOnFriends');
-    }
+    const checkSkipReflection = async () => {
+      if (isSignedIn) {
+        try {
+          const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
+          if (skipReflection === 'true') {
+            navigation.navigate('AddFriends');
+          } else {
+            navigation.navigate('ReflectOnFriends');
+          }
+        } catch (error) {
+          console.error('Error checking reflection preference:', error);
+          navigation.navigate('ReflectOnFriends');
+        }
+      }
+    };
+
+    checkSkipReflection();
   }, [isSignedIn, navigation]);
 
   const handleBasicTechLogin = async () => {
@@ -37,6 +53,10 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
+        <View style={styles.logoContainer}>
+          <FriendoLogo />
+        </View>
+        
         <Text style={styles.title}>Login to Friendo</Text>
         
         <Text style={styles.subtitle}>
@@ -70,6 +90,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 30,
     justifyContent: 'center',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
   title: {
     fontSize: 32,

@@ -18,6 +18,7 @@ import { createMeetingEvent, createAndDownloadMeetingICS } from '../utils/calend
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState('');
   const [selectedVenue, setSelectedVenue] = useState('');
   const [googleCalendar, setGoogleCalendar] = useState(false);
@@ -32,6 +33,27 @@ export default function MeetingCreateScreen() {
   const { db, user } = useBasic();
   
   const friend = (route.params as any)?.friend as Friend;
+
+  const generateDateOptions = () => {
+    const dates = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      dates.push({
+        value: date.toISOString().split('T')[0],
+        label: i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : date.toLocaleDateString('en-US', { 
+          weekday: 'short', 
+          month: 'short', 
+          day: 'numeric' 
+        })
+      });
+    }
+    return dates;
+  };
+
+  const dateOptions = generateDateOptions();
 
   const handleActivitySelect = (activityId: string) => {
     setSelectedActivity(activityId);
@@ -117,12 +139,42 @@ export default function MeetingCreateScreen() {
       <ScrollView style={styles.content}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Select Date</Text>
-          <TextInput
-            style={styles.dateInput}
-            value={selectedDate}
-            onChangeText={setSelectedDate}
-            placeholder="YYYY-MM-DD"
-          />
+          <TouchableOpacity
+            style={styles.dateSelector}
+            onPress={() => setShowDatePicker(!showDatePicker)}
+          >
+            <Text style={styles.dateSelectorText}>
+              {dateOptions.find(d => d.value === selectedDate)?.label || selectedDate}
+            </Text>
+            <Text style={styles.dropdownIcon}>{showDatePicker ? '▲' : '▼'}</Text>
+          </TouchableOpacity>
+          
+          {showDatePicker && (
+            <View style={styles.datePickerContainer}>
+              <ScrollView style={styles.datePickerScroll} nestedScrollEnabled>
+                {dateOptions.map((date) => (
+                  <TouchableOpacity
+                    key={date.value}
+                    style={[
+                      styles.dateOption,
+                      selectedDate === date.value && styles.dateOptionSelected
+                    ]}
+                    onPress={() => {
+                      setSelectedDate(date.value);
+                      setShowDatePicker(false);
+                    }}
+                  >
+                    <Text style={[
+                      styles.dateOptionText,
+                      selectedDate === date.value && styles.dateOptionTextSelected
+                    ]}>
+                      {date.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -300,6 +352,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 12,
     fontSize: 16,
+  },
+  dateSelector: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateSelectorText: {
+    fontSize: 16,
+    color: '#333333',
+  },
+  dropdownIcon: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  datePickerContainer: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    marginTop: 8,
+    maxHeight: 200,
+    backgroundColor: '#FFFFFF',
+  },
+  datePickerScroll: {
+    maxHeight: 200,
+  },
+  dateOption: {
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  dateOptionSelected: {
+    backgroundColor: '#8000FF',
+  },
+  dateOptionText: {
+    fontSize: 16,
+    color: '#333333',
+  },
+  dateOptionTextSelected: {
+    color: '#FFFFFF',
   },
   activityOption: {
     borderWidth: 1,

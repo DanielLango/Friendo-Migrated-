@@ -127,7 +127,7 @@ export default function AddFriendsScreen() {
           </View>
           <Text style={styles.title}>Welcome to Friendo!</Text>
           <Text style={styles.subtitle}>
-            Try to think of who are your friends, collect them
+            Create and manage your best friend lists, set how often you want to catch up, and set Friendo to gently remind you to keep those friendships alive.
           </Text>
         </View>
 
