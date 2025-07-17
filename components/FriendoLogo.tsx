@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
@@ -9,12 +10,12 @@ export default function FriendoLogo() {
         {/* Left Person */}
         <View style={styles.person}>
           <View style={styles.head} />
-          <View style={styles.bodyLeft} />
+          <View style={styles.body} />
         </View>
         {/* Right Person */}
         <View style={styles.person}>
           <View style={styles.head} />
-          <View style={styles.bodyRight} />
+          <View style={styles.body} />
         </View>
       </View>
 
@@ -35,32 +36,20 @@ const styles = StyleSheet.create({
   },
   person: {
     alignItems: 'center',
-    marginHorizontal: 0.5,
+    marginHorizontal: 1,
   },
   head: {
     width: 10,
     height: 10,
     backgroundColor: '#000000',
     borderRadius: 5,
-    marginBottom: 1,
+    marginBottom: 2,
   },
-  bodyLeft: {
+  body: {
     width: 12,
     height: 16,
     backgroundColor: '#000000',
-    borderTopLeftRadius: 2,
-    borderTopRightRadius: 6,
-    borderBottomLeftRadius: 2,
-    borderBottomRightRadius: 2,
-  },
-  bodyRight: {
-    width: 12,
-    height: 16,
-    backgroundColor: '#000000',
-    borderTopLeftRadius: 6,
-    borderTopRightRadius: 2,
-    borderBottomLeftRadius: 2,
-    borderBottomRightRadius: 2,
+    borderRadius: 2,
   },
   wordmark: {
     fontSize: 20,

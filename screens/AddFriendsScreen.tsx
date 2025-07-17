@@ -1,231 +1,224 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
-  TextInput,
-  Alert,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
-import { Friend } from '../types';
+
+const { width } = Dimensions.get('window');
 
 export default function AddFriendsScreen() {
-  const [friends, setFriends] = useState<Friend[]>([]);
+  const [friendCount, setFriendCount] = useState(0);
   const [totalMeetings, setTotalMeetings] = useState(0);
-  const [showManualAdd, setShowManualAdd] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [isOnline, setIsOnline] = useState(false);
-  const [isLocal, setIsLocal] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(50));
+  const [pulseAnim] = useState(new Animated.Value(1));
   
   const navigation = useNavigation();
-  const { db, isSignedIn } = useBasic();
+  const { db } = useBasic();
+
+  const loadFriendsCount = useCallback(async () => {
+    if (db) {
+      try {
+        const friends = await db.from('friends').getAll();
+        setFriendCount(friends?.length || 0);
+
+        // Calculate meetings this year
+        const meetings = await db.from('meetings').getAll();
+        const currentYear = new Date().getFullYear();
+        const yearMeetings = (meetings || []).filter((meeting: any) => {
+          const meetingDate = typeof meeting.date === 'string' ? meeting.date : String(meeting.date);
+          return new Date(meetingDate).getFullYear() === currentYear;
+        });
+        setTotalMeetings(yearMeetings.length);
+      } catch (error) {
+        console.error('Error loading friends count:', error);
+      }
+    }
+  }, [db]);
 
   useEffect(() => {
-    if (isSignedIn && db) {
-      loadFriends();
-      loadMeetings();
-    }
-  }, [isSignedIn, db]);
+    // Animate screen entrance
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
-  const loadFriends = async () => {
-    if (db) {
-      try {
-        const friendsData = await db.from('friends').getAll();
-        setFriends((friendsData || []) as Friend[]);
-      } catch (error) {
-        console.error('Error loading friends:', error);
-      }
+    // Load existing friends count
+    loadFriendsCount();
+  }, []);
+
+  useEffect(() => {
+    // Pulse animation for continue button when friends are added
+    if (friendCount >= 3) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [friendCount, pulseAnim]);
+
+  // Listen for navigation focus to update friend count
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadFriendsCount();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleSyncContacts = () => {
+    (navigation as any).navigate('Sync');
+  };
+
+  const handleManualAdd = () => {
+    (navigation as any).navigate('ManualAdd');
+  };
+
+  const handleContinueToFriendlist = () => {
+    if (friendCount >= 3) {
+      (navigation as any).navigate('Main');
     }
   };
 
-  const loadMeetings = async () => {
-    if (db) {
-      try {
-        const meetingsData = await db.from('meetings').getAll();
-        const currentYear = new Date().getFullYear();
-        const thisYearMeetings = (meetingsData || []).filter((meeting: any) => 
-          new Date(meeting.date).getFullYear() === currentYear
-        );
-        setTotalMeetings(thisYearMeetings.length);
-      } catch (error) {
-        console.error('Error loading meetings:', error);
-      }
-    }
-  };
-
-  const handleManualAdd = async () => {
-    if (!fullName.trim()) {
-      Alert.alert('Error', 'Please enter a friend\'s name');
-      return;
-    }
-
-    if (!isOnline && !isLocal) {
-      Alert.alert('Error', 'Please select at least one friend type');
-      return;
-    }
-
-    if (!isSignedIn) {
-      Alert.alert('Authentication Required', 'Please sign in to add friends');
-      return;
-    }
-
-    if (db) {
-      try {
-        await db.from('friends').add({
-          name: fullName.trim(),
-          email: '',
-          friendType: isOnline && isLocal ? 'both' : isOnline ? 'online' : 'local',
-          isOnline,
-          isLocal,
-          profilePicture: '👤',
-          city: '',
-          source: 'manual',
-          createdAt: Date.now(),
-        });
-
-        Alert.alert('Success', 'Friend added successfully!');
-        setFullName('');
-        setIsOnline(false);
-        setIsLocal(false);
-        setShowManualAdd(false);
-        loadFriends();
-      } catch (error) {
-        console.error('Error adding friend:', error);
-        Alert.alert('Error', 'Failed to add friend. Please try again.');
-      }
-    }
+  const handleAddMore = () => {
+    (navigation as any).navigate('ManualAdd');
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.content}>
-        <View style={styles.header}>
+      <Animated.View 
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.mainIcon}>👥</Text>
+          </View>
           <Text style={styles.title}>Welcome to Friendo!</Text>
           <Text style={styles.subtitle}>
             Create and manage your best friend lists, set how often you want to catch up, and set Friendo to gently remind you to keep those friendships alive.
           </Text>
         </View>
 
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{friends.length}</Text>
+        {/* Stats Section */}
+        <View style={styles.statsSection}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{friendCount}</Text>
             <Text style={styles.statLabel}>Friends Added</Text>
           </View>
-          <View style={styles.statItem}>
+          <View style={styles.statCard}>
             <Text style={styles.statNumber}>{totalMeetings}</Text>
             <Text style={styles.statLabel}>Meetings This Year</Text>
           </View>
         </View>
 
-        {!showManualAdd ? (
-          <View style={styles.optionsContainer}>
-            <Text style={styles.sectionTitle}>Add Friends</Text>
-            
-            <TouchableOpacity 
-              style={styles.optionButton}
-              onPress={() => setShowManualAdd(true)}
-            >
-              <Text style={styles.optionIcon}>✏️</Text>
-              <View style={styles.optionContent}>
-                <Text style={styles.optionTitle}>Add Manually</Text>
-                <Text style={styles.optionDescription}>
-                  Type in friends you want to stay connected with
-                </Text>
+        {/* Action Buttons */}
+        <View style={styles.actionsSection}>
+          <TouchableOpacity 
+            style={styles.primaryButton}
+            onPress={handleManualAdd}
+          >
+            <View style={styles.buttonContent}>
+              <Text style={styles.buttonIcon}>👥</Text>
+              <View style={styles.buttonTextContainer}>
+                <Text style={styles.buttonTitle}>Add Friend</Text>
+                <Text style={styles.buttonSubtitle}>Build your friendship list</Text>
               </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.optionButton}
-              onPress={() => (navigation as any).navigate('ContactSelect', { source: 'contacts' })}
-            >
-              <Text style={styles.optionIcon}>📱</Text>
-              <View style={styles.optionContent}>
-                <Text style={styles.optionTitle}>Import from Contacts</Text>
-                <Text style={styles.optionDescription}>
-                  Select friends from your phone contacts
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.proTipsContainer}>
-              <Text style={styles.proTipsTitle}>💡 Pro Tips</Text>
-              <Text style={styles.proTip}>
-                • Start with 3-10 close friends you want to stay connected with
-              </Text>
-              <Text style={styles.proTip}>
-                • You can always add more friends later
-              </Text>
-              <Text style={styles.proTip}>
-                • Mix online and local friends for a balanced social life
-              </Text>
             </View>
+          </TouchableOpacity>
+        </View>
 
-            <TouchableOpacity 
-              style={styles.continueButton}
-              onPress={() => (navigation as any).navigate('Main')}
-            >
-              <Text style={styles.continueButtonText}>Continue to App</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.manualAddContainer}>
-            <View style={styles.manualAddHeader}>
-              <TouchableOpacity onPress={() => setShowManualAdd(false)}>
-                <Text style={styles.backButton}>← Back</Text>
-              </TouchableOpacity>
-              <Text style={styles.manualAddTitle}>Add Friend Manually</Text>
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Friend&apos;s Name</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Enter full name"
-                value={fullName}
-                onChangeText={setFullName}
-                autoCapitalize="words"
+        {/* Progress Indicator */}
+        {friendCount < 3 && (
+          <View style={styles.progressSection}>
+            <View style={styles.progressBar}>
+              <View 
+                style={[
+                  styles.progressFill, 
+                  { width: `${Math.min((friendCount / 3) * 100, 100)}%` }
+                ]} 
               />
             </View>
-
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Friend Type:</Text>
-              
-              <TouchableOpacity 
-                style={styles.checkboxContainer}
-                onPress={() => setIsOnline(!isOnline)}
-              >
-                <View style={[styles.checkbox, isOnline && styles.checkboxChecked]}>
-                  {isOnline && <Text style={styles.checkmark}>✓</Text>}
-                </View>
-                <Text style={styles.checkboxLabel}>Online friend</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.checkboxContainer}
-                onPress={() => setIsLocal(!isLocal)}
-              >
-                <View style={[styles.checkbox, isLocal && styles.checkboxChecked]}>
-                  {isLocal && <Text style={styles.checkmark}>✓</Text>}
-                </View>
-                <Text style={styles.checkboxLabel}>Local friend</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity 
-                style={styles.addButton}
-                onPress={handleManualAdd}
-              >
-                <Text style={styles.addButtonText}>Add Friend</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.progressText}>
+              Add {3 - friendCount} more to get started
+            </Text>
           </View>
         )}
-      </ScrollView>
+
+        {/* Continue Button */}
+        <Animated.View 
+          style={[
+            styles.continueSection,
+            friendCount >= 3 && { transform: [{ scale: pulseAnim }] }
+          ]}
+        >
+          <TouchableOpacity 
+            style={[
+              styles.continueButton,
+              friendCount >= 3 ? styles.continueButtonActive : styles.continueButtonDisabled
+            ]}
+            onPress={handleContinueToFriendlist}
+            disabled={friendCount < 3}
+          >
+            <Text style={[
+              styles.continueButtonText,
+              friendCount >= 3 ? styles.continueButtonTextActive : styles.continueButtonTextDisabled
+            ]}>
+              Continue to Friendlist
+            </Text>
+            {friendCount >= 3 && (
+              <Text style={styles.continueButtonIcon}>→</Text>
+            )}
+          </TouchableOpacity>
+          
+          {friendCount < 3 && (
+            <Text style={styles.continueHint}>
+              Add at least 3 friends to continue
+            </Text>
+          )}
+        </Animated.View>
+
+        {/* Tips Section */}
+        <View style={styles.tipsSection}>
+          <Text style={styles.tipsTitle}>💡 Pro Tips</Text>
+          <Text style={styles.tipsText}>
+            • Start with your closest friends{'\n'}
+            • Include both local and online friends{'\n'}
+            • You can always add more later
+          </Text>
+        </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -233,20 +226,34 @@ export default function AddFriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingTop: 20,
+    backgroundColor: '#F8F4FF',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
   },
-  header: {
+  headerSection: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
+    marginTop: 20,
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(128, 0, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: 'rgba(128, 0, 255, 0.2)',
+  },
+  mainIcon: {
+    fontSize: 36,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#333333',
     marginBottom: 12,
@@ -256,25 +263,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666666',
     textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 10,
+    lineHeight: 24,
+    paddingHorizontal: 20,
   },
-  statsContainer: {
+  statsSection: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    paddingVertical: 20,
-    marginBottom: 30,
+    marginBottom: 40,
   },
-  statItem: {
+  statCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    flex: 1,
+    marginHorizontal: 8,
+    minHeight: 100,
+    justifyContent: 'center',
   },
   statNumber: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#8000FF',
-    marginBottom: 4,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   statLabel: {
     fontSize: 14,
@@ -282,155 +299,142 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
   },
-  optionsContainer: {
-    flex: 1,
+  actionsSection: {
+    marginBottom: 30,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333333',
+  primaryButton: {
+    backgroundColor: '#8000FF',
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 16,
+    shadowColor: '#8000FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  optionButton: {
+  secondaryButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#E0D4FF',
+  },
+  buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  optionIcon: {
+  buttonIcon: {
     fontSize: 24,
     marginRight: 16,
   },
-  optionContent: {
+  buttonTextContainer: {
     flex: 1,
   },
-  optionTitle: {
-    fontSize: 16,
+  buttonTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
-  optionDescription: {
+  buttonSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  buttonTitleSecondary: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#8000FF',
+    marginBottom: 4,
+  },
+  buttonSubtitleSecondary: {
     fontSize: 14,
     color: '#666666',
-    lineHeight: 18,
   },
-  proTipsContainer: {
-    backgroundColor: '#F0F8FF',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 20,
+  progressSection: {
     marginBottom: 30,
   },
-  proTipsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333333',
+  progressBar: {
+    height: 8,
+    backgroundColor: '#E0D4FF',
+    borderRadius: 4,
     marginBottom: 12,
+    overflow: 'hidden',
   },
-  proTip: {
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#8000FF',
+    borderRadius: 4,
+  },
+  progressText: {
     fontSize: 14,
     color: '#666666',
-    lineHeight: 20,
-    marginBottom: 4,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  continueSection: {
+    marginBottom: 30,
   },
   continueButton: {
-    backgroundColor: '#8000FF',
-    borderRadius: 25,
-    paddingVertical: 16,
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
-    marginTop: 10,
+    justifyContent: 'center',
+    flexDirection: 'row',
+    minHeight: 60,
+  },
+  continueButtonActive: {
+    backgroundColor: '#4CAF50',
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  continueButtonDisabled: {
+    backgroundColor: '#F0F0F0',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
   },
   continueButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 8,
+  },
+  continueButtonTextActive: {
     color: '#FFFFFF',
-    fontSize: 16,
+  },
+  continueButtonTextDisabled: {
+    color: '#CCCCCC',
+  },
+  continueButtonIcon: {
+    fontSize: 18,
+    color: '#FFFFFF',
     fontWeight: 'bold',
   },
-  manualAddContainer: {
-    flex: 1,
+  continueHint: {
+    fontSize: 12,
+    color: '#999999',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
-  manualAddHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
+  tipsSection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(128, 0, 255, 0.1)',
   },
-  backButton: {
+  tipsTitle: {
     fontSize: 16,
-    color: '#8000FF',
-    marginRight: 20,
-  },
-  manualAddTitle: {
-    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
-  },
-  inputContainer: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
     color: '#333333',
     marginBottom: 8,
   },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  sectionContainer: {
-    marginBottom: 30,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
-    borderColor: '#8000FF',
-    borderRadius: 4,
-    marginRight: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#8000FF',
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  checkboxLabel: {
-    fontSize: 16,
-    color: '#333333',
-  },
-  buttonContainer: {
-    marginTop: 20,
-  },
-  addButton: {
-    backgroundColor: '#8000FF',
-    borderRadius: 25,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+  tipsText: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 20,
   },
 });
