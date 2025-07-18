@@ -292,6 +292,8 @@ const styles = StyleSheet.create({
     color: '#8000FF',
     marginBottom: 8,
     textAlign: 'center',
+    lineHeight: 32,
+    height: 32,
   },
   statLabel: {
     fontSize: 14,
