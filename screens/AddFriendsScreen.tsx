@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -284,7 +285,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 8,
     minHeight: 100,
-    justifyContent: 'center',
   },
   statNumber: {
     fontSize: 32,

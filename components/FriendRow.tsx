@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#8000FF',
     flex: 1,
     marginRight: 8,
   },
