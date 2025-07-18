@@ -139,8 +139,9 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#8000FF',
-    marginBottom: 4,
+    color: '#333333',
+    flex: 1,
+    marginRight: 8,
   },
   scheduleButton: {
     backgroundColor: 'transparent',
