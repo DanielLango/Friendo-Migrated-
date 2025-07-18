@@ -19,7 +19,8 @@ export interface Meeting {
   date: string;
   activity: string;
   venue: string;
-  notes?: string;
+  city?: string;
+  notes: string;
   createdAt: number;
 }
 

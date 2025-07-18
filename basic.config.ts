@@ -3,6 +3,10 @@ export const schema = {
     "friends": {
       "type": "collection",
       "fields": {
+        "city": {
+          "type": "string",
+          "indexed": true
+        },
         "name": {
           "type": "string",
           "indexed": true
@@ -11,31 +15,27 @@ export const schema = {
           "type": "string",
           "indexed": true
         },
-        "friendType": {
+        "source": {
           "type": "string",
-          "indexed": true
-        },
-        "isOnline": {
-          "type": "boolean",
           "indexed": true
         },
         "isLocal": {
           "type": "boolean",
           "indexed": true
         },
+        "isOnline": {
+          "type": "boolean",
+          "indexed": true
+        },
+        "createdAt": {
+          "type": "number",
+          "indexed": true
+        },
+        "friendType": {
+          "type": "string",
+          "indexed": true
+        },
         "profilePicture": {
-          "type": "string",
-          "indexed": true
-        },
-        "city": {
-          "type": "string",
-          "indexed": true
-        },
-        "source": {
-          "type": "string",
-          "indexed": true
-        },
-        "notificationFrequency": {
           "type": "string",
           "indexed": true
         },
@@ -43,8 +43,8 @@ export const schema = {
           "type": "number",
           "indexed": true
         },
-        "createdAt": {
-          "type": "number",
+        "notificationFrequency": {
+          "type": "string",
           "indexed": true
         }
       }
@@ -52,19 +52,7 @@ export const schema = {
     "meetings": {
       "type": "collection",
       "fields": {
-        "friendId": {
-          "type": "string",
-          "indexed": true
-        },
         "date": {
-          "type": "string",
-          "indexed": true
-        },
-        "activity": {
-          "type": "string",
-          "indexed": true
-        },
-        "venue": {
           "type": "string",
           "indexed": true
         },
@@ -72,8 +60,24 @@ export const schema = {
           "type": "string",
           "indexed": true
         },
+        "venue": {
+          "type": "string",
+          "indexed": true
+        },
+        "activity": {
+          "type": "string",
+          "indexed": true
+        },
+        "friendId": {
+          "type": "string",
+          "indexed": true
+        },
         "createdAt": {
           "type": "number",
+          "indexed": true
+        },
+        "city": {
+          "type": "string",
           "indexed": true
         }
       }
@@ -81,7 +85,7 @@ export const schema = {
     "friendshipMemos": {
       "type": "collection",
       "fields": {
-        "friendId": {
+        "memo": {
           "type": "string",
           "indexed": true
         },
@@ -89,7 +93,7 @@ export const schema = {
           "type": "number",
           "indexed": true
         },
-        "memo": {
+        "friendId": {
           "type": "string",
           "indexed": true
         },
@@ -100,6 +104,6 @@ export const schema = {
       }
     }
   },
-  "version": 1,
+  "version": 2,
   "project_id": "fe8af65a-bcdf-49c1-9e22-3624e0506558"
 };

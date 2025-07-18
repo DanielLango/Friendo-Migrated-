@@ -13,14 +13,18 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import { Friend } from '../types';
 import { activityTypes } from '../utils/mockData';
-import { sendFriendInvitation, sendMeetingReminder } from '../utils/emailUtils';
+import { sendFriendInvitation } from '../utils/emailUtils';
 import { createMeetingEvent, createAndDownloadMeetingICS } from '../utils/calendarUtils';
+import CitySelector from '../components/CitySelector';
+import VenueSelector from '../components/VenueSelector';
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState('');
   const [selectedVenue, setSelectedVenue] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [cityPlaceId, setCityPlaceId] = useState('');
   const [googleCalendar, setGoogleCalendar] = useState(false);
   const [outlookCalendar, setOutlookCalendar] = useState(false);
   const [appleCalendar, setAppleCalendar] = useState(false);
@@ -60,9 +64,22 @@ export default function MeetingCreateScreen() {
     setSelectedVenue(''); // Reset venue when activity changes
   };
 
+  const handleCitySelect = (city: string, placeId: string) => {
+    setSelectedCity(city);
+    setCityPlaceId(placeId);
+    setSelectedVenue(''); // Reset venue when city changes
+  };
+
   const handleCreateMeeting = async () => {
-    if (!selectedDate || !selectedActivity || !selectedVenue) {
+    if (!selectedDate || !selectedActivity) {
       Alert.alert('Error', 'Please fill in all required fields');
+      return;
+    }
+
+    // For restaurants/cafes/bars, require city and venue
+    const requiresVenue = ['coffee', 'restaurant', 'bar', 'drinks', 'lunch', 'dinner', 'breakfast'].includes(selectedActivity);
+    if (requiresVenue && (!selectedCity || !selectedVenue)) {
+      Alert.alert('Error', 'Please select a city and venue for this activity');
       return;
     }
 
@@ -81,6 +98,7 @@ export default function MeetingCreateScreen() {
           date: selectedDate,
           activity: selectedActivity,
           venue: selectedVenue,
+          city: selectedCity,
           notes: '',
           createdAt: Date.now(),
         });
@@ -199,26 +217,54 @@ export default function MeetingCreateScreen() {
         </View>
 
         {selectedActivityType && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Venue Suggestions</Text>
-            {selectedActivityType.venues.map((venue) => (
-              <TouchableOpacity
-                key={venue.id}
-                style={[
-                  styles.venueOption,
-                  selectedVenue === venue.name && styles.venueOptionSelected
-                ]}
-                onPress={() => setSelectedVenue(venue.name)}
-              >
-                <Text style={[
-                  styles.venueText,
-                  selectedVenue === venue.name && styles.venueTextSelected
-                ]}>
-                  {venue.name} ({venue.popularity}%)
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <>
+            {/* City Selection for restaurants/cafes/bars */}
+            {['coffee', 'restaurant', 'bar', 'drinks', 'lunch', 'dinner', 'breakfast'].includes(selectedActivity) && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>📍 Select City</Text>
+                <CitySelector
+                  selectedCity={selectedCity}
+                  onCitySelect={handleCitySelect}
+                  placeholder="Choose a city..."
+                />
+              </View>
+            )}
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {selectedCity ? `Venues in ${selectedCity}` : 'Venue Suggestions'}
+              </Text>
+              {selectedCity && ['coffee', 'restaurant', 'bar', 'drinks', 'lunch', 'dinner', 'breakfast'].includes(selectedActivity) ? (
+                <VenueSelector
+                  selectedVenue={selectedVenue}
+                  onVenueSelect={setSelectedVenue}
+                  activityType={selectedActivity}
+                  cityPlaceId={cityPlaceId}
+                />
+              ) : (
+                // Fallback to original venue selection for non-location activities
+                <>
+                  {selectedActivityType.venues.map((venue) => (
+                    <TouchableOpacity
+                      key={venue.id}
+                      style={[
+                        styles.venueOption,
+                        selectedVenue === venue.name && styles.venueOptionSelected
+                      ]}
+                      onPress={() => setSelectedVenue(venue.name)}
+                    >
+                      <Text style={[
+                        styles.venueText,
+                        selectedVenue === venue.name && styles.venueTextSelected
+                      ]}>
+                        {venue.name} ({venue.popularity}%)
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
+            </View>
+          </>
         )}
 
         <View style={styles.section}>

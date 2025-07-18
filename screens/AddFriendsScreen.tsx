@@ -292,9 +292,9 @@ const styles = StyleSheet.create({
     color: '#8000FF',
     marginBottom: 8,
     textAlign: 'center',
-    textAlignVertical: 'center',
+    height: 40,
+    lineHeight: 40,
     includeFontPadding: false,
-    lineHeight: 32,
   },
   statLabel: {
     fontSize: 14,
