@@ -306,10 +306,10 @@ export default function MeetingCreateScreen() {
           <Text style={styles.sectionTitle}>📝 Additional Details</Text>
           <View style={styles.notesHints}>
             <Text style={styles.notesHint}>
-              • This will be included in calendar invites and email invitations
+              • Click outside the box once filled
             </Text>
             <Text style={styles.notesHint}>
-              • Click outside the box once filled
+              • This will be included in calendar invites and email invitations
             </Text>
           </View>
           <TextInput
