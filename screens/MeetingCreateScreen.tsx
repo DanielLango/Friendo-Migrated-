@@ -14,7 +14,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Friend } from '../types';
-import { sendFriendInvitation } from '../utils/emailUtils';
+import { sendMeetingInvitation } from '../utils/emailUtils';
 import { createMeetingEvent, createAndDownloadMeetingICS } from '../utils/calendarUtils';
 import SimpleCitySelector from '../components/SimpleCitySelector';
 import VenueCategorySelector from '../components/VenueCategorySelector';
@@ -33,6 +33,7 @@ export default function MeetingCreateScreen() {
   const [appleCalendar, setAppleCalendar] = useState(false);
   const [sendInvitation, setSendInvitation] = useState(false);
   const [friendEmail, setFriendEmail] = useState('');
+  const [meetingNotes, setMeetingNotes] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   
   const navigation = useNavigation();
@@ -91,7 +92,7 @@ export default function MeetingCreateScreen() {
           activityName: category?.name || selectedCategory,
           venue: selectedVenue || `Generic ${category?.name}`,
           city: selectedCity,
-          notes: '',
+          notes: meetingNotes,
           createdAt: Date.now(),
         });
 
@@ -99,19 +100,26 @@ export default function MeetingCreateScreen() {
         if (googleCalendar || outlookCalendar || appleCalendar) {
           if (googleCalendar || appleCalendar) {
             // Add to device calendar
-            await createMeetingEvent(friend, selectedDate);
+            await createMeetingEvent(friend, selectedDate, meetingNotes);
           }
           
           if (outlookCalendar || googleCalendar) {
             // Create downloadable ICS file
-            await createAndDownloadMeetingICS(friend, selectedDate);
+            await createAndDownloadMeetingICS(friend, selectedDate, meetingNotes);
           }
         }
 
         // Send email invitation if requested
         if (sendInvitation && friendEmail.trim()) {
           const friendWithEmail = { ...friend, email: friendEmail.trim() };
-          const emailSent = await sendFriendInvitation(friendWithEmail, user?.email || 'friendo-user@example.com');
+          const emailSent = await sendMeetingInvitation(
+            friendWithEmail, 
+            selectedDate, 
+            user?.email || 'friendo-user@example.com',
+            meetingNotes,
+            selectedVenue,
+            selectedCity
+          );
           
           if (emailSent) {
             Alert.alert('Success', 'Meeting scheduled and invitation sent!');
@@ -294,6 +302,22 @@ export default function MeetingCreateScreen() {
           )}
         </View>
 
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📝 Additional Details</Text>
+          <TextInput
+            style={styles.notesInput}
+            value={meetingNotes}
+            onChangeText={setMeetingNotes}
+            placeholder="Add any details about the meeting... (e.g., 'Looking forward to catching up!' or 'Let's discuss the project')"
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+          <Text style={styles.notesHint}>
+            💡 This will be included in calendar invites and email invitations
+          </Text>
+        </View>
+
         <TouchableOpacity 
           style={[styles.createButton, isCreating && styles.createButtonDisabled]} 
           onPress={handleCreateMeeting}
@@ -440,6 +464,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 10,
     marginLeft: 32,
+  },
+  notesInput: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    minHeight: 100,
+    backgroundColor: '#FAFAFA',
+  },
+  notesHint: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   createButton: {
     backgroundColor: '#4CAF50',

@@ -126,3 +126,57 @@ export const sendMeetingReminder = async (friend: Friend, meetingDate: Date, use
     isHtml: true,
   });
 };
+
+export const sendMeetingInvitation = async (friend: Friend, meetingDate: Date, userEmail: string, notes?: string, venue?: string, city?: string): Promise<boolean> => {
+  const subject = `Meeting Invitation: Let's catch up!`;
+  const body = `
+    <html>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #8000FF;">You're invited to meet up! 🎉</h2>
+          
+          <p>Hi ${friend.name}!</p>
+          
+          <p><strong>${userEmail}</strong> has invited you to meet up!</p>
+          
+          <div style="background-color: #f8f4ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <h3 style="color: #8000FF; margin-top: 0;">Meeting Details</h3>
+            <p><strong>Date:</strong> ${meetingDate.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}</p>
+            <p><strong>Time:</strong> ${meetingDate.toLocaleTimeString('en-US', { 
+              hour: 'numeric', 
+              minute: '2-digit',
+              hour12: true 
+            })}</p>
+            ${venue ? `<p><strong>Venue:</strong> ${venue}</p>` : ''}
+            ${city ? `<p><strong>City:</strong> ${city}</p>` : ''}
+          </div>
+          
+          ${notes ? `
+          <div style="background-color: #fff8e1; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+            <h4 style="margin-top: 0; color: #f57c00;">Additional Details:</h4>
+            <p style="margin-bottom: 0;">${notes}</p>
+          </div>
+          ` : ''}
+          
+          <p>Looking forward to seeing you there! 😊</p>
+          
+          <p style="color: #666; font-size: 14px;">
+            This invitation was sent via Friendo. Please confirm your attendance with ${userEmail}.
+          </p>
+        </div>
+      </body>
+    </html>
+  `;
+
+  return await sendEmail({
+    to: [friend.email || ''],
+    subject,
+    body,
+    isHtml: true,
+  });
+};
