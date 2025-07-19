@@ -292,10 +292,6 @@ const styles = StyleSheet.create({
     color: '#8000FF',
     marginBottom: 8,
     textAlign: 'center',
-    textAlignVertical: 'center',
-    includeFontPadding: false,
-    lineHeight: 38,
-    minHeight: 38,
     width: '100%',
   },
   statLabel: {

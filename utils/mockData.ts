@@ -37,8 +37,17 @@ export const mockSyncedContacts: { [key: string]: SyncedContact[] } = {
 
 export const activityTypes: ActivityType[] = [
   {
-    id: 'restaurants',
-    name: 'Restaurants',
+    id: 'coffee',
+    name: 'Coffee',
+    venues: [
+      { id: '5', name: 'Blue Bottle Coffee', popularity: 15 },
+      { id: '6', name: 'Stumptown Coffee', popularity: 12 },
+      { id: '7', name: 'Intelligentsia', popularity: 10 },
+    ]
+  },
+  {
+    id: 'restaurant',
+    name: 'Restaurant',
     venues: [
       { id: '1', name: 'Damindra', popularity: 10 },
       { id: '2', name: 'Noma', popularity: 10 },
@@ -47,17 +56,35 @@ export const activityTypes: ActivityType[] = [
     ]
   },
   {
-    id: 'cafes',
-    name: 'Cafes',
+    id: 'lunch',
+    name: 'Lunch',
     venues: [
-      { id: '5', name: 'Blue Bottle Coffee', popularity: 15 },
-      { id: '6', name: 'Stumptown Coffee', popularity: 12 },
-      { id: '7', name: 'Intelligentsia', popularity: 10 },
+      { id: '14', name: 'Local Bistro', popularity: 12 },
+      { id: '15', name: 'Sandwich Shop', popularity: 15 },
+      { id: '16', name: 'Healthy Bowl', popularity: 10 },
     ]
   },
   {
-    id: 'bars',
-    name: 'Bars',
+    id: 'dinner',
+    name: 'Dinner',
+    venues: [
+      { id: '17', name: 'Fine Dining', popularity: 8 },
+      { id: '18', name: 'Steakhouse', popularity: 10 },
+      { id: '19', name: 'Italian Restaurant', popularity: 12 },
+    ]
+  },
+  {
+    id: 'breakfast',
+    name: 'Breakfast',
+    venues: [
+      { id: '20', name: 'Morning Cafe', popularity: 14 },
+      { id: '21', name: 'Pancake House', popularity: 16 },
+      { id: '22', name: 'Bagel Shop', popularity: 12 },
+    ]
+  },
+  {
+    id: 'bar',
+    name: 'Bar',
     venues: [
       { id: '8', name: 'Warpigs', popularity: 5 },
       { id: '9', name: 'The Dead Rabbit', popularity: 8 },
@@ -65,12 +92,39 @@ export const activityTypes: ActivityType[] = [
     ]
   },
   {
-    id: 'cinemas',
-    name: 'Cinemas',
+    id: 'drinks',
+    name: 'Drinks',
+    venues: [
+      { id: '23', name: 'Cocktail Lounge', popularity: 9 },
+      { id: '24', name: 'Wine Bar', popularity: 7 },
+      { id: '25', name: 'Rooftop Bar', popularity: 11 },
+    ]
+  },
+  {
+    id: 'movie',
+    name: 'Movie',
     venues: [
       { id: '11', name: 'AMC Theaters', popularity: 20 },
       { id: '12', name: 'Regal Cinemas', popularity: 18 },
       { id: '13', name: 'Alamo Drafthouse', popularity: 12 },
+    ]
+  },
+  {
+    id: 'walk',
+    name: 'Walk',
+    venues: [
+      { id: '26', name: 'Central Park', popularity: 25 },
+      { id: '27', name: 'Riverside Trail', popularity: 18 },
+      { id: '28', name: 'Downtown Walk', popularity: 15 },
+    ]
+  },
+  {
+    id: 'sports',
+    name: 'Sports',
+    venues: [
+      { id: '29', name: 'Local Gym', popularity: 20 },
+      { id: '30', name: 'Tennis Court', popularity: 12 },
+      { id: '31', name: 'Basketball Court', popularity: 15 },
     ]
   },
 ];

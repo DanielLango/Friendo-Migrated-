@@ -17,7 +17,7 @@ import { Friend } from '../types';
 import { activityTypes } from '../utils/mockData';
 import { sendFriendInvitation } from '../utils/emailUtils';
 import { createMeetingEvent, createAndDownloadMeetingICS } from '../utils/calendarUtils';
-import CitySelector from '../components/CitySelector';
+import SimpleCitySelector from '../components/SimpleCitySelector';
 import VenueSelector from '../components/VenueSelector';
 
 export default function MeetingCreateScreen() {
@@ -39,6 +39,13 @@ export default function MeetingCreateScreen() {
   const { db, user } = useBasic();
   
   const friend = (route.params as any)?.friend as Friend;
+
+  const handleDateChange = (event: any, date?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
 
   const generateDateOptions = () => {
     const dates = [];
@@ -70,13 +77,6 @@ export default function MeetingCreateScreen() {
     setSelectedCity(city);
     setCityPlaceId(placeId);
     setSelectedVenue(''); // Reset venue when city changes
-  };
-
-  const handleDateChange = (event: any, date?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
-    if (date) {
-      setSelectedDate(date);
-    }
   };
 
   const handleCreateMeeting = async () => {
@@ -217,7 +217,7 @@ export default function MeetingCreateScreen() {
             {['coffee', 'restaurant', 'bar', 'drinks', 'lunch', 'dinner', 'breakfast'].includes(selectedActivity) && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>📍 Select City</Text>
-                <CitySelector
+                <SimpleCitySelector
                   selectedCity={selectedCity}
                   onCitySelect={handleCitySelect}
                   placeholder="Choose a city..."
