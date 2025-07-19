@@ -361,8 +361,6 @@ const popularCities = [
   'Nassau, Bahamas',
   'Bridgetown, Barbados',
   'Port of Spain, Trinidad and Tobago',
-  'Georgetown, Guyana',
-  'Paramaribo, Suriname',
   'Willemstad, Curaçao',
   'Oranjestad, Aruba',
   'Philipsburg, Sint Maarten',
