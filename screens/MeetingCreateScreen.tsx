@@ -183,7 +183,7 @@ export default function MeetingCreateScreen() {
         </View>
 
         {selectedCategoryData && (
-          <>
+          <View>
             {/* City Selection for location-based activities */}
             {['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory) && (
               <View style={styles.section}>
@@ -222,7 +222,7 @@ export default function MeetingCreateScreen() {
                 </View>
               </View>
             )}
-          </>
+          </View>
         )}
 
         <View style={styles.section}>

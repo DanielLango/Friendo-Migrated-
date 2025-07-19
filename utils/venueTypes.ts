@@ -83,7 +83,7 @@ export const partnerVenues: { [cityId: string]: { [categoryId: string]: PartnerV
   //   'restaurant': [
   //     {
   //       id: 'joes-pizza-nyc',
-  //       name: 'Joe\'s Pizza',
+  //       name: 'Joes Pizza',
   //       category: 'restaurant',
   //       city: 'New York, NY, USA',
   //       address: '123 Main St, New York, NY',

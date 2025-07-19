@@ -67,15 +67,22 @@ export default function PartnerVenueSelector({
             onPress={() => onVenueSelect(venue.name)}
           >
             <View style={styles.venueHeader}>
-              <Text style={[
-                styles.venueName,
-                selectedVenue === venue.name && styles.venueNameSelected
-              ]}>
-                {venue.name}
+              <View style={styles.venueNameContainer}>
+                <Text style={[
+                  styles.venueName,
+                  selectedVenue === venue.name && styles.venueNameSelected
+                ]}>
+                  {venue.name}
+                </Text>
                 {venue.isFeatured && (
-                  <Text style={styles.featuredBadge}> ⭐ Featured</Text>
+                  <Text style={[
+                    styles.featuredBadge,
+                    selectedVenue === venue.name && styles.featuredBadgeSelected
+                  ]}>
+                    ⭐ Featured
+                  </Text>
                 )}
-              </Text>
+              </View>
               <View style={styles.partnershipBadge}>
                 <Text style={styles.partnershipBadgeText}>
                   {venue.partnershipLevel.toUpperCase()}
@@ -239,11 +246,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 8,
   },
+  venueNameContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
   venueName: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333333',
-    flex: 1,
+    marginRight: 8,
   },
   venueNameSelected: {
     color: '#FFFFFF',
@@ -252,6 +265,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#FFD700',
     fontWeight: 'normal',
+  },
+  featuredBadgeSelected: {
+    color: '#FFD700',
   },
   partnershipBadge: {
     backgroundColor: '#4CAF50',
