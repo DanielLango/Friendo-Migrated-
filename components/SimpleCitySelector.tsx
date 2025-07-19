@@ -49,6 +49,7 @@ const popularCities = [
   'Monaco, Monaco',
   'Reykjavik, Iceland',
   'Malta, Malta',
+  'Makoó, Hungary',
   
   // Asia
   'Tokyo, Japan',
