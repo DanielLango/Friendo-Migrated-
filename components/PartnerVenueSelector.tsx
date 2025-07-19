@@ -212,6 +212,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   genericButtonSelected: {
     backgroundColor: '#8000FF',
@@ -220,6 +221,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#8000FF',
+    textAlign: 'center',
   },
   genericButtonTextSelected: {
     color: '#FFFFFF',
@@ -330,6 +332,8 @@ const styles = StyleSheet.create({
     padding: 16,
     marginTop: 8,
     backgroundColor: '#F8F8F8',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   genericVenueOptionSelected: {
     backgroundColor: '#8000FF',
@@ -341,6 +345,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#666666',
     marginBottom: 4,
+    textAlign: 'center',
   },
   genericVenueTextSelected: {
     color: '#FFFFFF',
@@ -348,6 +353,7 @@ const styles = StyleSheet.create({
   genericVenueSubtext: {
     fontSize: 12,
     color: '#999999',
+    textAlign: 'center',
   },
   genericVenueSubtextSelected: {
     color: 'rgba(255, 255, 255, 0.7)',

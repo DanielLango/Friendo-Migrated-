@@ -314,7 +314,7 @@ export default function MeetingCreateScreen() {
             textAlignVertical="top"
           />
           <Text style={styles.notesHint}>
-            💡 This will be included in calendar invites and email invitations
+            💡 This will be included in calendar invites and email invitations (Click outside the box once filled)
           </Text>
         </View>
 
@@ -476,8 +476,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA',
   },
   notesHint: {
-    fontSize: 12,
-    color: '#666666',
+    fontSize: 11,
+    color: '#999999',
     marginTop: 8,
     fontStyle: 'italic',
   },
