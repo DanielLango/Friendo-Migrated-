@@ -14,16 +14,17 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Friend } from '../types';
-import { activityTypes } from '../utils/mockData';
 import { sendFriendInvitation } from '../utils/emailUtils';
 import { createMeetingEvent, createAndDownloadMeetingICS } from '../utils/calendarUtils';
 import SimpleCitySelector from '../components/SimpleCitySelector';
-import VenueSelector from '../components/VenueSelector';
+import VenueCategorySelector from '../components/VenueCategorySelector';
+import PartnerVenueSelector from '../components/PartnerVenueSelector';
+import { getVenueCategory } from '../utils/venueTypes';
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedActivity, setSelectedActivity] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedVenue, setSelectedVenue] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [cityPlaceId, setCityPlaceId] = useState('');
@@ -47,30 +48,9 @@ export default function MeetingCreateScreen() {
     }
   };
 
-  const generateDateOptions = () => {
-    const dates = [];
-    const today = new Date();
-    
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      dates.push({
-        value: date.toISOString().split('T')[0],
-        label: i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : date.toLocaleDateString('en-US', { 
-          weekday: 'short', 
-          month: 'short', 
-          day: 'numeric' 
-        })
-      });
-    }
-    return dates;
-  };
-
-  const dateOptions = generateDateOptions();
-
-  const handleActivitySelect = (activityId: string) => {
-    setSelectedActivity(activityId);
-    setSelectedVenue(''); // Reset venue when activity changes
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setSelectedVenue(''); // Reset venue when category changes
   };
 
   const handleCitySelect = (city: string, placeId: string) => {
@@ -80,15 +60,15 @@ export default function MeetingCreateScreen() {
   };
 
   const handleCreateMeeting = async () => {
-    if (!selectedDate || !selectedActivity) {
-      Alert.alert('Error', 'Please fill in all required fields');
+    if (!selectedDate || !selectedCategory) {
+      Alert.alert('Error', 'Please select a date and activity type');
       return;
     }
 
-    // For restaurants/cafes/bars, require city and venue
-    const requiresVenue = ['coffee', 'restaurant', 'bar', 'drinks', 'lunch', 'dinner', 'breakfast'].includes(selectedActivity);
-    if (requiresVenue && (!selectedCity || !selectedVenue)) {
-      Alert.alert('Error', 'Please select a city and venue for this activity');
+    // For location-based activities, require city selection
+    const requiresLocation = ['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory);
+    if (requiresLocation && !selectedCity) {
+      Alert.alert('Error', 'Please select a city for this activity type');
       return;
     }
 
@@ -101,12 +81,15 @@ export default function MeetingCreateScreen() {
 
     try {
       if (db) {
+        const category = getVenueCategory(selectedCategory);
+        
         // Create meeting in database
         await db.from('meetings').add({
           friendId: friend.id,
           date: selectedDate.toISOString(),
-          activity: selectedActivity,
-          venue: selectedVenue,
+          activityType: selectedCategory,
+          activityName: category?.name || selectedCategory,
+          venue: selectedVenue || `Generic ${category?.name}`,
           city: selectedCity,
           notes: '',
           createdAt: Date.now(),
@@ -149,7 +132,7 @@ export default function MeetingCreateScreen() {
     }
   };
 
-  const selectedActivityType = activityTypes.find(type => type.id === selectedActivity);
+  const selectedCategoryData = getVenueCategory(selectedCategory);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -163,7 +146,7 @@ export default function MeetingCreateScreen() {
 
       <ScrollView style={styles.content}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Select Date</Text>
+          <Text style={styles.sectionTitle}>📅 Select Date</Text>
           <TouchableOpacity
             style={styles.dateSelector}
             onPress={() => setShowDatePicker(true)}
@@ -191,30 +174,18 @@ export default function MeetingCreateScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Type of Activity</Text>
-          {activityTypes.map((activity) => (
-            <TouchableOpacity
-              key={activity.id}
-              style={[
-                styles.activityOption,
-                selectedActivity === activity.id && styles.activityOptionSelected
-              ]}
-              onPress={() => handleActivitySelect(activity.id)}
-            >
-              <Text style={[
-                styles.activityText,
-                selectedActivity === activity.id && styles.activityTextSelected
-              ]}>
-                {activity.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          <Text style={styles.sectionTitle}>🎯 Type of Activity</Text>
+          <VenueCategorySelector
+            selectedCategory={selectedCategory}
+            onCategorySelect={handleCategorySelect}
+            selectedCity={selectedCity}
+          />
         </View>
 
-        {selectedActivityType && (
+        {selectedCategoryData && (
           <>
-            {/* City Selection for restaurants/cafes/bars */}
-            {['coffee', 'restaurant', 'bar', 'drinks', 'lunch', 'dinner', 'breakfast'].includes(selectedActivity) && (
+            {/* City Selection for location-based activities */}
+            {['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory) && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>📍 Select City</Text>
                 <SimpleCitySelector
@@ -225,40 +196,32 @@ export default function MeetingCreateScreen() {
               </View>
             )}
 
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {selectedCity ? `Venues in ${selectedCity}` : 'Venue Suggestions'}
-              </Text>
-              {selectedCity && ['coffee', 'restaurant', 'bar', 'drinks', 'lunch', 'dinner', 'breakfast'].includes(selectedActivity) ? (
-                <VenueSelector
+            {/* Partner Venue Selection */}
+            {selectedCity && ['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory) && (
+              <View style={styles.section}>
+                <PartnerVenueSelector
                   selectedVenue={selectedVenue}
                   onVenueSelect={setSelectedVenue}
-                  activityType={selectedActivity}
-                  cityPlaceId={cityPlaceId}
+                  selectedCity={selectedCity}
+                  selectedCategory={selectedCategory}
                 />
-              ) : (
-                // Fallback to original venue selection for non-location activities
-                <>
-                  {selectedActivityType.venues.map((venue) => (
-                    <TouchableOpacity
-                      key={venue.id}
-                      style={[
-                        styles.venueOption,
-                        selectedVenue === venue.name && styles.venueOptionSelected
-                      ]}
-                      onPress={() => setSelectedVenue(venue.name)}
-                    >
-                      <Text style={[
-                        styles.venueText,
-                        selectedVenue === venue.name && styles.venueTextSelected
-                      ]}>
-                        {venue.name} ({venue.popularity}%)
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </>
-              )}
-            </View>
+              </View>
+            )}
+
+            {/* For park activities, no specific venue needed */}
+            {selectedCategory === 'park' && (
+              <View style={styles.section}>
+                <View style={styles.parkInfo}>
+                  <Text style={styles.parkInfoIcon}>🌳</Text>
+                  <View style={styles.parkInfoText}>
+                    <Text style={styles.parkInfoTitle}>Park Activity Selected</Text>
+                    <Text style={styles.parkInfoSubtext}>
+                      Perfect for outdoor meetups! You can choose the specific park when you meet.
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
           </>
         )}
 
@@ -386,14 +349,6 @@ const styles = StyleSheet.create({
     color: '#333333',
     marginBottom: 15,
   },
-  dateInput: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
   dateSelector: {
     borderWidth: 1,
     borderColor: '#E0E0E0',
@@ -412,70 +367,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666666',
   },
-  datePickerContainer: {
+  parkInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F8FF',
+    borderRadius: 12,
+    padding: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    marginTop: 8,
-    maxHeight: 200,
-    backgroundColor: '#FFFFFF',
-  },
-  datePickerScroll: {
-    maxHeight: 200,
-  },
-  dateOption: {
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  dateOptionSelected: {
-    backgroundColor: '#8000FF',
-  },
-  dateOptionText: {
-    fontSize: 16,
-    color: '#333333',
-  },
-  dateOptionTextSelected: {
-    color: '#FFFFFF',
-  },
-  activityOption: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    marginBottom: 10,
-  },
-  activityOptionSelected: {
-    backgroundColor: '#8000FF',
     borderColor: '#8000FF',
   },
-  activityText: {
+  parkInfoIcon: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  parkInfoText: {
+    flex: 1,
+  },
+  parkInfoTitle: {
     fontSize: 16,
-    color: '#333333',
+    fontWeight: 'bold',
+    color: '#8000FF',
+    marginBottom: 4,
   },
-  activityTextSelected: {
-    color: '#FFFFFF',
-  },
-  venueOption: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    marginBottom: 10,
-  },
-  venueOptionSelected: {
-    backgroundColor: '#8000FF',
-    borderColor: '#8000FF',
-  },
-  venueText: {
-    fontSize: 16,
-    color: '#333333',
-  },
-  venueTextSelected: {
-    color: '#FFFFFF',
+  parkInfoSubtext: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 18,
   },
   checkboxContainer: {
     flexDirection: 'row',
