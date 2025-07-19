@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 
 interface SimpleCitySelectorProps {
   selectedCity: string;
@@ -8,56 +8,278 @@ interface SimpleCitySelectorProps {
 }
 
 const popularCities = [
-  'New York, NY',
-  'Los Angeles, CA',
-  'Chicago, IL',
-  'Houston, TX',
-  'Phoenix, AZ',
-  'Philadelphia, PA',
-  'San Antonio, TX',
-  'San Diego, CA',
-  'Dallas, TX',
-  'San Jose, CA',
-  'Austin, TX',
-  'Jacksonville, FL',
-  'Fort Worth, TX',
-  'Columbus, OH',
-  'Charlotte, NC',
-  'San Francisco, CA',
-  'Indianapolis, IN',
-  'Seattle, WA',
-  'Denver, CO',
-  'Washington, DC',
-  'Boston, MA',
-  'El Paso, TX',
-  'Nashville, TN',
-  'Detroit, MI',
-  'Oklahoma City, OK',
-  'Portland, OR',
-  'Las Vegas, NV',
-  'Memphis, TN',
-  'Louisville, KY',
-  'Baltimore, MD',
-  'Milwaukee, WI',
-  'Albuquerque, NM',
-  'Tucson, AZ',
-  'Fresno, CA',
-  'Mesa, AZ',
-  'Sacramento, CA',
-  'Atlanta, GA',
-  'Kansas City, MO',
-  'Colorado Springs, CO',
-  'Miami, FL',
-  'Raleigh, NC',
-  'Omaha, NE',
-  'Long Beach, CA',
-  'Virginia Beach, VA',
-  'Oakland, CA',
-  'Minneapolis, MN',
-  'Tulsa, OK',
-  'Arlington, TX',
-  'Tampa, FL',
-  'New Orleans, LA'
+  // North America
+  'New York, NY, USA',
+  'Los Angeles, CA, USA',
+  'Chicago, IL, USA',
+  'Toronto, ON, Canada',
+  'Vancouver, BC, Canada',
+  'Mexico City, Mexico',
+  
+  // Europe
+  'London, United Kingdom',
+  'Paris, France',
+  'Berlin, Germany',
+  'Madrid, Spain',
+  'Rome, Italy',
+  'Amsterdam, Netherlands',
+  'Barcelona, Spain',
+  'Vienna, Austria',
+  'Prague, Czech Republic',
+  'Stockholm, Sweden',
+  'Copenhagen, Denmark',
+  'Oslo, Norway',
+  'Helsinki, Finland',
+  'Zurich, Switzerland',
+  'Brussels, Belgium',
+  'Dublin, Ireland',
+  'Lisbon, Portugal',
+  'Athens, Greece',
+  'Warsaw, Poland',
+  'Budapest, Hungary',
+  'Bucharest, Romania',
+  'Sofia, Bulgaria',
+  'Zagreb, Croatia',
+  'Ljubljana, Slovenia',
+  'Bratislava, Slovakia',
+  'Tallinn, Estonia',
+  'Riga, Latvia',
+  'Vilnius, Lithuania',
+  'Luxembourg City, Luxembourg',
+  'Monaco, Monaco',
+  'Reykjavik, Iceland',
+  'Malta, Malta',
+  
+  // Asia
+  'Tokyo, Japan',
+  'Seoul, South Korea',
+  'Beijing, China',
+  'Shanghai, China',
+  'Hong Kong, China',
+  'Singapore, Singapore',
+  'Bangkok, Thailand',
+  'Manila, Philippines',
+  'Jakarta, Indonesia',
+  'Kuala Lumpur, Malaysia',
+  'Ho Chi Minh City, Vietnam',
+  'Hanoi, Vietnam',
+  'Mumbai, India',
+  'Delhi, India',
+  'Bangalore, India',
+  'Kolkata, India',
+  'Chennai, India',
+  'Hyderabad, India',
+  'Pune, India',
+  'Ahmedabad, India',
+  'Islamabad, Pakistan',
+  'Karachi, Pakistan',
+  'Lahore, Pakistan',
+  'Dhaka, Bangladesh',
+  'Colombo, Sri Lanka',
+  'Kathmandu, Nepal',
+  'Thimphu, Bhutan',
+  'Ulaanbaatar, Mongolia',
+  'Almaty, Kazakhstan',
+  'Tashkent, Uzbekistan',
+  'Bishkek, Kyrgyzstan',
+  'Dushanbe, Tajikistan',
+  'Ashgabat, Turkmenistan',
+  'Baku, Azerbaijan',
+  'Yerevan, Armenia',
+  'Tbilisi, Georgia',
+  'Tehran, Iran',
+  'Baghdad, Iraq',
+  'Damascus, Syria',
+  'Beirut, Lebanon',
+  'Amman, Jordan',
+  'Kuwait City, Kuwait',
+  'Doha, Qatar',
+  'Abu Dhabi, UAE',
+  'Dubai, UAE',
+  'Muscat, Oman',
+  'Sanaa, Yemen',
+  'Riyadh, Saudi Arabia',
+  'Jeddah, Saudi Arabia',
+  'Manama, Bahrain',
+  'Tel Aviv, Israel',
+  'Jerusalem, Israel',
+  'Ankara, Turkey',
+  'Istanbul, Turkey',
+  'Nicosia, Cyprus',
+  
+  // Africa
+  'Cairo, Egypt',
+  'Lagos, Nigeria',
+  'Johannesburg, South Africa',
+  'Cape Town, South Africa',
+  'Nairobi, Kenya',
+  'Addis Ababa, Ethiopia',
+  'Accra, Ghana',
+  'Dakar, Senegal',
+  'Casablanca, Morocco',
+  'Rabat, Morocco',
+  'Tunis, Tunisia',
+  'Algiers, Algeria',
+  'Tripoli, Libya',
+  'Khartoum, Sudan',
+  'Kampala, Uganda',
+  'Dar es Salaam, Tanzania',
+  'Kigali, Rwanda',
+  'Bujumbura, Burundi',
+  'Kinshasa, DR Congo',
+  'Brazzaville, Republic of Congo',
+  'Libreville, Gabon',
+  'Yaoundé, Cameroon',
+  'Bangui, Central African Republic',
+  'Ndjamena, Chad',
+  'Niamey, Niger',
+  'Ouagadougou, Burkina Faso',
+  'Bamako, Mali',
+  'Conakry, Guinea',
+  'Freetown, Sierra Leone',
+  'Monrovia, Liberia',
+  'Abidjan, Côte d\'Ivoire',
+  'Lomé, Togo',
+  'Porto-Novo, Benin',
+  'Abuja, Nigeria',
+  'Windhoek, Namibia',
+  'Gaborone, Botswana',
+  'Maseru, Lesotho',
+  'Mbabane, Eswatini',
+  'Maputo, Mozambique',
+  'Harare, Zimbabwe',
+  'Lusaka, Zambia',
+  'Lilongwe, Malawi',
+  'Antananarivo, Madagascar',
+  'Port Louis, Mauritius',
+  'Victoria, Seychelles',
+  'Moroni, Comoros',
+  
+  // Oceania
+  'Sydney, Australia',
+  'Melbourne, Australia',
+  'Brisbane, Australia',
+  'Perth, Australia',
+  'Adelaide, Australia',
+  'Canberra, Australia',
+  'Auckland, New Zealand',
+  'Wellington, New Zealand',
+  'Christchurch, New Zealand',
+  'Suva, Fiji',
+  'Port Moresby, Papua New Guinea',
+  'Nuku\'alofa, Tonga',
+  'Apia, Samoa',
+  'Port Vila, Vanuatu',
+  'Honiara, Solomon Islands',
+  'Tarawa, Kiribati',
+  'Funafuti, Tuvalu',
+  'Yaren, Nauru',
+  'Ngerulmud, Palau',
+  'Majuro, Marshall Islands',
+  'Palikir, Micronesia',
+  
+  // South America
+  'São Paulo, Brazil',
+  'Rio de Janeiro, Brazil',
+  'Buenos Aires, Argentina',
+  'Lima, Peru',
+  'Bogotá, Colombia',
+  'Santiago, Chile',
+  'Caracas, Venezuela',
+  'Quito, Ecuador',
+  'La Paz, Bolivia',
+  'Asunción, Paraguay',
+  'Montevideo, Uruguay',
+  'Georgetown, Guyana',
+  'Paramaribo, Suriname',
+  'Cayenne, French Guiana',
+  'Brasília, Brazil',
+  'Medellín, Colombia',
+  'Cali, Colombia',
+  'Guadalajara, Mexico',
+  'Monterrey, Mexico',
+  'Puebla, Mexico',
+  'Tijuana, Mexico',
+  'León, Mexico',
+  'Juárez, Mexico',
+  'Zapopan, Mexico',
+  'Nezahualcóyotl, Mexico',
+  
+  // Caribbean
+  'Havana, Cuba',
+  'Kingston, Jamaica',
+  'Santo Domingo, Dominican Republic',
+  'Port-au-Prince, Haiti',
+  'San Juan, Puerto Rico',
+  'Nassau, Bahamas',
+  'Bridgetown, Barbados',
+  'Port of Spain, Trinidad and Tobago',
+  'Georgetown, Guyana',
+  'Paramaribo, Suriname',
+  'Willemstad, Curaçao',
+  'Oranjestad, Aruba',
+  'Philipsburg, Sint Maarten',
+  'Charlotte Amalie, US Virgin Islands',
+  'Road Town, British Virgin Islands',
+  'The Valley, Anguilla',
+  'Gustavia, Saint Barthélemy',
+  'Marigot, Saint Martin',
+  'Basseterre, Saint Kitts and Nevis',
+  'Plymouth, Montserrat',
+  'Saint John\'s, Antigua and Barbuda',
+  'Roseau, Dominica',
+  'Castries, Saint Lucia',
+  'Kingstown, Saint Vincent and the Grenadines',
+  'Saint George\'s, Grenada',
+  
+  // Additional Major US Cities
+  'Houston, TX, USA',
+  'Phoenix, AZ, USA',
+  'Philadelphia, PA, USA',
+  'San Antonio, TX, USA',
+  'San Diego, CA, USA',
+  'Dallas, TX, USA',
+  'San Jose, CA, USA',
+  'Austin, TX, USA',
+  'Jacksonville, FL, USA',
+  'Fort Worth, TX, USA',
+  'Columbus, OH, USA',
+  'Charlotte, NC, USA',
+  'San Francisco, CA, USA',
+  'Indianapolis, IN, USA',
+  'Seattle, WA, USA',
+  'Denver, CO, USA',
+  'Washington, DC, USA',
+  'Boston, MA, USA',
+  'El Paso, TX, USA',
+  'Nashville, TN, USA',
+  'Detroit, MI, USA',
+  'Oklahoma City, OK, USA',
+  'Portland, OR, USA',
+  'Las Vegas, NV, USA',
+  'Memphis, TN, USA',
+  'Louisville, KY, USA',
+  'Baltimore, MD, USA',
+  'Milwaukee, WI, USA',
+  'Albuquerque, NM, USA',
+  'Tucson, AZ, USA',
+  'Fresno, CA, USA',
+  'Mesa, AZ, USA',
+  'Sacramento, CA, USA',
+  'Atlanta, GA, USA',
+  'Kansas City, MO, USA',
+  'Colorado Springs, CO, USA',
+  'Miami, FL, USA',
+  'Raleigh, NC, USA',
+  'Omaha, NE, USA',
+  'Long Beach, CA, USA',
+  'Virginia Beach, VA, USA',
+  'Oakland, CA, USA',
+  'Minneapolis, MN, USA',
+  'Tulsa, OK, USA',
+  'Arlington, TX, USA',
+  'Tampa, FL, USA',
+  'New Orleans, LA, USA',
 ];
 
 export default function SimpleCitySelector({ 
@@ -66,11 +288,18 @@ export default function SimpleCitySelector({
   placeholder = "Select city..." 
 }: SimpleCitySelectorProps) {
   const [showSelector, setShowSelector] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
   const handleCitySelect = (city: string) => {
     onCitySelect(city, city); // Use city name as placeId for simplicity
     setShowSelector(false);
+    setSearchText('');
   };
+
+  // Filter cities based on search text
+  const filteredCities = popularCities.filter(city =>
+    city.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   return (
     <View style={styles.container}>
@@ -89,24 +318,44 @@ export default function SimpleCitySelector({
 
       {showSelector && (
         <View style={styles.cityListContainer}>
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search cities..."
+              value={searchText}
+              onChangeText={setSearchText}
+              autoFocus={true}
+            />
+          </View>
           <ScrollView style={styles.cityList} nestedScrollEnabled>
-            {popularCities.map((city) => (
-              <TouchableOpacity
-                key={city}
-                style={[
-                  styles.cityOption,
-                  selectedCity === city && styles.cityOptionSelected
-                ]}
-                onPress={() => handleCitySelect(city)}
-              >
-                <Text style={[
-                  styles.cityOptionText,
-                  selectedCity === city && styles.cityOptionTextSelected
-                ]}>
-                  {city}
+            {filteredCities.length > 0 ? (
+              filteredCities.map((city) => (
+                <TouchableOpacity
+                  key={city}
+                  style={[
+                    styles.cityOption,
+                    selectedCity === city && styles.cityOptionSelected
+                  ]}
+                  onPress={() => handleCitySelect(city)}
+                >
+                  <Text style={[
+                    styles.cityOptionText,
+                    selectedCity === city && styles.cityOptionTextSelected
+                  ]}>
+                    {city}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.noResultsContainer}>
+                <Text style={styles.noResultsText}>
+                  No cities found matching "{searchText}"
                 </Text>
-              </TouchableOpacity>
-            ))}
+                <Text style={styles.noResultsSubtext}>
+                  Try a different search term
+                </Text>
+              </View>
+            )}
           </ScrollView>
         </View>
       )}
@@ -163,15 +412,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 8,
-    maxHeight: 200,
+    maxHeight: 300,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
   },
+  searchContainer: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  searchInput: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 16,
+  },
   cityList: {
-    maxHeight: 200,
+    maxHeight: 250,
   },
   cityOption: {
     paddingHorizontal: 15,
@@ -188,6 +449,21 @@ const styles = StyleSheet.create({
   },
   cityOptionTextSelected: {
     color: '#FFFFFF',
+  },
+  noResultsContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  noResultsText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  noResultsSubtext: {
+    fontSize: 14,
+    color: '#999999',
+    textAlign: 'center',
   },
   selectedCityDisplay: {
     flexDirection: 'row',
