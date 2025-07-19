@@ -8,9 +8,11 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Friend } from '../types';
 import { activityTypes } from '../utils/mockData';
 import { sendFriendInvitation } from '../utils/emailUtils';
@@ -19,7 +21,7 @@ import CitySelector from '../components/CitySelector';
 import VenueSelector from '../components/VenueSelector';
 
 export default function MeetingCreateScreen() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState('');
   const [selectedVenue, setSelectedVenue] = useState('');
@@ -70,6 +72,13 @@ export default function MeetingCreateScreen() {
     setSelectedVenue(''); // Reset venue when city changes
   };
 
+  const handleDateChange = (event: any, date?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+
   const handleCreateMeeting = async () => {
     if (!selectedDate || !selectedActivity) {
       Alert.alert('Error', 'Please fill in all required fields');
@@ -95,7 +104,7 @@ export default function MeetingCreateScreen() {
         // Create meeting in database
         await db.from('meetings').add({
           friendId: friend.id,
-          date: selectedDate,
+          date: selectedDate.toISOString(),
           activity: selectedActivity,
           venue: selectedVenue,
           city: selectedCity,
@@ -103,18 +112,16 @@ export default function MeetingCreateScreen() {
           createdAt: Date.now(),
         });
 
-        const meetingDate = new Date(selectedDate);
-        
         // Handle calendar integration
         if (googleCalendar || outlookCalendar || appleCalendar) {
           if (googleCalendar || appleCalendar) {
             // Add to device calendar
-            await createMeetingEvent(friend, meetingDate);
+            await createMeetingEvent(friend, selectedDate);
           }
           
           if (outlookCalendar || googleCalendar) {
             // Create downloadable ICS file
-            await createAndDownloadMeetingICS(friend, meetingDate);
+            await createAndDownloadMeetingICS(friend, selectedDate);
           }
         }
 
@@ -159,39 +166,27 @@ export default function MeetingCreateScreen() {
           <Text style={styles.sectionTitle}>Select Date</Text>
           <TouchableOpacity
             style={styles.dateSelector}
-            onPress={() => setShowDatePicker(!showDatePicker)}
+            onPress={() => setShowDatePicker(true)}
           >
             <Text style={styles.dateSelectorText}>
-              {dateOptions.find(d => d.value === selectedDate)?.label || selectedDate}
+              {selectedDate.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+              })}
             </Text>
-            <Text style={styles.dropdownIcon}>{showDatePicker ? '▲' : '▼'}</Text>
+            <Text style={styles.dropdownIcon}>📅</Text>
           </TouchableOpacity>
           
           {showDatePicker && (
-            <View style={styles.datePickerContainer}>
-              <ScrollView style={styles.datePickerScroll} nestedScrollEnabled>
-                {dateOptions.map((date) => (
-                  <TouchableOpacity
-                    key={date.value}
-                    style={[
-                      styles.dateOption,
-                      selectedDate === date.value && styles.dateOptionSelected
-                    ]}
-                    onPress={() => {
-                      setSelectedDate(date.value);
-                      setShowDatePicker(false);
-                    }}
-                  >
-                    <Text style={[
-                      styles.dateOptionText,
-                      selectedDate === date.value && styles.dateOptionTextSelected
-                    ]}>
-                      {date.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
+            <DateTimePicker
+              value={selectedDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+            />
           )}
         </View>
 

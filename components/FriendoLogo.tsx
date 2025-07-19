@@ -6,15 +6,15 @@ export default function FriendoLogo() {
     <View style={styles.container}>
       {/* Icon */}
       <View style={styles.iconContainer}>
-        {/* Left Person - facing right */}
-        <View style={styles.personLeft}>
+        {/* Left Person */}
+        <View style={styles.person}>
           <View style={styles.head} />
-          <View style={styles.bodyLeft} />
+          <View style={styles.body} />
         </View>
-        {/* Right Person - facing left */}
-        <View style={styles.personRight}>
+        {/* Right Person */}
+        <View style={styles.person}>
           <View style={styles.head} />
-          <View style={styles.bodyRight} />
+          <View style={styles.body} />
         </View>
       </View>
 
@@ -28,43 +28,31 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: -10, // Move logo up
   },
   iconContainer: {
     flexDirection: 'row',
     marginRight: 8,
     alignItems: 'flex-end',
   },
-  personLeft: {
+  person: {
     alignItems: 'center',
-    marginRight: 2,
-  },
-  personRight: {
-    alignItems: 'center',
-    marginLeft: 2,
+    marginHorizontal: 1,
   },
   head: {
     width: 10,
     height: 10,
     backgroundColor: '#000000',
     borderRadius: 5,
-    marginBottom: 1,
+    marginBottom: 2,
   },
-  bodyLeft: {
+  body: {
     width: 12,
     height: 16,
     backgroundColor: '#000000',
-    borderTopLeftRadius: 2,
-    borderTopRightRadius: 6,
-    borderBottomLeftRadius: 2,
-    borderBottomRightRadius: 2,
-  },
-  bodyRight: {
-    width: 12,
-    height: 16,
-    backgroundColor: '#000000',
+    borderRadius: 2,
+    // Trapezoid/cup shape using border radius
     borderTopLeftRadius: 6,
-    borderTopRightRadius: 2,
+    borderTopRightRadius: 6,
     borderBottomLeftRadius: 2,
     borderBottomRightRadius: 2,
   },

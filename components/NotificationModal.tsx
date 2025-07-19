@@ -18,8 +18,8 @@ interface NotificationModalProps {
 }
 
 export default function NotificationModal({ visible, friend, onClose }: NotificationModalProps) {
-  const [selectedFrequency, setSelectedFrequency] = useState<'days' | 'weekly' | 'monthly'>(friend.notificationFrequency);
-  const [customDays, setCustomDays] = useState(friend.notificationDays.toString());
+  const [selectedFrequency, setSelectedFrequency] = useState<'days' | 'weekly' | 'monthly'>(friend.notificationFrequency || 'days');
+  const [customDays, setCustomDays] = useState((friend.notificationDays || 7).toString());
   const { db } = useBasic();
 
   const handleSave = async () => {
