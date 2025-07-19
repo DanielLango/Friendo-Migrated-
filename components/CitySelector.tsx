@@ -15,6 +15,24 @@ export default function CitySelector({
 }: CitySelectorProps) {
   const [showSelector, setShowSelector] = useState(false);
 
+  const apiKey = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
+
+  // If no API key is configured, show a setup message
+  if (!apiKey || apiKey === 'YOUR_API_KEY') {
+    return (
+      <View style={styles.container}>
+        <View style={styles.setupMessage}>
+          <Text style={styles.setupTitle}>🗺️ Google Places Setup Required</Text>
+          <Text style={styles.setupText}>
+            To use city search, please set up Google Places API key in your .env.local file.
+            {'\n\n'}
+            See docs/GOOGLE_PLACES_SETUP.md for instructions.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -40,7 +58,7 @@ export default function CitySelector({
               setShowSelector(false);
             }}
             query={{
-              key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY || 'YOUR_API_KEY',
+              key: apiKey,
               language: 'en',
               types: '(cities)',
             }}
@@ -54,6 +72,10 @@ export default function CitySelector({
             fetchDetails={true}
             enablePoweredByContainer={false}
             debounce={300}
+            minLength={2}
+            requestUrl={{
+              useOnPlatform: 'web', // Use CORS proxy on web
+            }}
           />
         </View>
       )}
@@ -77,6 +99,24 @@ export default function CitySelector({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 15,
+  },
+  setupMessage: {
+    backgroundColor: '#FFF3CD',
+    borderColor: '#FFEAA7',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 15,
+  },
+  setupTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#856404',
+    marginBottom: 8,
+  },
+  setupText: {
+    fontSize: 14,
+    color: '#856404',
+    lineHeight: 20,
   },
   citySelector: {
     borderWidth: 1,
@@ -111,6 +151,11 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
     borderRadius: 8,
     maxHeight: 200,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
   },
   textInputContainer: {
     backgroundColor: 'transparent',

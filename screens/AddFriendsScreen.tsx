@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     elevation: 4,
     flex: 1,
     marginHorizontal: 8,
-    minHeight: 100,
+    minHeight: 120,
   },
   statNumber: {
     fontSize: 32,
@@ -299,6 +299,8 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     lineHeight: 18,
+    minHeight: 36,
+    textAlignVertical: 'center',
   },
   actionsSection: {
     marginBottom: 20,
