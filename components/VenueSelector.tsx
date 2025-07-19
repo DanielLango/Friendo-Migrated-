@@ -49,6 +49,63 @@ export default function VenueSelector({
     return typeMap[activity.toLowerCase()] || 'establishment';
   };
 
+  const generateVenuesForCity = (city: string, venueType: string): string[] => {
+    const cityName = city.split(',')[0]; // Get just the city name
+    
+    const venueTemplates = {
+      restaurant: [
+        `${cityName} Bistro`,
+        `The ${cityName} Kitchen`,
+        `Café ${cityName}`,
+        `${cityName} Grill`,
+        `Downtown ${cityName} Eatery`,
+        `${cityName} Table`,
+        `The Local ${cityName}`,
+        `${cityName} Corner Restaurant`,
+        `${cityName} Food Co.`,
+        `${cityName} Dining Room`,
+      ],
+      bar: [
+        `${cityName} Pub`,
+        `The ${cityName} Lounge`,
+        `${cityName} Taphouse`,
+        `${cityName} Bar & Grill`,
+        `The ${cityName} Tavern`,
+        `${cityName} Brewery`,
+        `${cityName} Social Club`,
+        `The ${cityName} Room`,
+        `${cityName} Cocktail Bar`,
+        `${cityName} Sports Bar`,
+      ],
+      cafe: [
+        `${cityName} Coffee`,
+        `Café ${cityName}`,
+        `${cityName} Roasters`,
+        `The ${cityName} Bean`,
+        `${cityName} Coffee House`,
+        `${cityName} Espresso`,
+        `${cityName} Café & Bakery`,
+        `The ${cityName} Grind`,
+        `${cityName} Coffee Co.`,
+        `${cityName} Brew`,
+      ],
+      park: [
+        `${cityName} Park`,
+        `${cityName} Gardens`,
+        `${cityName} Green`,
+        `${cityName} Commons`,
+        `${cityName} Square`,
+        `${cityName} Waterfront`,
+        `${cityName} Riverside Park`,
+        `${cityName} Central Park`,
+        `${cityName} Memorial Park`,
+        `${cityName} City Park`,
+      ],
+    };
+
+    return venueTemplates[venueType as keyof typeof venueTemplates] || [];
+  };
+
   const fetchVenues = async () => {
     if (!cityPlaceId || !activityType) return;
 
@@ -294,3 +351,41 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
   },
 });
+
+const globalChains = {
+  restaurant: [
+    'McDonald\'s',
+    'Subway',
+    'KFC',
+    'Pizza Hut',
+    'Domino\'s Pizza',
+    'Burger King',
+    'Starbucks',
+    'Dunkin\'',
+    'Taco Bell',
+    'Chipotle',
+  ],
+  bar: [
+    'Hard Rock Cafe',
+    'TGI Friday\'s',
+    'Applebee\'s',
+    'Buffalo Wild Wings',
+    'Hooters',
+    'Dave & Buster\'s',
+  ],
+  cafe: [
+    'Starbucks',
+    'Costa Coffee',
+    'Dunkin\'',
+    'Tim Hortons',
+    'Pret A Manger',
+    'Café Nero',
+  ],
+};
+
+// Combine chains with local-sounding venues
+const getAllVenues = (city: string, venueType: string): string[] => {
+  const localVenues = generateVenuesForCity(city, venueType);
+  const chains = globalChains[venueType as keyof typeof globalChains] || [];
+  return [...localVenues, ...chains];
+};
