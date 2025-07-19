@@ -304,6 +304,14 @@ export default function MeetingCreateScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📝 Additional Details</Text>
+          <View style={styles.notesHints}>
+            <Text style={styles.notesHint}>
+              • This will be included in calendar invites and email invitations
+            </Text>
+            <Text style={styles.notesHint}>
+              • Click outside the box once filled
+            </Text>
+          </View>
           <TextInput
             style={styles.notesInput}
             value={meetingNotes}
@@ -313,9 +321,6 @@ export default function MeetingCreateScreen() {
             numberOfLines={4}
             textAlignVertical="top"
           />
-          <Text style={styles.notesHint}>
-            💡 This will be included in calendar invites and email invitations (Click outside the box once filled)
-          </Text>
         </View>
 
         <TouchableOpacity 
@@ -478,8 +483,11 @@ const styles = StyleSheet.create({
   notesHint: {
     fontSize: 11,
     color: '#999999',
-    marginTop: 8,
     fontStyle: 'italic',
+    marginBottom: 2,
+  },
+  notesHints: {
+    marginBottom: 10,
   },
   createButton: {
     backgroundColor: '#4CAF50',
