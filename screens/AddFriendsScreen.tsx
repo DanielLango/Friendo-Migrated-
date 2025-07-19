@@ -135,11 +135,15 @@ export default function AddFriendsScreen() {
         <View style={styles.statsSection}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{friendCount}</Text>
-            <Text style={styles.statLabel}>Friends Added</Text>
+            <View style={styles.statLabelContainer}>
+              <Text style={styles.statLabel}>Friends Added</Text>
+            </View>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{totalMeetings}</Text>
-            <Text style={styles.statLabel}>Meetings This Year</Text>
+            <View style={styles.statLabelContainer}>
+              <Text style={styles.statLabel}>Meetings This Year</Text>
+            </View>
           </View>
         </View>
 
@@ -294,13 +298,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
   },
+  statLabelContainer: {
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
   statLabel: {
     fontSize: 14,
     color: '#666666',
     textAlign: 'center',
     lineHeight: 18,
-    minHeight: 36,
-    textAlignVertical: 'center',
   },
   actionsSection: {
     marginBottom: 20,
