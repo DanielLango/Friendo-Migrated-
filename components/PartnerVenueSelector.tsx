@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { getPartnerVenues, getVenueCategory, PartnerVenue } from '../utils/venueTypes';
+import { getPartnerVenues, getVenueCategory } from '../utils/venueTypes';
 
 interface PartnerVenueSelectorProps {
   selectedVenue: string;
@@ -27,21 +27,21 @@ export default function PartnerVenueSelector({
           No partner venues yet in {selectedCity}
         </Text>
         <Text style={styles.noVenuesSubtext}>
-          We're working on partnerships with local {category?.name.toLowerCase()}s in your area!
+          We&apos;re working on partnerships with local {category?.name?.toLowerCase() || 'venues'}s in your area!
         </Text>
         <View style={styles.genericOption}>
           <TouchableOpacity
             style={[
               styles.genericButton,
-              selectedVenue === `Generic ${category?.name}` && styles.genericButtonSelected
+              selectedVenue === `Generic ${category?.name || 'Venue'}` && styles.genericButtonSelected
             ]}
-            onPress={() => onVenueSelect(`Generic ${category?.name}`)}
+            onPress={() => onVenueSelect(`Generic ${category?.name || 'Venue'}`)}
           >
             <Text style={[
               styles.genericButtonText,
-              selectedVenue === `Generic ${category?.name}` && styles.genericButtonTextSelected
+              selectedVenue === `Generic ${category?.name || 'Venue'}` && styles.genericButtonTextSelected
             ]}>
-              📍 Select "{category?.name}" as meeting type
+              📍 Select &quot;{category?.name || 'Venue'}&quot; as meeting type
             </Text>
           </TouchableOpacity>
         </View>
@@ -52,7 +52,7 @@ export default function PartnerVenueSelector({
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>
-        🤝 Partner {category?.name}s in {selectedCity}
+        🤝 Partner {category?.name || 'Venue'}s in {selectedCity}
       </Text>
       
       <ScrollView style={styles.venueList} nestedScrollEnabled>
@@ -72,7 +72,9 @@ export default function PartnerVenueSelector({
                 selectedVenue === venue.name && styles.venueNameSelected
               ]}>
                 {venue.name}
-                {venue.isFeatured && <Text style={styles.featuredBadge}> ⭐ Featured</Text>}
+                {venue.isFeatured && (
+                  <Text style={styles.featuredBadge}> ⭐ Featured</Text>
+                )}
               </Text>
               <View style={styles.partnershipBadge}>
                 <Text style={styles.partnershipBadgeText}>
@@ -134,21 +136,21 @@ export default function PartnerVenueSelector({
         <TouchableOpacity
           style={[
             styles.genericVenueOption,
-            selectedVenue === `Generic ${category?.name}` && styles.genericVenueOptionSelected
+            selectedVenue === `Generic ${category?.name || 'Venue'}` && styles.genericVenueOptionSelected
           ]}
-          onPress={() => onVenueSelect(`Generic ${category?.name}`)}
+          onPress={() => onVenueSelect(`Generic ${category?.name || 'Venue'}`)}
         >
           <Text style={[
             styles.genericVenueText,
-            selectedVenue === `Generic ${category?.name}` && styles.genericVenueTextSelected
+            selectedVenue === `Generic ${category?.name || 'Venue'}` && styles.genericVenueTextSelected
           ]}>
-            📍 Other {category?.name} (Generic)
+            📍 Other {category?.name || 'Venue'} (Generic)
           </Text>
           <Text style={[
             styles.genericVenueSubtext,
-            selectedVenue === `Generic ${category?.name}` && styles.genericVenueSubtextSelected
+            selectedVenue === `Generic ${category?.name || 'Venue'}` && styles.genericVenueSubtextSelected
           ]}>
-            Choose your own {category?.name.toLowerCase()}
+            Choose your own {category?.name?.toLowerCase() || 'venue'}
           </Text>
         </TouchableOpacity>
       </ScrollView>
