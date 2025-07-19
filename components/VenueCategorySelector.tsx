@@ -49,13 +49,13 @@ export default function VenueCategorySelector({
                     {category.description}
                   </Text>
                 </View>
-                {partnerCount > 0 && (
+                {partnerCount > 0 ? (
                   <View style={styles.partnerBadge}>
                     <Text style={styles.partnerBadgeText}>
                       {partnerCount} partner{partnerCount !== 1 ? 's' : ''}
                     </Text>
                   </View>
-                )}
+                ) : null}
               </View>
             </TouchableOpacity>
           );

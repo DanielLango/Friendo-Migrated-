@@ -182,10 +182,10 @@ export default function MeetingCreateScreen() {
           />
         </View>
 
-        {selectedCategoryData && (
+        {selectedCategoryData ? (
           <View>
             {/* City Selection for location-based activities */}
-            {['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory) && (
+            {['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory) ? (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>📍 Select City</Text>
                 <SimpleCitySelector
@@ -194,10 +194,10 @@ export default function MeetingCreateScreen() {
                   placeholder="Choose a city..."
                 />
               </View>
-            )}
+            ) : null}
 
             {/* Partner Venue Selection */}
-            {selectedCity && ['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory) && (
+            {selectedCity && ['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory) ? (
               <View style={styles.section}>
                 <PartnerVenueSelector
                   selectedVenue={selectedVenue}
@@ -206,10 +206,10 @@ export default function MeetingCreateScreen() {
                   selectedCategory={selectedCategory}
                 />
               </View>
-            )}
+            ) : null}
 
             {/* For park activities, no specific venue needed */}
-            {selectedCategory === 'park' && (
+            {selectedCategory === 'park' ? (
               <View style={styles.section}>
                 <View style={styles.parkInfo}>
                   <Text style={styles.parkInfoIcon}>🌳</Text>
@@ -221,9 +221,9 @@ export default function MeetingCreateScreen() {
                   </View>
                 </View>
               </View>
-            )}
+            ) : null}
           </View>
-        )}
+        ) : null}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📅 Sync to Calendar</Text>

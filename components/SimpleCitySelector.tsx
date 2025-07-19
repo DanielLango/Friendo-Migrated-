@@ -412,7 +412,7 @@ export default function SimpleCitySelector({
         <Text style={styles.dropdownIcon}>{showSelector ? '▲' : '▼'}</Text>
       </TouchableOpacity>
 
-      {showSelector && (
+      {showSelector ? (
         <View style={styles.cityListContainer}>
           <View style={styles.searchContainer}>
             <TextInput
@@ -454,9 +454,9 @@ export default function SimpleCitySelector({
             )}
           </ScrollView>
         </View>
-      )}
+      ) : null}
 
-      {selectedCity && (
+      {selectedCity ? (
         <View style={styles.selectedCityDisplay}>
           <Text style={styles.selectedCityIcon}>📍</Text>
           <Text style={styles.selectedCityText}>{selectedCity}</Text>
@@ -467,7 +467,7 @@ export default function SimpleCitySelector({
             <Text style={styles.clearButtonText}>✕</Text>
           </TouchableOpacity>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }

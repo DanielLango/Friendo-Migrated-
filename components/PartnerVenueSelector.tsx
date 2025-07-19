@@ -27,7 +27,7 @@ export default function PartnerVenueSelector({
           No partner venues yet in {selectedCity}
         </Text>
         <Text style={styles.noVenuesSubtext}>
-          We&apos;re working on partnerships with local {category?.name?.toLowerCase() || 'venues'}s in your area!
+          We&apos;re working on partnerships with local {(category?.name?.toLowerCase() || 'venue') + 's'} in your area!
         </Text>
         <View style={styles.genericOption}>
           <TouchableOpacity
@@ -90,35 +90,35 @@ export default function PartnerVenueSelector({
               </View>
             </View>
             
-            {venue.address && (
+            {venue.address ? (
               <Text style={[
                 styles.venueAddress,
                 selectedVenue === venue.name && styles.venueAddressSelected
               ]}>
                 📍 {venue.address}
               </Text>
-            )}
+            ) : null}
             
             <View style={styles.venueDetails}>
-              {venue.rating && (
+              {venue.rating ? (
                 <Text style={[
                   styles.venueRating,
                   selectedVenue === venue.name && styles.venueDetailsSelected
                 ]}>
                   ⭐ {venue.rating.toFixed(1)}
                 </Text>
-              )}
-              {venue.priceLevel && (
+              ) : null}
+              {venue.priceLevel ? (
                 <Text style={[
                   styles.venuePriceLevel,
                   selectedVenue === venue.name && styles.venueDetailsSelected
                 ]}>
                   {'💰'.repeat(venue.priceLevel)}
                 </Text>
-              )}
+              ) : null}
             </View>
             
-            {venue.specialOffers && venue.specialOffers.length > 0 && (
+            {venue.specialOffers && venue.specialOffers.length > 0 ? (
               <View style={styles.offersContainer}>
                 <Text style={[
                   styles.offersTitle,
@@ -135,7 +135,7 @@ export default function PartnerVenueSelector({
                   </Text>
                 ))}
               </View>
-            )}
+            ) : null}
           </TouchableOpacity>
         ))}
         
