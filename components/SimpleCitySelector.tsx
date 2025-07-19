@@ -177,7 +177,7 @@ const popularCities = [
   'Foshan, China',
   'Shenyang, China',
   'Hangzhou, China',
-  'Xi\'an, China',
+  'Xian, China',
   'Harbin, China',
   'Suzhou, China',
   'Qingdao, China',
@@ -285,7 +285,7 @@ const popularCities = [
   'Conakry, Guinea',
   'Freetown, Sierra Leone',
   'Monrovia, Liberia',
-  'Abidjan, Côte d\'Ivoire',
+  'Abidjan, Ivory Coast',
   'Lomé, Togo',
   'Porto-Novo, Benin',
   'Abuja, Nigeria',
@@ -314,7 +314,7 @@ const popularCities = [
   'Christchurch, New Zealand',
   'Suva, Fiji',
   'Port Moresby, Papua New Guinea',
-  'Nuku\'alofa, Tonga',
+  'Nukualofa, Tonga',
   'Apia, Samoa',
   'Port Vila, Vanuatu',
   'Honiara, Solomon Islands',
@@ -373,11 +373,11 @@ const popularCities = [
   'Marigot, Saint Martin',
   'Basseterre, Saint Kitts and Nevis',
   'Plymouth, Montserrat',
-  'Saint John\'s, Antigua and Barbuda',
+  'Saint Johns, Antigua and Barbuda',
   'Roseau, Dominica',
   'Castries, Saint Lucia',
   'Kingstown, Saint Vincent and the Grenadines',
-  'Saint George\'s, Grenada',
+  'Saint Georges, Grenada',
 ];
 
 export default function SimpleCitySelector({ 
@@ -447,7 +447,7 @@ export default function SimpleCitySelector({
             ) : (
               <View style={styles.noResultsContainer}>
                 <Text style={styles.noResultsText}>
-                  No cities found matching "{searchText}"
+                  No cities found matching &quot;{searchText}&quot;
                 </Text>
                 <Text style={styles.noResultsSubtext}>
                   Try a different search term
