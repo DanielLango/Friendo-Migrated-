@@ -7,6 +7,7 @@ import {
   Modal,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { useBasic } from '@basictech/expo';
 import { Friend } from '../types';
@@ -39,14 +40,22 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
           notificationDays: days,
         });
 
-        // Schedule the actual notification
+        // Schedule the actual notification (only works on mobile)
         await notificationService.scheduleNotification(
           friend.id,
           friend.name,
           days
         );
 
-        Alert.alert('Success', `Notification set! You'll be reminded to reconnect with ${friend.name} in ${days} day${days === 1 ? '' : 's'}.`);
+        if (Platform.OS === 'web') {
+          Alert.alert(
+            'Settings Saved', 
+            `Notification preferences saved! Note: Push notifications only work on mobile devices. When you use this app on your phone, you'll receive reminders to reconnect with ${friend.name} every ${days} day${days === 1 ? '' : 's'}.`
+          );
+        } else {
+          Alert.alert('Success', `Notification set! You'll be reminded to reconnect with ${friend.name} in ${days} day${days === 1 ? '' : 's'}.`);
+        }
+        
         onClose();
       } catch (error) {
         console.error('Error updating notification settings:', error);
