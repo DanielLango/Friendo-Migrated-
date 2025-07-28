@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
+import { notificationService } from './utils/notificationService';
+import * as Notifications from 'expo-notifications';
 
 // Screens
 import LoginScreen from './screens/LoginScreen';
@@ -33,6 +35,37 @@ export type RootStackParamList = {
 const Stack = createStackNavigator();
 
 function AppContent() {
+  useEffect(() => {
+    // Initialize notification service
+    notificationService.initialize();
+
+    // Handle notification responses (when user taps on notification)
+    const responseSubscription = notificationService.addNotificationResponseListener(
+      (response) => {
+        const data = response.notification.request.content.data;
+        if (data?.type === 'friend-reminder') {
+          console.log(`User tapped notification for friend: ${data.friendName}`);
+          // You could navigate to the friend's profile or main screen here
+        }
+      }
+    );
+
+    // Handle notifications received while app is in foreground
+    const receivedSubscription = notificationService.addNotificationReceivedListener(
+      (notification) => {
+        const data = notification.request.content.data;
+        if (data?.type === 'friend-reminder') {
+          console.log(`Received notification for friend: ${data.friendName}`);
+        }
+      }
+    );
+
+    return () => {
+      responseSubscription.remove();
+      receivedSubscription.remove();
+    };
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator 

@@ -20,6 +20,7 @@ import SimpleCitySelector from '../components/SimpleCitySelector';
 import VenueCategorySelector from '../components/VenueCategorySelector';
 import PartnerVenueSelector from '../components/PartnerVenueSelector';
 import { getVenueCategory } from '../utils/venueTypes';
+import { notificationService } from '../utils/notificationService';
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -95,6 +96,20 @@ export default function MeetingCreateScreen() {
           notes: meetingNotes,
           createdAt: Date.now(),
         });
+
+        // Update friend's last meeting date
+        await db.from('friends').update(friend.id, {
+          lastMeeting: selectedDate.toISOString(),
+        });
+
+        // Reschedule notification based on friend's notification settings
+        if (friend.notificationDays) {
+          await notificationService.rescheduleNotificationAfterMeeting(
+            friend.id,
+            friend.name,
+            friend.notificationDays
+          );
+        }
 
         // Handle calendar integration
         if (googleCalendar || outlookCalendar || appleCalendar) {

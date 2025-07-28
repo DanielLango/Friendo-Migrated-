@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useBasic } from '@basictech/expo';
 import { Friend } from '../types';
+import { notificationService } from '../utils/notificationService';
 
 interface NotificationModalProps {
   visible: boolean;
@@ -32,12 +33,20 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
           days = days * 30;
         }
 
+        // Update database
         await db.from('friends').update(friend.id, {
           notificationFrequency: selectedFrequency,
           notificationDays: days,
         });
 
-        Alert.alert('Success', 'Notification settings updated!');
+        // Schedule the actual notification
+        await notificationService.scheduleNotification(
+          friend.id,
+          friend.name,
+          days
+        );
+
+        Alert.alert('Success', `Notification set! You'll be reminded to reconnect with ${friend.name} in ${days} day${days === 1 ? '' : 's'}.`);
         onClose();
       } catch (error) {
         console.error('Error updating notification settings:', error);
