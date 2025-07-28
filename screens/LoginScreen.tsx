@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
+  Linking,
 } from 'react-native';
 import { useBasic } from '@basictech/expo';
 import { useNavigation } from '@react-navigation/native';
@@ -76,6 +77,15 @@ export default function LoginScreen() {
         <Text style={styles.footerText}>
           Friendo uses basic.id to keep your data secure and under your control. You can revoke access at any time.
         </Text>
+
+        <TouchableOpacity 
+          style={styles.privacyButton}
+          onPress={() => Linking.openURL('https://www.privacypolicies.com/live/213b96d7-30cf-4a41-a182-38624ac19603')}
+        >
+          <Text style={styles.privacyButtonText}>
+            Click Here to Read our Privacy Policy
+          </Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -128,5 +138,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 20,
+  },
+  privacyButton: {
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+  },
+  privacyButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+    textDecorationLine: 'underline',
   },
 });
