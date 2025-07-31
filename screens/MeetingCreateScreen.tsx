@@ -216,6 +216,20 @@ export default function MeetingCreateScreen() {
             {/* Partnership Section - shows ONLY after selecting an activity */}
             {selectedCategory && (
               <View style={styles.partnershipSection}>
+                {/* Partnership Header - shows first */}
+                <View style={styles.partnershipHeader}>
+                  <Text style={styles.partnershipIcon}>🏪</Text>
+                  <View style={styles.partnershipHeaderText}>
+                    <Text style={styles.partnershipTitle}>
+                      No partner venues yet in {selectedCity}
+                    </Text>
+                    <Text style={styles.partnershipSubtitle}>
+                      We're working on partnerships with local restaurants in your area!
+                    </Text>
+                  </View>
+                </View>
+                
+                {/* Partnership Boxes - show second */}
                 <View style={styles.partnershipBoxes}>
                   <View style={styles.partnershipBox}>
                     <Text style={styles.partnershipBoxTitle}>Want to be featured on this list?</Text>
@@ -258,7 +272,7 @@ export default function MeetingCreateScreen() {
                   </View>
                 </View>
                 
-                {/* Activity Selection Confirmation Button - starts empty/white */}
+                {/* Activity Selection Confirmation Button - shows last */}
                 <TouchableOpacity 
                   style={[
                     styles.activityConfirmButton,
