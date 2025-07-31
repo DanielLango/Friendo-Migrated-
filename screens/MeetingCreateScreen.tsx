@@ -26,7 +26,7 @@ export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedVenue, setSelectedVenue] = useState('');
+  const [selectedVenue, setSelectedVenue] = useState<string>('');
   const [selectedCity, setSelectedCity] = useState('');
   const [cityPlaceId, setCityPlaceId] = useState('');
   const [googleCalendar, setGoogleCalendar] = useState(false);
@@ -36,6 +36,7 @@ export default function MeetingCreateScreen() {
   const [friendEmail, setFriendEmail] = useState('');
   const [meetingNotes, setMeetingNotes] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [activityConfirmed, setActivityConfirmed] = useState(false);
   
   const navigation = useNavigation();
   const route = useRoute();
@@ -215,18 +216,6 @@ export default function MeetingCreateScreen() {
             {/* Partnership Section - shows ONLY after selecting an activity */}
             {selectedCategory && (
               <View style={styles.partnershipSection}>
-                <View style={styles.partnershipHeader}>
-                  <Text style={styles.partnershipIcon}>🏪</Text>
-                  <View style={styles.partnershipHeaderText}>
-                    <Text style={styles.partnershipTitle}>
-                      No partner venues yet in {selectedCity}
-                    </Text>
-                    <Text style={styles.partnershipSubtitle}>
-                      We're working on partnerships with local restaurants in your area!
-                    </Text>
-                  </View>
-                </View>
-                
                 <View style={styles.partnershipBoxes}>
                   <View style={styles.partnershipBox}>
                     <Text style={styles.partnershipBoxTitle}>Want to be featured on this list?</Text>
@@ -269,10 +258,22 @@ export default function MeetingCreateScreen() {
                   </View>
                 </View>
                 
-                {/* Activity Selection Confirmation Button */}
-                <TouchableOpacity style={styles.activityConfirmButton}>
-                  <Text style={styles.activityConfirmIcon}>📍</Text>
-                  <Text style={styles.activityConfirmText}>
+                {/* Activity Selection Confirmation Button - starts empty/white */}
+                <TouchableOpacity 
+                  style={[
+                    styles.activityConfirmButton,
+                    activityConfirmed && styles.activityConfirmButtonActive
+                  ]}
+                  onPress={() => setActivityConfirmed(!activityConfirmed)}
+                >
+                  <Text style={[
+                    styles.activityConfirmIcon,
+                    activityConfirmed && styles.activityConfirmIconActive
+                  ]}>📍</Text>
+                  <Text style={[
+                    styles.activityConfirmText,
+                    activityConfirmed && styles.activityConfirmTextActive
+                  ]}>
                     Select "{getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type
                   </Text>
                 </TouchableOpacity>
@@ -569,7 +570,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activityConfirmButton: {
-    backgroundColor: '#8000FF',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -577,16 +578,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  activityConfirmButtonActive: {
+    backgroundColor: '#8000FF',
+    borderColor: '#8000FF',
   },
   activityConfirmIcon: {
     fontSize: 16,
     marginRight: 8,
+    color: '#666666',
+  },
+  activityConfirmIconActive: {
+    color: '#FFFFFF',
   },
   activityConfirmText: {
-    color: '#FFFFFF',
+    color: '#666666',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  activityConfirmTextActive: {
+    color: '#FFFFFF',
   },
   checkboxContainer: {
     flexDirection: 'row',
