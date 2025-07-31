@@ -298,18 +298,6 @@ export default function MeetingCreateScreen() {
 
         {selectedCategoryData ? (
           <View>
-            {/* Partner Venue Selection - only for location-based activities */}
-            {selectedCity && ['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory) ? (
-              <View style={styles.section}>
-                <PartnerVenueSelector
-                  selectedVenue={selectedVenue}
-                  onVenueSelect={setSelectedVenue}
-                  selectedCity={selectedCity}
-                  selectedCategory={selectedCategory}
-                />
-              </View>
-            ) : null}
-
             {/* For park activities, no specific venue needed */}
             {selectedCategory === 'park' ? (
               <View style={styles.section}>
