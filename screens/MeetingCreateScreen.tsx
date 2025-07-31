@@ -62,15 +62,13 @@ export default function MeetingCreateScreen() {
   };
 
   const handleCreateMeeting = async () => {
-    if (!selectedDate || !selectedCategory) {
-      Alert.alert('Error', 'Please select a date and activity type');
+    if (!selectedCity) {
+      Alert.alert('Error', 'Please select a city first');
       return;
     }
-
-    // For location-based activities, require city selection
-    const requiresLocation = ['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory);
-    if (requiresLocation && !selectedCity) {
-      Alert.alert('Error', 'Please select a city for this activity type');
+    
+    if (!selectedDate || !selectedCategory) {
+      Alert.alert('Error', 'Please select a date and activity type');
       return;
     }
 
@@ -197,21 +195,26 @@ export default function MeetingCreateScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🎯 Type of Activity</Text>
-          <VenueCategorySelector
-            selectedCategory={selectedCategory}
-            onCategorySelect={handleCategorySelect}
+          <Text style={styles.sectionTitle}>📍 Select City</Text>
+          <SimpleCitySelector
             selectedCity={selectedCity}
+            onCitySelect={handleCitySelect}
+            placeholder="Choose a city..."
           />
           
-          {/* Partnership Section */}
-          {selectedCategory && (
+          {/* Partnership Section - shows immediately when city is selected */}
+          {selectedCity && (
             <View style={styles.partnershipSection}>
               <View style={styles.partnershipHeader}>
-                <Text style={styles.partnershipTitle}>🤝 Local Partnerships</Text>
-                <Text style={styles.partnershipSubtitle}>
-                  We are working on partnerships with local restaurants in your area!
-                </Text>
+                <Text style={styles.partnershipIcon}>🏪</Text>
+                <View style={styles.partnershipHeaderText}>
+                  <Text style={styles.partnershipTitle}>
+                    No partner venues yet in {selectedCity}
+                  </Text>
+                  <Text style={styles.partnershipSubtitle}>
+                    We're working on partnerships with local restaurants in your area!
+                  </Text>
+                </View>
               </View>
               
               <View style={styles.partnershipBoxes}>
@@ -223,12 +226,10 @@ export default function MeetingCreateScreen() {
                   <TouchableOpacity 
                     style={styles.partnershipButton}
                     onPress={() => {
-                      // Open URL to contact form
                       const url = 'https://www.ambrozitestudios.com/contact-4';
                       if (Platform.OS === 'web') {
                         window.open(url, '_blank');
                       } else {
-                        // For mobile, you'd typically use Linking.openURL
                         console.log('Open URL:', url);
                       }
                     }}
@@ -245,12 +246,10 @@ export default function MeetingCreateScreen() {
                   <TouchableOpacity 
                     style={styles.partnershipButton}
                     onPress={() => {
-                      // Open URL to contact form
                       const url = 'https://www.ambrozitestudios.com/contact-4';
                       if (Platform.OS === 'web') {
                         window.open(url, '_blank');
                       } else {
-                        // For mobile, you'd typically use Linking.openURL
                         console.log('Open URL:', url);
                       }
                     }}
@@ -263,21 +262,30 @@ export default function MeetingCreateScreen() {
           )}
         </View>
 
+        {selectedCity && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🎯 Type of Activity</Text>
+            <VenueCategorySelector
+              selectedCategory={selectedCategory}
+              onCategorySelect={handleCategorySelect}
+              selectedCity={selectedCity}
+            />
+            
+            {/* Activity Selection Confirmation Button */}
+            {selectedCategory && (
+              <TouchableOpacity style={styles.activityConfirmButton}>
+                <Text style={styles.activityConfirmIcon}>📍</Text>
+                <Text style={styles.activityConfirmText}>
+                  Select "{getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
         {selectedCategoryData ? (
           <View>
-            {/* City Selection for location-based activities */}
-            {['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory) ? (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>📍 Select City</Text>
-                <SimpleCitySelector
-                  selectedCity={selectedCity}
-                  onCitySelect={handleCitySelect}
-                  placeholder="Choose a city..."
-                />
-              </View>
-            ) : null}
-
-            {/* Partner Venue Selection */}
+            {/* Partner Venue Selection - only for location-based activities */}
             {selectedCity && ['restaurant', 'bar', 'cafe', 'entertainment', 'shopping', 'sports', 'culture'].includes(selectedCategory) ? (
               <View style={styles.section}>
                 <PartnerVenueSelector
@@ -505,13 +513,23 @@ const styles = StyleSheet.create({
     borderColor: '#E9ECEF',
   },
   partnershipHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginBottom: 16,
+  },
+  partnershipIcon: {
+    fontSize: 32,
+    marginRight: 12,
+    marginTop: 4,
+  },
+  partnershipHeaderText: {
+    flex: 1,
   },
   partnershipTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#8000FF',
-    marginBottom: 8,
+    color: '#333333',
+    marginBottom: 4,
   },
   partnershipSubtitle: {
     fontSize: 14,
@@ -552,6 +570,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  activityConfirmButton: {
+    backgroundColor: '#8000FF',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+  },
+  activityConfirmIcon: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  activityConfirmText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -580,7 +618,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   checkboxLabel: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#333333',
     fontWeight: '500',
   },
