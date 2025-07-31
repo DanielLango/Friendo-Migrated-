@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   Platform,
+  Linking,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
@@ -240,11 +241,10 @@ export default function MeetingCreateScreen() {
                       style={styles.partnershipButton}
                       onPress={() => {
                         const url = 'https://www.ambrozitestudios.com/contact-4';
-                        if (Platform.OS === 'web') {
-                          window.open(url, '_blank');
-                        } else {
-                          console.log('Open URL:', url);
-                        }
+                        Linking.openURL(url).catch(err => {
+                          console.error('Failed to open URL:', err);
+                          Alert.alert('Error', 'Could not open the link');
+                        });
                       }}
                     >
                       <Text style={styles.partnershipButtonText}>Apply here</Text>
@@ -260,11 +260,10 @@ export default function MeetingCreateScreen() {
                       style={styles.partnershipButton}
                       onPress={() => {
                         const url = 'https://www.ambrozitestudios.com/contact-4';
-                        if (Platform.OS === 'web') {
-                          window.open(url, '_blank');
-                        } else {
-                          console.log('Open URL:', url);
-                        }
+                        Linking.openURL(url).catch(err => {
+                          console.error('Failed to open URL:', err);
+                          Alert.alert('Error', 'Could not open the link');
+                        });
                       }}
                     >
                       <Text style={styles.partnershipButtonText}>Apply here</Text>
