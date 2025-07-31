@@ -203,6 +203,64 @@ export default function MeetingCreateScreen() {
             onCategorySelect={handleCategorySelect}
             selectedCity={selectedCity}
           />
+          
+          {/* Partnership Section */}
+          {selectedCategory && (
+            <View style={styles.partnershipSection}>
+              <View style={styles.partnershipHeader}>
+                <Text style={styles.partnershipTitle}>🤝 Local Partnerships</Text>
+                <Text style={styles.partnershipSubtitle}>
+                  We are working on partnerships with local restaurants in your area!
+                </Text>
+              </View>
+              
+              <View style={styles.partnershipBoxes}>
+                <View style={styles.partnershipBox}>
+                  <Text style={styles.partnershipBoxTitle}>Want to be featured on this list?</Text>
+                  <Text style={styles.partnershipBoxText}>
+                    Submit your venue here — get your business on our upcoming list of top 5 spots locals are recommended to in each city.
+                  </Text>
+                  <TouchableOpacity 
+                    style={styles.partnershipButton}
+                    onPress={() => {
+                      // Open URL to contact form
+                      const url = 'https://www.ambrozitestudios.com/contact-4';
+                      if (Platform.OS === 'web') {
+                        window.open(url, '_blank');
+                      } else {
+                        // For mobile, you'd typically use Linking.openURL
+                        console.log('Open URL:', url);
+                      }
+                    }}
+                  >
+                    <Text style={styles.partnershipButtonText}>Apply here</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                <View style={styles.partnershipBox}>
+                  <Text style={styles.partnershipBoxTitle}>Want to help promote great local spots?</Text>
+                  <Text style={styles.partnershipBoxText}>
+                    Join our soon-starting affiliate program and earn small commissions by helping great venues get discovered.
+                  </Text>
+                  <TouchableOpacity 
+                    style={styles.partnershipButton}
+                    onPress={() => {
+                      // Open URL to contact form
+                      const url = 'https://www.ambrozitestudios.com/contact-4';
+                      if (Platform.OS === 'web') {
+                        window.open(url, '_blank');
+                      } else {
+                        // For mobile, you'd typically use Linking.openURL
+                        console.log('Open URL:', url);
+                      }
+                    }}
+                  >
+                    <Text style={styles.partnershipButtonText}>Apply here</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
         </View>
 
         {selectedCategoryData ? (
@@ -300,8 +358,8 @@ export default function MeetingCreateScreen() {
               {sendInvitation && <Text style={styles.checkmark}>✓</Text>}
             </View>
             <View style={styles.checkboxContent}>
-              <Text style={styles.checkboxLabel}>📧 Send invitation to friend</Text>
-              <Text style={styles.checkboxSubtext}>Email invitation with meeting details</Text>
+              <Text style={styles.checkboxLabel}>📧 Send this to an e-mail if you would like to:</Text>
+              <Text style={styles.checkboxSubtext}>(E-mail with meeting details)</Text>
             </View>
           </TouchableOpacity>
 
@@ -437,6 +495,62 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     lineHeight: 18,
+  },
+  partnershipSection: {
+    marginTop: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  partnershipHeader: {
+    marginBottom: 16,
+  },
+  partnershipTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#8000FF',
+    marginBottom: 8,
+  },
+  partnershipSubtitle: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 18,
+  },
+  partnershipBoxes: {
+    gap: 12,
+  },
+  partnershipBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  partnershipBoxTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333333',
+    marginBottom: 6,
+  },
+  partnershipBoxText: {
+    fontSize: 13,
+    color: '#666666',
+    lineHeight: 16,
+    marginBottom: 10,
+  },
+  partnershipButton: {
+    backgroundColor: '#8000FF',
+    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+  },
+  partnershipButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   checkboxContainer: {
     flexDirection: 'row',
