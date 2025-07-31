@@ -201,65 +201,6 @@ export default function MeetingCreateScreen() {
             onCitySelect={handleCitySelect}
             placeholder="Choose a city..."
           />
-          
-          {/* Partnership Section - shows immediately when city is selected */}
-          {selectedCity && (
-            <View style={styles.partnershipSection}>
-              <View style={styles.partnershipHeader}>
-                <Text style={styles.partnershipIcon}>🏪</Text>
-                <View style={styles.partnershipHeaderText}>
-                  <Text style={styles.partnershipTitle}>
-                    No partner venues yet in {selectedCity}
-                  </Text>
-                  <Text style={styles.partnershipSubtitle}>
-                    We're working on partnerships with local restaurants in your area!
-                  </Text>
-                </View>
-              </View>
-              
-              <View style={styles.partnershipBoxes}>
-                <View style={styles.partnershipBox}>
-                  <Text style={styles.partnershipBoxTitle}>Want to be featured on this list?</Text>
-                  <Text style={styles.partnershipBoxText}>
-                    Submit your venue here — get your business on our upcoming list of top 5 spots locals are recommended to in each city.
-                  </Text>
-                  <TouchableOpacity 
-                    style={styles.partnershipButton}
-                    onPress={() => {
-                      const url = 'https://www.ambrozitestudios.com/contact-4';
-                      if (Platform.OS === 'web') {
-                        window.open(url, '_blank');
-                      } else {
-                        console.log('Open URL:', url);
-                      }
-                    }}
-                  >
-                    <Text style={styles.partnershipButtonText}>Apply here</Text>
-                  </TouchableOpacity>
-                </View>
-                
-                <View style={styles.partnershipBox}>
-                  <Text style={styles.partnershipBoxTitle}>Want to help promote great local spots?</Text>
-                  <Text style={styles.partnershipBoxText}>
-                    Join our soon-starting affiliate program and earn small commissions by helping great venues get discovered.
-                  </Text>
-                  <TouchableOpacity 
-                    style={styles.partnershipButton}
-                    onPress={() => {
-                      const url = 'https://www.ambrozitestudios.com/contact-4';
-                      if (Platform.OS === 'web') {
-                        window.open(url, '_blank');
-                      } else {
-                        console.log('Open URL:', url);
-                      }
-                    }}
-                  >
-                    <Text style={styles.partnershipButtonText}>Apply here</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          )}
         </View>
 
         {selectedCity && (
@@ -271,14 +212,71 @@ export default function MeetingCreateScreen() {
               selectedCity={selectedCity}
             />
             
-            {/* Activity Selection Confirmation Button */}
+            {/* Partnership Section - shows ONLY after selecting an activity */}
             {selectedCategory && (
-              <TouchableOpacity style={styles.activityConfirmButton}>
-                <Text style={styles.activityConfirmIcon}>📍</Text>
-                <Text style={styles.activityConfirmText}>
-                  Select "{getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.partnershipSection}>
+                <View style={styles.partnershipHeader}>
+                  <Text style={styles.partnershipIcon}>🏪</Text>
+                  <View style={styles.partnershipHeaderText}>
+                    <Text style={styles.partnershipTitle}>
+                      No partner venues yet in {selectedCity}
+                    </Text>
+                    <Text style={styles.partnershipSubtitle}>
+                      We're working on partnerships with local restaurants in your area!
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.partnershipBoxes}>
+                  <View style={styles.partnershipBox}>
+                    <Text style={styles.partnershipBoxTitle}>Want to be featured on this list?</Text>
+                    <Text style={styles.partnershipBoxText}>
+                      Submit your venue here — get your business on our upcoming list of top 5 spots locals are recommended to in each city.
+                    </Text>
+                    <TouchableOpacity 
+                      style={styles.partnershipButton}
+                      onPress={() => {
+                        const url = 'https://www.ambrozitestudios.com/contact-4';
+                        if (Platform.OS === 'web') {
+                          window.open(url, '_blank');
+                        } else {
+                          console.log('Open URL:', url);
+                        }
+                      }}
+                    >
+                      <Text style={styles.partnershipButtonText}>Apply here</Text>
+                    </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.partnershipBox}>
+                    <Text style={styles.partnershipBoxTitle}>Want to help promote great local spots?</Text>
+                    <Text style={styles.partnershipBoxText}>
+                      Join our soon-starting affiliate program and earn small commissions by helping great venues get discovered.
+                    </Text>
+                    <TouchableOpacity 
+                      style={styles.partnershipButton}
+                      onPress={() => {
+                        const url = 'https://www.ambrozitestudios.com/contact-4';
+                        if (Platform.OS === 'web') {
+                          window.open(url, '_blank');
+                        } else {
+                          console.log('Open URL:', url);
+                        }
+                      }}
+                    >
+                      <Text style={styles.partnershipButtonText}>Apply here</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                
+                {/* Activity Selection Confirmation Button */}
+                <TouchableOpacity style={styles.activityConfirmButton}>
+                  <Text style={styles.activityConfirmIcon}>📍</Text>
+                  <Text style={styles.activityConfirmText}>
+                    Select "{getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         )}
