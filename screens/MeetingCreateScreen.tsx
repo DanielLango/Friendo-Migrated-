@@ -89,8 +89,7 @@ export default function MeetingCreateScreen() {
         await db.from('meetings').add({
           friendId: friend.id,
           date: selectedDate.toISOString(),
-          activityType: selectedCategory,
-          activityName: category?.name || selectedCategory,
+          activity: selectedCategory,
           venue: selectedVenue || `Generic ${category?.name}`,
           city: selectedCity,
           notes: meetingNotes,
