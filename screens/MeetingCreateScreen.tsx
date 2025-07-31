@@ -85,6 +85,16 @@ export default function MeetingCreateScreen() {
       if (db) {
         const category = getVenueCategory(selectedCategory);
         
+        console.log('Creating meeting with data:', {
+          friendId: friend.id,
+          date: selectedDate.toISOString(),
+          activity: selectedCategory,
+          venue: selectedVenue || `Generic ${category?.name}`,
+          city: selectedCity,
+          notes: meetingNotes,
+          createdAt: Date.now(),
+        });
+        
         // Create meeting in database
         await db.from('meetings').add({
           friendId: friend.id,
@@ -96,10 +106,8 @@ export default function MeetingCreateScreen() {
           createdAt: Date.now(),
         });
 
-        // Update friend's last meeting date
-        await db.from('friends').update(friend.id, {
-          lastMeeting: selectedDate.toISOString(),
-        });
+        // Note: Not updating friend's lastMeeting as it's not in the schema
+        // The meeting history can be retrieved by querying meetings by friendId
 
         // Reschedule notification based on friend's notification settings
         if (friend.notificationDays) {
