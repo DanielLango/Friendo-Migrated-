@@ -41,9 +41,54 @@ export default function MeetingCreateScreen() {
   
   const navigation = useNavigation();
   const route = useRoute();
-  const { db, user } = useBasic();
+  const { db, user, isSignedIn } = useBasic();
   
   const friend = (route.params as any)?.friend as Friend;
+
+  // Add validation for friend data
+  if (!friend) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backButton}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>Error</Text>
+          <View style={styles.placeholder} />
+        </View>
+        <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={{ fontSize: 16, color: '#666666', textAlign: 'center' }}>
+            Friend information not found. Please go back and try again.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backButton}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>Sign In Required</Text>
+          <View style={styles.placeholder} />
+        </View>
+        <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={{ fontSize: 16, color: '#666666', textAlign: 'center', marginBottom: 20 }}>
+            Please sign in to schedule meetings.
+          </Text>
+          <TouchableOpacity 
+            style={styles.createButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.createButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const handleDateChange = (event: any, date?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
@@ -82,34 +127,37 @@ export default function MeetingCreateScreen() {
     setIsCreating(true);
 
     try {
-      if (db) {
-        const category = getVenueCategory(selectedCategory);
-        
-        console.log('Creating meeting with data:', {
-          friendId: friend.id,
-          date: selectedDate.toISOString(),
-          activity: selectedCategory,
-          venue: selectedVenue || `Generic ${category?.name}`,
-          city: selectedCity,
-          notes: meetingNotes,
-          createdAt: Date.now(),
-        });
-        
-        // Create meeting in database
-        await db.from('meetings').add({
-          friendId: friend.id,
-          date: selectedDate.toISOString(),
-          activity: selectedCategory,
-          venue: selectedVenue || `Generic ${category?.name}`,
-          city: selectedCity,
-          notes: meetingNotes,
-          createdAt: Date.now(),
-        });
+      if (!db) {
+        Alert.alert('Database Error', 'Database not available. Please try signing in again.');
+        setIsCreating(false);
+        return;
+      }
 
-        // Note: Not updating friend's lastMeeting as it's not in the schema
-        // The meeting history can be retrieved by querying meetings by friendId
+      const category = getVenueCategory(selectedCategory);
+      
+      const meetingData = {
+        friendId: friend.id,
+        date: selectedDate.toISOString(),
+        activity: selectedCategory,
+        venue: selectedVenue || `Generic ${category?.name || 'Activity'}`,
+        city: selectedCity,
+        notes: meetingNotes || '',
+        createdAt: Date.now(),
+      };
+      
+      console.log('Creating meeting with data:', meetingData);
+      
+      // Create meeting in database with better error handling
+      try {
+        const newMeeting = await db.from('meetings').add(meetingData);
+        console.log('Meeting created successfully:', newMeeting);
+      } catch (dbError) {
+        console.error('Database error details:', dbError);
+        throw new Error(`Database operation failed: ${dbError.message || 'Unknown database error'}`);
+      }
 
-        // Reschedule notification based on friend's notification settings
+      // Reschedule notification based on friend's notification settings
+      try {
         if (friend.notificationDays) {
           await notificationService.rescheduleNotificationAfterMeeting(
             friend.id,
@@ -117,8 +165,13 @@ export default function MeetingCreateScreen() {
             friend.notificationDays
           );
         }
+      } catch (notificationError) {
+        console.error('Notification error:', notificationError);
+        // Don't fail the whole operation for notification errors
+      }
 
-        // Handle calendar integration
+      // Handle calendar integration
+      try {
         if (googleCalendar || outlookCalendar || appleCalendar) {
           if (googleCalendar || appleCalendar) {
             // Add to device calendar
@@ -130,8 +183,13 @@ export default function MeetingCreateScreen() {
             await createAndDownloadMeetingICS(friend, selectedDate, meetingNotes);
           }
         }
+      } catch (calendarError) {
+        console.error('Calendar error:', calendarError);
+        // Don't fail the whole operation for calendar errors
+      }
 
-        // Send email invitation if requested
+      // Send email invitation if requested
+      try {
         if (sendInvitation && friendEmail.trim()) {
           const friendWithEmail = { ...friend, email: friendEmail.trim() };
           const emailSent = await sendMeetingInvitation(
@@ -151,12 +209,25 @@ export default function MeetingCreateScreen() {
         } else {
           Alert.alert('Success', 'Meeting scheduled successfully!');
         }
-
-        navigation.goBack();
+      } catch (emailError) {
+        console.error('Email error:', emailError);
+        Alert.alert('Partial Success', 'Meeting scheduled but failed to send invitation.');
       }
+
+      navigation.goBack();
     } catch (error) {
       console.error('Error creating meeting:', error);
-      Alert.alert('Error', 'Failed to schedule meeting. Please try again.');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to schedule meeting. Please try again.';
+      
+      if (error.message && error.message.includes('Network request failed')) {
+        errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+      } else if (error.message && error.message.includes('Database')) {
+        errorMessage = 'Database error occurred. Please try signing out and back in, then try again.';
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsCreating(false);
     }
