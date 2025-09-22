@@ -145,6 +145,13 @@ export default function ManualAddScreen() {
             <Text style={styles.addButtonText}>Add</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Privacy Disclaimer */}
+        <View style={styles.disclaimerContainer}>
+          <Text style={styles.disclaimerText}>
+            This app is for your personal use only. Please avoid entering sensitive or real personal data about others unless you have their permission.
+          </Text>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -286,5 +293,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFFFFF',
     fontWeight: 'bold',
+  },
+  disclaimerContainer: {
+    marginTop: 30,
+    paddingHorizontal: 10,
+  },
+  disclaimerText: {
+    fontSize: 12,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 16,
+    fontStyle: 'italic',
   },
 });

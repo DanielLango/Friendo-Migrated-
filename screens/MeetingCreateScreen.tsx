@@ -229,6 +229,9 @@ export default function MeetingCreateScreen() {
                   <Text style={styles.partnershipIcon}>🏪</Text>
                   <View style={styles.partnershipHeaderText}>
                     <Text style={styles.partnershipTitle}>
+                      Highlighted Advertisement Partners
+                    </Text>
+                    <Text style={styles.partnershipSubtitle}>
                       No partner venues yet in {selectedCity}
                     </Text>
                     <Text style={styles.partnershipSubtitle}>

@@ -52,7 +52,7 @@ export default function PartnerVenueSelector({
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>
-        🤝 Partner {category?.name || 'Venue'}s in {selectedCity}
+        🤝 Highlighted Advertisement Partners - {category?.name || 'Venue'}s in {selectedCity}
       </Text>
       
       <ScrollView style={styles.venueList} nestedScrollEnabled>
