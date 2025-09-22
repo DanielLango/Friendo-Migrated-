@@ -221,10 +221,8 @@ export default function MeetingCreateScreen() {
               selectedCity={selectedCity}
             />
             
-            {/* Partnership Section - shows ONLY after selecting an activity */}
             {selectedCategory && (
               <View style={styles.partnershipSection}>
-                {/* Partnership Header - shows first */}
                 <View style={styles.partnershipHeader}>
                   <Text style={styles.partnershipIcon}>🏪</Text>
                   <View style={styles.partnershipHeaderText}>
@@ -240,7 +238,6 @@ export default function MeetingCreateScreen() {
                   </View>
                 </View>
                 
-                {/* Partnership Boxes - show second */}
                 <View style={styles.partnershipBoxes}>
                   <View style={styles.partnershipBox}>
                     <Text style={styles.partnershipBoxTitle}>Want to be featured on this list?</Text>
@@ -281,7 +278,6 @@ export default function MeetingCreateScreen() {
                   </View>
                 </View>
                 
-                {/* Activity Selection Confirmation Button - shows last */}
                 <TouchableOpacity 
                   style={[
                     styles.activityConfirmButton,
@@ -305,24 +301,19 @@ export default function MeetingCreateScreen() {
           </View>
         )}
 
-        {selectedCategoryData ? (
-          <View>
-            {/* For park activities, no specific venue needed */}
-            {selectedCategory === 'park' ? (
-              <View style={styles.section}>
-                <View style={styles.parkInfo}>
-                  <Text style={styles.parkInfoIcon}>🌳</Text>
-                  <View style={styles.parkInfoText}>
-                    <Text style={styles.parkInfoTitle}>Park Activity Selected</Text>
-                    <Text style={styles.parkInfoSubtext}>
-                      Perfect for outdoor meetups! You can choose the specific park when you meet.
-                    </Text>
-                  </View>
-                </View>
+        {selectedCategoryData && selectedCategory === 'park' && (
+          <View style={styles.section}>
+            <View style={styles.parkInfo}>
+              <Text style={styles.parkInfoIcon}>🌳</Text>
+              <View style={styles.parkInfoText}>
+                <Text style={styles.parkInfoTitle}>Park Activity Selected</Text>
+                <Text style={styles.parkInfoSubtext}>
+                  Perfect for outdoor meetups! You can choose the specific park when you meet.
+                </Text>
               </View>
-            ) : null}
+            </View>
           </View>
-        ) : null}
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📅 Sync to Calendar</Text>
