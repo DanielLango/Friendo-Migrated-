@@ -38,23 +38,23 @@ export default function ReflectOnFriendsScreen() {
       }),
     ]).start();
 
-    // Continuous wave animation
+    // Continuous wave animation with proper looping
     const animateWave = () => {
-      Animated.sequence([
-        Animated.timing(waveOpacity, {
-          toValue: 0.6,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(waveOpacity, {
-          toValue: 0.3,
-          duration: 2000,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        // Loop the animation
-        animateWave();
-      });
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(waveOpacity, {
+            toValue: 0.6,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(waveOpacity, {
+            toValue: 0.3,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ]),
+        { iterations: -1 } // -1 means infinite loop
+      ).start();
     };
 
     animateWave();
