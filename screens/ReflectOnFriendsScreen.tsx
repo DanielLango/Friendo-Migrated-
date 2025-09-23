@@ -90,66 +90,49 @@ export default function ReflectOnFriendsScreen() {
       
       {/* Content */}
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-        >
-          <Animated.View 
-            style={[
-              styles.content,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            {/* Title */}
-            <Text style={styles.title}>Before we start…</Text>
+        <View style={styles.content}>
+          {/* Title */}
+          <Text style={styles.title}>Before we start…</Text>
 
-            {/* Body Text with better readability */}
-            <View style={styles.textContainer}>
-              <Text style={styles.bodyText}>
-                We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
-                {'\n\n'}
-                It can help to pause and reflect on your favorite memories — who comes to mind right away?
-                {'\n\n'}
-                Maybe scroll through your photo albums or contacts, or open some of your favorite messaging apps.
-                {'\n\n'}
-                You might think of friends you often talk to on Instagram, WhatsApp, Snapchat, Facebook, or Messenger. Or perhaps your closest connections are on X, LinkedIn, TikTok, Signal, Telegram, Pinterest, or Viber.
-                {'\n\n'}
-                Whatever the case, take your time. Maybe even grab a pen and paper — and think it through.
-              </Text>
-            </View>
-
-            {/* Primary Button */}
-            <TouchableOpacity 
-              style={styles.readyButton}
-              onPress={handleReady}
-            >
-              <Text style={styles.readyButtonText}>I'm Ready</Text>
-            </TouchableOpacity>
-
-            {/* Subtext */}
-            <Text style={styles.subtext}>
-              You can always change your selection later.
+          {/* Body Text with better readability */}
+          <View style={styles.textContainer}>
+            <Text style={styles.bodyText}>
+              We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
+              {'\n\n'}
+              It can help to pause and reflect on your favorite memories — who comes to mind right away?
+              {'\n\n'}
+              Maybe scroll through your photo albums or contacts, or open some of your favorite messaging apps.
+              {'\n\n'}
+              You might think of friends you often talk to on Instagram, WhatsApp, Snapchat, Facebook, or Messenger. Or perhaps your closest connections are on X, LinkedIn, TikTok, Signal, Telegram, Pinterest, or Viber.
+              {'\n\n'}
+              Whatever the case, take your time. Maybe even grab a pen and paper — and think it through.
             </Text>
+          </View>
 
-            {/* Don't show again checkbox */}
-            <TouchableOpacity 
-              style={styles.checkboxContainer}
-              onPress={() => setDontShowAgain(!dontShowAgain)}
-            >
-              <View style={[styles.checkbox, dontShowAgain && styles.checkboxChecked]}>
-                {dontShowAgain && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text style={styles.checkboxLabel}>Don't display this page to me anymore</Text>
-            </TouchableOpacity>
+          {/* Primary Button */}
+          <TouchableOpacity 
+            style={styles.readyButton}
+            onPress={handleReady}
+          >
+            <Text style={styles.readyButtonText}>I'm Ready</Text>
+          </TouchableOpacity>
 
-            {/* Empty row for spacing */}
-            <View style={styles.emptyRow} />
-          </Animated.View>
-        </ScrollView>
+          {/* Subtext */}
+          <Text style={styles.subtext}>
+            You can always change your selection later.
+          </Text>
+
+          {/* Don't show again checkbox */}
+          <TouchableOpacity 
+            style={styles.checkboxContainer}
+            onPress={() => setDontShowAgain(!dontShowAgain)}
+          >
+            <View style={[styles.checkbox, dontShowAgain && styles.checkboxChecked]}>
+              {dontShowAgain && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <Text style={styles.checkboxLabel}>Don't display this page to me anymore</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -184,16 +167,14 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    paddingBottom: 40, // Extra bottom padding for the checkbox
-  },
   content: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     maxWidth: 400,
     alignSelf: 'center',
-    paddingTop: 60, // Add top padding to center content better
+    paddingHorizontal: 24,
+    paddingVertical: 20,
   },
   title: {
     color: '#FFFFFF',
