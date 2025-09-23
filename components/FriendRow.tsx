@@ -13,13 +13,15 @@ interface FriendRowProps {
   meetings: Meeting[];
   onScheduleNext: (friend: Friend) => void;
   onMeetingPress: (meeting: Meeting) => void;
+  deleteMode?: boolean;
 }
 
 export default function FriendRow({ 
   friend, 
   meetings, 
   onScheduleNext, 
-  onMeetingPress 
+  onMeetingPress,
+  deleteMode = false
 }: FriendRowProps) {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showAllMeetings, setShowAllMeetings] = useState(false);
@@ -33,12 +35,20 @@ export default function FriendRow({
   const hasMoreMeetings = yearMeetings.length > 5;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, deleteMode && styles.deleteMode]}>
+      {deleteMode && (
+        <View style={styles.deleteOverlay}>
+          <Text style={styles.deleteIcon}>🗑️</Text>
+          <Text style={styles.deleteText}>Tap to delete</Text>
+        </View>
+      )}
+      
       {/* Friend Info Section */}
       <View style={styles.friendInfo}>
         <TouchableOpacity
           style={styles.notificationButton}
-          onPress={() => setShowNotificationModal(true)}
+          onPress={() => !deleteMode && setShowNotificationModal(true)}
+          disabled={deleteMode}
         >
           <Text style={styles.bellIcon}>🔔</Text>
         </TouchableOpacity>
@@ -46,10 +56,12 @@ export default function FriendRow({
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{friend.name}</Text>
             <TouchableOpacity
-              style={styles.scheduleButton}
+              style={[styles.scheduleButton, deleteMode && styles.scheduleButtonDisabled]}
               onPress={() => onScheduleNext(friend)}
             >
-              <Text style={styles.scheduleText}>Schedule next</Text>
+              <Text style={[styles.scheduleText, deleteMode && styles.scheduleTextDisabled]}>
+                {deleteMode ? 'Delete' : 'Schedule next'}
+              </Text>
             </TouchableOpacity>
           </View>
           <View style={styles.typeIndicator}>
@@ -71,6 +83,7 @@ export default function FriendRow({
               key={meeting.id}
               style={styles.metToken}
               onPress={() => onMeetingPress(meeting)}
+              disabled={deleteMode}
             >
               <Text style={styles.metText}>met</Text>
             </TouchableOpacity>
@@ -78,21 +91,25 @@ export default function FriendRow({
           {hasMoreMeetings && !showAllMeetings && (
             <TouchableOpacity
               style={styles.moreToken}
-              onPress={() => setShowAllMeetings(true)}
+              onPress={() => !deleteMode && setShowAllMeetings(true)}
+              disabled={deleteMode}
             >
               <Text style={styles.moreText}>+{yearMeetings.length - 5}</Text>
             </TouchableOpacity>
           )}
         </View>
         {showAllMeetings && hasMoreMeetings && (
-          <TouchableOpacity onPress={() => setShowAllMeetings(false)}>
+          <TouchableOpacity 
+            onPress={() => !deleteMode && setShowAllMeetings(false)}
+            disabled={deleteMode}
+          >
             <Text style={styles.showLessText}>Show less</Text>
           </TouchableOpacity>
         )}
       </View>
 
       <NotificationModal
-        visible={showNotificationModal}
+        visible={showNotificationModal && !deleteMode}
         friend={friend}
         onClose={() => setShowNotificationModal(false)}
       />
@@ -112,6 +129,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    position: 'relative',
+  },
+  deleteMode: {
+    borderWidth: 2,
+    borderColor: '#FF4444',
+    backgroundColor: '#FFF5F5',
+  },
+  deleteOverlay: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  deleteIcon: {
+    fontSize: 16,
+  },
+  deleteText: {
+    fontSize: 10,
+    color: '#FF4444',
+    fontWeight: '600',
   },
   friendInfo: {
     flexDirection: 'row',
@@ -151,10 +189,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
+  scheduleButtonDisabled: {
+    borderColor: '#FF4444',
+  },
   scheduleText: {
     color: '#4CAF50',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  scheduleTextDisabled: {
+    color: '#FF4444',
   },
   typeIndicator: {
     flexDirection: 'row',

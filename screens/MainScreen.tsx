@@ -16,6 +16,7 @@ import FriendRow from '../components/FriendRow';
 export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [deleteMode, setDeleteMode] = useState(false);
   const navigation = useNavigation();
   const { db, signout } = useBasic();
 
@@ -46,13 +47,68 @@ export default function MainScreen() {
     }
   };
 
+  const handleDeleteFriend = async (friend: Friend) => {
+    Alert.alert(
+      'Delete Friend',
+      `Are you sure you want to delete ${friend.name}? This will also delete all meeting data for this friend.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (db) {
+                // Delete all meetings for this friend
+                const friendMeetings = meetings.filter(meeting => meeting.friendId === friend.id);
+                for (const meeting of friendMeetings) {
+                  await db.from('meetings').delete(meeting.id);
+                }
+                
+                // Delete all friendship memos for this friend
+                try {
+                  const friendshipMemos = await db.from('friendshipMemos').getAll();
+                  const friendMemos = (friendshipMemos || []).filter((memo: any) => memo.friendId === friend.id);
+                  for (const memo of friendMemos) {
+                    await db.from('friendshipMemos').delete(memo.id);
+                  }
+                } catch (error) {
+                  console.log('No friendship memos to delete or error:', error);
+                }
+                
+                // Delete the friend
+                await db.from('friends').delete(friend.id);
+                
+                // Reload data
+                await loadFriends();
+                await loadMeetings();
+                
+                setDeleteMode(false);
+                Alert.alert('Success', `${friend.name} has been deleted.`);
+              }
+            } catch (error) {
+              console.error('Error deleting friend:', error);
+              Alert.alert('Error', 'Failed to delete friend. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleScheduleNext = (friend: Friend) => {
-    (navigation as any).navigate('MeetingCreate', { friend });
+    if (deleteMode) {
+      handleDeleteFriend(friend);
+    } else {
+      (navigation as any).navigate('MeetingCreate', { friend });
+    }
   };
 
   const handleMeetingPress = (meeting: Meeting) => {
-    const meetingDate = new Date(meeting.date).toLocaleDateString();
-    Alert.alert('Meeting Details', `Met on ${meetingDate}`);
+    if (!deleteMode) {
+      const meetingDate = new Date(meeting.date).toLocaleDateString();
+      Alert.alert('Meeting Details', `Met on ${meetingDate}`);
+    }
   };
 
   const handleStats = () => {
@@ -84,6 +140,7 @@ export default function MainScreen() {
       meetings={getFriendMeetings(item.id)}
       onScheduleNext={handleScheduleNext}
       onMeetingPress={handleMeetingPress}
+      deleteMode={deleteMode}
     />
   );
 
@@ -92,7 +149,22 @@ export default function MainScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Friendo</Text>
         <Text style={styles.subtitle}>Your Friends ({friends.length})</Text>
+        <TouchableOpacity 
+          style={styles.deleteButton}
+          onPress={() => setDeleteMode(!deleteMode)}
+        >
+          <Text style={styles.deleteButtonText}>🗑️</Text>
+        </TouchableOpacity>
       </View>
+
+      {deleteMode && (
+        <View style={styles.deleteModeHeader}>
+          <Text style={styles.deleteModeText}>Tap a friend to delete them</Text>
+          <TouchableOpacity onPress={() => setDeleteMode(false)}>
+            <Text style={styles.cancelDeleteText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <FlatList
         data={friends}
@@ -132,6 +204,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
     alignItems: 'center',
+    position: 'relative',
   },
   title: {
     fontSize: 28,
@@ -142,6 +215,35 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#666666',
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    padding: 8,
+  },
+  deleteButtonText: {
+    fontSize: 20,
+  },
+  deleteModeHeader: {
+    backgroundColor: '#FFE6E6',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFB3B3',
+  },
+  deleteModeText: {
+    fontSize: 14,
+    color: '#CC0000',
+    fontWeight: '500',
+  },
+  cancelDeleteText: {
+    fontSize: 14,
+    color: '#8000FF',
+    fontWeight: '600',
   },
   friendsList: {
     flex: 1,
