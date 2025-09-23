@@ -10,7 +10,6 @@ import {
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ReflectOnFriendsScreen() {
@@ -53,6 +52,9 @@ export default function ReflectOnFriendsScreen() {
         source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
         style={styles.waveBackground}
         resizeMode="cover"
+        onError={(error) => {
+          console.log('Image loading error:', error);
+        }}
       />
       
       {/* Transparent purple overlay */}
