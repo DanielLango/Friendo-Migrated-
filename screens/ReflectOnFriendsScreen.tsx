@@ -48,18 +48,15 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Barely visible wave animation background */}
+      {/* Wave animation background */}
       <Image
         source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
         style={styles.waveBackground}
         resizeMode="cover"
       />
       
-      {/* Thick purple layer on top of the wave */}
-      <LinearGradient
-        colors={['#3B0B63', '#5D1A94']}
-        style={styles.gradient}
-      >
+      {/* Transparent purple overlay */}
+      <View style={styles.overlay}>
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -117,7 +114,7 @@ export default function ReflectOnFriendsScreen() {
             <View style={styles.emptyRow} />
           </Animated.View>
         </ScrollView>
-      </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
@@ -125,6 +122,7 @@ export default function ReflectOnFriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#3B0B63', // Fallback color
   },
   waveBackground: {
     position: 'absolute',
@@ -134,11 +132,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
-    opacity: 0.6, // Strong wave visibility
   },
-  gradient: {
+  overlay: {
     flex: 1,
-    backgroundColor: 'rgba(59, 11, 99, 0.4)', // Much more transparent purple layer
+    backgroundColor: 'rgba(59, 11, 99, 0.6)', // Semi-transparent purple overlay
   },
   scrollContent: {
     flexGrow: 1,
