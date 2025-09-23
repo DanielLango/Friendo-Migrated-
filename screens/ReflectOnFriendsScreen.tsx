@@ -20,6 +20,7 @@ export default function ReflectOnFriendsScreen() {
   const [slideAnim] = useState(new Animated.Value(30));
   const [waveOpacity] = useState(new Animated.Value(0.3));
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [gifKey, setGifKey] = useState(0);
   
   const navigation = useNavigation();
 
@@ -58,6 +59,15 @@ export default function ReflectOnFriendsScreen() {
     };
 
     animateWave();
+
+    // Force GIF to restart every 10 seconds to ensure continuous looping
+    const gifRestartInterval = setInterval(() => {
+      setGifKey(prev => prev + 1);
+    }, 10000);
+
+    return () => {
+      clearInterval(gifRestartInterval);
+    };
   }, []);
 
   const handleReady = async () => {
@@ -76,6 +86,7 @@ export default function ReflectOnFriendsScreen() {
       {/* Wave animation background - positioned to cover entire screen */}
       <Animated.View style={[styles.waveContainer, { opacity: waveOpacity }]}>
         <Image
+          key={gifKey} // Force re-render to restart GIF
           source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
           style={styles.waveBackground}
           resizeMode="cover"
