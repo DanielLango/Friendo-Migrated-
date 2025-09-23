@@ -8,18 +8,23 @@ import {
   Animated,
   ScrollView,
   Image,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
+  const [waveOpacity] = useState(new Animated.Value(0.3));
   const [dontShowAgain, setDontShowAgain] = useState(false);
   
   const navigation = useNavigation();
 
   useEffect(() => {
+    // Start content animation
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -32,6 +37,27 @@ export default function ReflectOnFriendsScreen() {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Continuous wave animation
+    const animateWave = () => {
+      Animated.sequence([
+        Animated.timing(waveOpacity, {
+          toValue: 0.6,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(waveOpacity, {
+          toValue: 0.3,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // Loop the animation
+        animateWave();
+      });
+    };
+
+    animateWave();
   }, []);
 
   const handleReady = async () => {
@@ -46,19 +72,24 @@ export default function ReflectOnFriendsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Wave animation background */}
-      <Image
-        source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
-        style={styles.waveBackground}
-        resizeMode="cover"
-        onError={(error) => {
-          console.log('Image loading error:', error);
-        }}
-      />
+    <View style={styles.container}>
+      {/* Wave animation background - positioned to cover entire screen */}
+      <Animated.View style={[styles.waveContainer, { opacity: waveOpacity }]}>
+        <Image
+          source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
+          style={styles.waveBackground}
+          resizeMode="cover"
+          onError={(error) => {
+            console.log('Image loading error:', error);
+          }}
+        />
+      </Animated.View>
       
-      {/* Transparent purple overlay */}
-      <View style={styles.overlay}>
+      {/* Strong purple overlay for text readability */}
+      <View style={styles.overlay} />
+      
+      {/* Content */}
+      <SafeAreaView style={styles.safeArea}>
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -75,25 +106,27 @@ export default function ReflectOnFriendsScreen() {
             {/* Title */}
             <Text style={styles.title}>Before we start…</Text>
 
-            {/* Body Text */}
-            <Text style={styles.bodyText}>
-              We invite you to take a quiet moment to think about the friends you&apos;d like to stay connected with.
-              {'\n\n'}
-              It can help to pause and reflect on your favorite memories — who comes to mind right away?
-              {'\n\n'}
-              Maybe scroll through your photo albums or contacts, or open some of your favorite messaging apps.
-              {'\n\n'}
-              You might think of friends you often talk to on Instagram, WhatsApp, Snapchat, Facebook, or Messenger. Or perhaps your closest connections are on X, LinkedIn, TikTok, Signal, Telegram, Pinterest, or Viber.
-              {'\n\n'}
-              Whatever the case, take your time. Maybe even grab a pen and paper — and think it through.
-            </Text>
+            {/* Body Text with better readability */}
+            <View style={styles.textContainer}>
+              <Text style={styles.bodyText}>
+                We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
+                {'\n\n'}
+                It can help to pause and reflect on your favorite memories — who comes to mind right away?
+                {'\n\n'}
+                Maybe scroll through your photo albums or contacts, or open some of your favorite messaging apps.
+                {'\n\n'}
+                You might think of friends you often talk to on Instagram, WhatsApp, Snapchat, Facebook, or Messenger. Or perhaps your closest connections are on X, LinkedIn, TikTok, Signal, Telegram, Pinterest, or Viber.
+                {'\n\n'}
+                Whatever the case, take your time. Maybe even grab a pen and paper — and think it through.
+              </Text>
+            </View>
 
             {/* Primary Button */}
             <TouchableOpacity 
               style={styles.readyButton}
               onPress={handleReady}
             >
-              <Text style={styles.readyButtonText}>I&apos;m Ready</Text>
+              <Text style={styles.readyButtonText}>I'm Ready</Text>
             </TouchableOpacity>
 
             {/* Subtext */}
@@ -109,41 +142,53 @@ export default function ReflectOnFriendsScreen() {
               <View style={[styles.checkbox, dontShowAgain && styles.checkboxChecked]}>
                 {dontShowAgain && <Text style={styles.checkmark}>✓</Text>}
               </View>
-              <Text style={styles.checkboxLabel}>Don&apos;t display this page to me anymore</Text>
+              <Text style={styles.checkboxLabel}>Don't display this page to me anymore</Text>
             </TouchableOpacity>
 
             {/* Empty row for spacing */}
             <View style={styles.emptyRow} />
           </Animated.View>
         </ScrollView>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#3B0B63', // Fallback color
+    backgroundColor: '#2D0A4E', // Deep purple fallback
+  },
+  waveContainer: {
+    position: 'absolute',
+    top: -50, // Extend beyond screen edges
+    left: -50,
+    right: -50,
+    bottom: -50,
+    width: screenWidth + 100, // Ensure full coverage
+    height: screenHeight + 100,
   },
   waveBackground: {
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    width: '100%',
-    height: '100%',
+    backgroundColor: 'rgba(45, 10, 78, 0.75)', // Stronger purple overlay for text readability
   },
-  overlay: {
+  safeArea: {
     flex: 1,
-    backgroundColor: 'rgba(59, 11, 99, 0.6)', // Semi-transparent purple overlay
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
     paddingVertical: 40,
+    minHeight: screenHeight - 100, // Ensure content fills screen
   },
   content: {
     alignItems: 'center',
@@ -152,17 +197,28 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#FFFFFF',
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 24,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+  },
+  textContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent background for better text readability
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 32,
   },
   bodyText: {
-    color: '#D8B4FE',
+    color: '#FFFFFF',
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 40,
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   readyButton: {
     backgroundColor: '#FFFFFF',
@@ -176,6 +232,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    marginBottom: 16,
   },
   readyButtonText: {
     color: '#5D1A94',
@@ -183,16 +240,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   subtext: {
-    color: '#C4B5FD',
+    color: '#FFFFFF',
     fontSize: 14,
     textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 20,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
     marginBottom: 8,
   },
   checkbox: {
@@ -214,8 +276,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   checkboxLabel: {
-    color: '#C4B5FD',
+    color: '#FFFFFF',
     fontSize: 14,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   emptyRow: {
     height: 20,
