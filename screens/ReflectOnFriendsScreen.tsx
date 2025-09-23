@@ -109,15 +109,13 @@ export default function ReflectOnFriendsScreen() {
             {/* Body Text with better readability */}
             <View style={styles.textContainer}>
               <Text style={styles.bodyText}>
-                We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
+                Take a quiet moment to think about the friends you'd like to stay connected with.
                 {'\n\n'}
-                It can help to pause and reflect on your favorite memories — who comes to mind right away?
+                Reflect on your favorite memories — who comes to mind right away?
                 {'\n\n'}
-                Maybe scroll through your photo albums or contacts, or open some of your favorite messaging apps.
+                Maybe scroll through your photo albums, contacts, or messaging apps like Instagram, WhatsApp, Snapchat, or others.
                 {'\n\n'}
-                You might think of friends you often talk to on Instagram, WhatsApp, Snapchat, Facebook, or Messenger. Or perhaps your closest connections are on X, LinkedIn, TikTok, Signal, Telegram, Pinterest, or Viber.
-                {'\n\n'}
-                Whatever the case, take your time. Maybe even grab a pen and paper — and think it through.
+                Take your time and think it through.
               </Text>
             </View>
 
@@ -187,8 +185,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 40,
-    minHeight: screenHeight - 100, // Ensure content fills screen
+    paddingVertical: 20,
+    minHeight: screenHeight - 120,
   },
   content: {
     alignItems: 'center',
@@ -197,32 +195,32 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#FFFFFF',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
   },
   textContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent background for better text readability
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 12,
-    padding: 20,
-    marginBottom: 32,
+    padding: 18,
+    marginBottom: 24,
   },
   bodyText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 22,
     textShadowColor: 'rgba(0, 0, 0, 0.7)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   readyButton: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 32,
     borderRadius: 12,
     minWidth: 200,
@@ -232,18 +230,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   readyButtonText: {
     color: '#5D1A94',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
   },
   subtext: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
@@ -252,8 +250,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: 8,
     marginBottom: 8,
   },
