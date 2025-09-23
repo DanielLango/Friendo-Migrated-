@@ -134,11 +134,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
-    opacity: 0.4, // Much more visible so people can enjoy it
+    opacity: 0.6, // Strong wave visibility
   },
   gradient: {
     flex: 1,
-    backgroundColor: 'rgba(59, 11, 99, 0.7)', // Reduced purple overlay to let wave show through
+    backgroundColor: 'rgba(59, 11, 99, 0.4)', // Much more transparent purple layer
   },
   scrollContent: {
     flexGrow: 1,
