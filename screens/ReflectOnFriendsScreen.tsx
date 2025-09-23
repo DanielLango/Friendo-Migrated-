@@ -93,6 +93,7 @@ export default function ReflectOnFriendsScreen() {
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          bounces={false}
         >
           <Animated.View 
             style={[
@@ -109,13 +110,15 @@ export default function ReflectOnFriendsScreen() {
             {/* Body Text with better readability */}
             <View style={styles.textContainer}>
               <Text style={styles.bodyText}>
-                Take a quiet moment to think about the friends you'd like to stay connected with.
+                We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
                 {'\n\n'}
-                Reflect on your favorite memories — who comes to mind right away?
+                It can help to pause and reflect on your favorite memories — who comes to mind right away?
                 {'\n\n'}
-                Maybe scroll through your photo albums, contacts, or messaging apps like Instagram, WhatsApp, Snapchat, or others.
+                Maybe scroll through your photo albums or contacts, or open some of your favorite messaging apps.
                 {'\n\n'}
-                Take your time and think it through.
+                You might think of friends you often talk to on Instagram, WhatsApp, Snapchat, Facebook, or Messenger. Or perhaps your closest connections are on X, LinkedIn, TikTok, Signal, Telegram, Pinterest, or Viber.
+                {'\n\n'}
+                Whatever the case, take your time. Maybe even grab a pen and paper — and think it through.
               </Text>
             </View>
 
@@ -182,16 +185,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 20,
-    minHeight: screenHeight - 120,
+    paddingBottom: 40, // Extra bottom padding for the checkbox
   },
   content: {
     alignItems: 'center',
     maxWidth: 400,
     alignSelf: 'center',
+    paddingTop: 60, // Add top padding to center content better
   },
   title: {
     color: '#FFFFFF',
