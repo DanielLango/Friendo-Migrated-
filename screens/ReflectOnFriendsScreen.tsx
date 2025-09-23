@@ -60,10 +60,10 @@ export default function ReflectOnFriendsScreen() {
 
     animateWave();
 
-    // Force GIF to restart every 10 seconds to ensure continuous looping
+    // Force GIF to restart every 8 seconds to ensure continuous looping
     const gifRestartInterval = setInterval(() => {
       setGifKey(prev => prev + 1);
-    }, 10000);
+    }, 8000);
 
     return () => {
       clearInterval(gifRestartInterval);
