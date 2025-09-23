@@ -35,11 +35,14 @@ export default function FriendRow({
   const hasMoreMeetings = yearMeetings.length > 5;
 
   return (
-    <View style={[styles.container, deleteMode && styles.deleteMode]}>
+    <TouchableOpacity 
+      style={[styles.container, deleteMode && styles.deleteMode]}
+      onPress={() => deleteMode && onScheduleNext(friend)}
+      disabled={!deleteMode}
+    >
       {deleteMode && (
         <View style={styles.deleteOverlay}>
           <Text style={styles.deleteIcon}>🗑️</Text>
-          <Text style={styles.deleteText}>Tap to delete</Text>
         </View>
       )}
       
@@ -55,14 +58,14 @@ export default function FriendRow({
         <View style={styles.nameSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{friend.name}</Text>
-            <TouchableOpacity
-              style={[styles.scheduleButton, deleteMode && styles.scheduleButtonDisabled]}
-              onPress={() => onScheduleNext(friend)}
-            >
-              <Text style={[styles.scheduleText, deleteMode && styles.scheduleTextDisabled]}>
-                {deleteMode ? 'Delete' : 'Schedule next'}
-              </Text>
-            </TouchableOpacity>
+            {!deleteMode && (
+              <TouchableOpacity
+                style={styles.scheduleButton}
+                onPress={() => onScheduleNext(friend)}
+              >
+                <Text style={styles.scheduleText}>Schedule next</Text>
+              </TouchableOpacity>
+            )}
           </View>
           <View style={styles.typeIndicator}>
             <Text style={styles.typeIcon}>
@@ -113,7 +116,7 @@ export default function FriendRow({
         friend={friend}
         onClose={() => setShowNotificationModal(false)}
       />
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -144,7 +147,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   deleteIcon: {
-    fontSize: 16,
+    fontSize: 20,
   },
   deleteText: {
     fontSize: 10,
