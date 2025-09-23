@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Animated,
   ScrollView,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -47,6 +48,14 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Barely visible wave animation background */}
+      <Image
+        source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
+        style={styles.waveBackground}
+        resizeMode="cover"
+      />
+      
+      {/* Thick purple layer on top of the wave */}
       <LinearGradient
         colors={['#3B0B63', '#5D1A94']}
         style={styles.gradient}
@@ -117,8 +126,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  waveBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.03, // Extremely low opacity - barely visible
+  },
   gradient: {
     flex: 1,
+    backgroundColor: 'rgba(59, 11, 99, 0.95)', // Thick purple layer with high opacity
   },
   scrollContent: {
     flexGrow: 1,
