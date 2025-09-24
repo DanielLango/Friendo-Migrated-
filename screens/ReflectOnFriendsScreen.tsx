@@ -8,6 +8,7 @@ import {
   Animated,
   Image,
   Dimensions,
+  ImageStyle,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -90,7 +91,7 @@ export default function ReflectOnFriendsScreen() {
           <Image
             key={gifKey} // Force re-render to restart GIF
             source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
-            style={styles.waveBackground}
+            style={styles.waveBackground as ImageStyle}
             resizeMode="cover"
             onLoad={() => {
               console.log('GIF loaded successfully');
@@ -145,7 +146,7 @@ export default function ReflectOnFriendsScreen() {
             style={styles.readyButton}
             onPress={handleReady}
           >
-            <Text style={styles.readyButtonText}>I'm Ready</Text>
+            <Text style={styles.readyButtonText}>I&apos;m Ready</Text>
           </TouchableOpacity>
 
           {/* Subtext */}
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
   waveBackground: {
     width: '100%',
     height: '100%',
-  } as const,
+  },
   overlay: {
     position: 'absolute',
     top: 0,

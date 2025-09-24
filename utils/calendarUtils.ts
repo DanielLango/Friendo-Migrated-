@@ -106,13 +106,14 @@ export const downloadICSFile = async (event: CalendarEvent, filename: string = '
   try {
     const icsContent = generateICSFile(event);
     
-    // Use the correct FileSystem API
-    if (!FileSystem.documentDirectory) {
+    // Use type assertion to access documentDirectory
+    const documentDirectory = (FileSystem as any).documentDirectory;
+    if (!documentDirectory) {
       Alert.alert('Error', 'Document directory not available.');
       return false;
     }
     
-    const fileUri = `${FileSystem.documentDirectory}${filename}`;
+    const fileUri = `${documentDirectory}${filename}`;
     
     await FileSystem.writeAsStringAsync(fileUri, icsContent);
     
