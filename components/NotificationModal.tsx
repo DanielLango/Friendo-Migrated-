@@ -21,7 +21,7 @@ interface NotificationModalProps {
 
 export default function NotificationModal({ visible, friend, onClose }: NotificationModalProps) {
   const [selectedFrequency, setSelectedFrequency] = useState<'days' | 'weekly' | 'monthly'>(friend.notificationFrequency || 'days');
-  const [customDays, setCustomDays] = useState((friend.notificationDays || 7).toString());
+  const [customDays, setCustomDays] = useState((friend.notificationDays || 3).toString());
   const { db } = useBasic();
 
   const handleSave = async () => {
@@ -88,13 +88,17 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
               <View style={[styles.radio, selectedFrequency === 'days' && styles.radioSelected]} />
               <Text style={styles.optionText}>days</Text>
               {selectedFrequency === 'days' && (
-                <TextInput
-                  style={styles.input}
-                  value={customDays}
-                  onChangeText={setCustomDays}
-                  keyboardType="numeric"
-                  placeholder="7"
-                />
+                <View style={styles.daysContainer}>
+                  <Text style={styles.everyText}>every</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={customDays}
+                    onChangeText={setCustomDays}
+                    keyboardType="numeric"
+                    placeholder="3"
+                  />
+                  <Text style={styles.everyText}>days</Text>
+                </View>
               )}
             </TouchableOpacity>
 
@@ -213,6 +217,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     width: 50,
     textAlign: 'center',
+  },
+  daysContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   weeklyContainer: {
     flexDirection: 'row',

@@ -6,7 +6,6 @@ import {
   StyleSheet,
   SafeAreaView,
   Animated,
-  ScrollView,
   Image,
   Dimensions,
 } from 'react-native';
@@ -21,6 +20,8 @@ export default function ReflectOnFriendsScreen() {
   const [waveOpacity] = useState(new Animated.Value(0.3));
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [gifKey, setGifKey] = useState(0);
+  const [gifLoaded, setGifLoaded] = useState(false);
+  const [gifError, setGifError] = useState(false);
   
   const navigation = useNavigation();
 
@@ -85,15 +86,34 @@ export default function ReflectOnFriendsScreen() {
     <View style={styles.container}>
       {/* Wave animation background - positioned to cover entire screen */}
       <Animated.View style={[styles.waveContainer, { opacity: waveOpacity }]}>
-        <Image
-          key={gifKey} // Force re-render to restart GIF
-          source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
-          style={styles.waveBackground}
-          resizeMode="cover"
-          onError={(error) => {
-            console.log('Image loading error:', error);
-          }}
-        />
+        {!gifError ? (
+          <Image
+            key={gifKey} // Force re-render to restart GIF
+            source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
+            style={styles.waveBackground}
+            resizeMode="cover"
+            onLoad={() => {
+              console.log('GIF loaded successfully');
+              setGifLoaded(true);
+              setGifError(false);
+            }}
+            onError={(error) => {
+              console.log('Image loading error:', error);
+              setGifError(true);
+              setGifLoaded(false);
+            }}
+          />
+        ) : (
+          // Fallback gradient background if GIF fails to load
+          <View style={styles.fallbackBackground} />
+        )}
+
+        {/* Loading indicator */}
+        {!gifLoaded && !gifError && (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading animation...</Text>
+          </View>
+        )}
       </Animated.View>
       
       {/* Strong purple overlay for text readability */}
@@ -108,14 +128,14 @@ export default function ReflectOnFriendsScreen() {
           {/* Body Text with better readability */}
           <View style={styles.textContainer}>
             <Text style={styles.bodyText}>
-              We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
-              {'\n\n'}
+              We invite you to take a quiet moment to think about the friends you&apos;d like to stay connected with.
+              {'\\n\\n'}
               It can help to pause and reflect on your favorite memories — who comes to mind right away?
-              {'\n\n'}
+              {'\\n\\n'}
               Maybe scroll through your photo albums or contacts, or open some of your favorite messaging apps.
-              {'\n\n'}
+              {'\\n\\n'}
               You might think of friends you often talk to on Instagram, WhatsApp, Snapchat, Facebook, or Messenger. Or perhaps your closest connections are on X, LinkedIn, TikTok, Signal, Telegram, Pinterest, or Viber.
-              {'\n\n'}
+              {'\\n\\n'}
               Whatever the case, take your time. Maybe even grab a pen and paper — and think it through.
             </Text>
           </View>
@@ -141,7 +161,7 @@ export default function ReflectOnFriendsScreen() {
             <View style={[styles.checkbox, dontShowAgain && styles.checkboxChecked]}>
               {dontShowAgain && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Don't display this page to me anymore</Text>
+            <Text style={styles.checkboxLabel}>Don&apos;t display this page to me anymore</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -166,7 +186,7 @@ const styles = StyleSheet.create({
   waveBackground: {
     width: '100%',
     height: '100%',
-  },
+  } as const,
   overlay: {
     position: 'absolute',
     top: 0,
@@ -276,5 +296,25 @@ const styles = StyleSheet.create({
   },
   emptyRow: {
     height: 20,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -75 }, { translateY: -10 }],
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  fallbackBackground: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#2D0A4E',
   },
 });

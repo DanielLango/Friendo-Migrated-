@@ -120,7 +120,7 @@ export default function MeetingCreateScreen() {
     }
 
     if (sendInvitation && !friendEmail.trim()) {
-      Alert.alert('Error', 'Please enter friend\'s email to send invitation');
+      Alert.alert('Error', 'Please enter friend\\'s email to send invitation');
       return;
     }
 
@@ -364,7 +364,7 @@ export default function MeetingCreateScreen() {
                     styles.activityConfirmText,
                     activityConfirmed && styles.activityConfirmTextActive
                   ]}>
-                    Select "{getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type
+                    Select &quot;{getVenueCategory(selectedCategory)?.name || selectedCategory}&quot; as meeting type
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -482,7 +482,7 @@ export default function MeetingCreateScreen() {
           disabled={isCreating}
         >
           <Text style={styles.createButtonText}>
-            {isCreating ? 'Creating Meeting...' : 'Schedule Meeting'}
+            {isCreating ? 'Creating Meetup...' : 'Schedule Meetup'}
           </Text>
         </TouchableOpacity>
       </ScrollView>
