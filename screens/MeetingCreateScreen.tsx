@@ -120,7 +120,7 @@ export default function MeetingCreateScreen() {
     }
 
     if (sendInvitation && !friendEmail.trim()) {
-      Alert.alert('Error', 'Please enter friend\\'s email to send invitation');
+      Alert.alert('Error', 'Please enter friend\'s email to send invitation');
       return;
     }
 
@@ -304,7 +304,7 @@ export default function MeetingCreateScreen() {
                       No partner venues yet in {selectedCity}
                     </Text>
                     <Text style={styles.partnershipSubtitle}>
-                      We're working on partnerships with local restaurants in your area!
+                      We&apos;re working on partnerships with local restaurants in your area!
                     </Text>
                   </View>
                 </View>
