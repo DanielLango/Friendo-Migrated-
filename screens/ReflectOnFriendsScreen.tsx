@@ -6,9 +6,10 @@ import {
   StyleSheet,
   SafeAreaView,
   Animated,
+  Image,
   Dimensions,
+  ImageStyle,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -17,10 +18,11 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
-  const [waveAnim1] = useState(new Animated.Value(0));
-  const [waveAnim2] = useState(new Animated.Value(0));
-  const [waveAnim3] = useState(new Animated.Value(0));
+  const [waveOpacity] = useState(new Animated.Value(0.3));
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [gifKey, setGifKey] = useState(0);
+  const [gifLoaded, setGifLoaded] = useState(false);
+  const [gifError, setGifError] = useState(false);
   
   const navigation = useNavigation();
 
@@ -39,29 +41,35 @@ export default function ReflectOnFriendsScreen() {
       }),
     ]).start();
 
-    // Create continuous wave animations with different speeds and delays
-    const createWaveAnimation = (animValue: Animated.Value, delay: number, duration: number) => {
-      return Animated.loop(
+    // Continuous wave animation with proper looping
+    const animateWave = () => {
+      Animated.loop(
         Animated.sequence([
-          Animated.timing(animValue, {
-            toValue: 1,
-            duration: duration,
+          Animated.timing(waveOpacity, {
+            toValue: 0.6,
+            duration: 2000,
             useNativeDriver: true,
           }),
-          Animated.timing(animValue, {
-            toValue: 0,
-            duration: duration,
+          Animated.timing(waveOpacity, {
+            toValue: 0.3,
+            duration: 2000,
             useNativeDriver: true,
           }),
         ]),
-        { iterations: -1 }
-      );
+        { iterations: -1 } // -1 means infinite loop
+      ).start();
     };
 
-    // Start multiple wave animations with different timings
-    setTimeout(() => createWaveAnimation(waveAnim1, 0, 3000).start(), 0);
-    setTimeout(() => createWaveAnimation(waveAnim2, 1000, 4000).start(), 1000);
-    setTimeout(() => createWaveAnimation(waveAnim3, 2000, 5000).start(), 2000);
+    animateWave();
+
+    // Force GIF to restart every 9 seconds to ensure continuous looping
+    const gifRestartInterval = setInterval(() => {
+      setGifKey(prev => prev + 1);
+    }, 9000);
+
+    return () => {
+      clearInterval(gifRestartInterval);
+    };
   }, []);
 
   const handleReady = async () => {
@@ -77,87 +85,39 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Animated wave background layers */}
-      <Animated.View style={[
-        styles.waveLayer,
-        {
-          opacity: waveAnim1.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0.2, 0.4],
-          }),
-          transform: [{
-            translateY: waveAnim1.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, -20],
-            }),
-          }],
-        },
-      ]}>
-        <LinearGradient
-          colors={['#4A0E4E', '#2D0A4E', '#1A0A2E']}
-          style={styles.gradientWave}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        />
-      </Animated.View>
+      {/* Wave animation background - positioned to cover entire screen */}
+      <Animated.View style={[styles.waveContainer, { opacity: waveOpacity }]}>
+        {!gifError ? (
+          <Image
+            key={gifKey} // Force re-render to restart GIF
+            source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
+            style={styles.waveBackground as ImageStyle}
+            resizeMode="cover"
+            onLoad={() => {
+              console.log('GIF loaded successfully');
+              setGifLoaded(true);
+              setGifError(false);
+            }}
+            onError={(error) => {
+              console.log('Image loading error:', error);
+              setGifError(true);
+              setGifLoaded(false);
+            }}
+          />
+        ) : (
+          // Fallback gradient background if GIF fails to load
+          <View style={styles.fallbackBackground} />
+        )}
 
-      <Animated.View style={[
-        styles.waveLayer,
-        {
-          opacity: waveAnim2.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0.1, 0.3],
-          }),
-          transform: [{
-            translateY: waveAnim2.interpolate({
-              inputRange: [0, 1],
-              outputRange: [10, -10],
-            }),
-          }, {
-            translateX: waveAnim2.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 15],
-            }),
-          }],
-        },
-      ]}>
-        <LinearGradient
-          colors={['#6A1B9A', '#4A0E4E', '#2D0A4E']}
-          style={styles.gradientWave}
-          start={{ x: 1, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        />
-      </Animated.View>
-
-      <Animated.View style={[
-        styles.waveLayer,
-        {
-          opacity: waveAnim3.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0.15, 0.35],
-          }),
-          transform: [{
-            translateY: waveAnim3.interpolate({
-              inputRange: [0, 1],
-              outputRange: [-5, 15],
-            }),
-          }, {
-            translateX: waveAnim3.interpolate({
-              inputRange: [0, 1],
-              outputRange: [-10, 5],
-            }),
-          }],
-        },
-      ]}>
-        <LinearGradient
-          colors={['#8E24AA', '#6A1B9A', '#4A0E4E']}
-          style={styles.gradientWave}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-        />
+        {/* Loading indicator */}
+        {!gifLoaded && !gifError && (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading animation...</Text>
+          </View>
+        )}
       </Animated.View>
       
-      {/* Content overlay */}
+      {/* Strong purple overlay for text readability */}
       <View style={styles.overlay} />
       
       {/* Content */}
@@ -219,20 +179,20 @@ export default function ReflectOnFriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2D0A4E',
+    backgroundColor: '#2D0A4E', // Deep purple fallback
   },
-  waveLayer: {
+  waveContainer: {
     position: 'absolute',
-    top: -100,
-    left: -100,
-    right: -100,
-    bottom: -100,
-    width: screenWidth + 200,
-    height: screenHeight + 200,
+    top: -50, // Extend beyond screen edges
+    left: -50,
+    right: -50,
+    bottom: -50,
+    width: screenWidth + 100, // Ensure full coverage
+    height: screenHeight + 100,
   },
-  gradientWave: {
-    flex: 1,
-    borderRadius: screenWidth,
+  waveBackground: {
+    width: '100%',
+    height: '100%',
   },
   overlay: {
     position: 'absolute',
@@ -240,7 +200,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(45, 10, 78, 0.4)',
+    backgroundColor: 'rgba(45, 10, 78, 0.75)', // Stronger purple overlay for text readability
   },
   safeArea: {
     flex: 1,
@@ -260,12 +220,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 4,
+    textShadowRadius: 3,
   },
   textContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 12,
     padding: 18,
     marginBottom: 24,
@@ -275,9 +235,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
     textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+    textShadowRadius: 2,
   },
   readyButton: {
     backgroundColor: '#FFFFFF',
@@ -303,14 +263,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     marginBottom: 16,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+    textShadowRadius: 2,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 8,
@@ -337,8 +297,31 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     color: '#FFFFFF',
     fontSize: 14,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+    textShadowRadius: 2,
+  },
+  emptyRow: {
+    height: 20,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -75 }, { translateY: -10 }],
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  fallbackBackground: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#2D0A4E',
   },
 });
