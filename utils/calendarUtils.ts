@@ -105,6 +105,13 @@ export const generateICSFile = (event: CalendarEvent): string => {
 export const downloadICSFile = async (event: CalendarEvent, filename: string = 'meeting.ics'): Promise<boolean> => {
   try {
     const icsContent = generateICSFile(event);
+    
+    // Use the correct FileSystem API
+    if (!FileSystem.documentDirectory) {
+      Alert.alert('Error', 'Document directory not available.');
+      return false;
+    }
+    
     const fileUri = `${FileSystem.documentDirectory}${filename}`;
     
     await FileSystem.writeAsStringAsync(fileUri, icsContent);
@@ -113,13 +120,13 @@ export const downloadICSFile = async (event: CalendarEvent, filename: string = '
       // On iOS, we can use the share functionality
       Alert.alert(
         'Calendar File Created',
-        `Calendar file saved to: ${fileUri}\n\nYou can share this file or import it into your calendar app.`
+        `Calendar file saved to: ${fileUri}\\n\\nYou can share this file or import it into your calendar app.`
       );
     } else {
       // On Android, show the file location
       Alert.alert(
         'Calendar File Downloaded',
-        `Calendar file saved to: ${fileUri}\n\nYou can import this file into your calendar app.`
+        `Calendar file saved to: ${fileUri}\\n\\nYou can import this file into your calendar app.`
       );
     }
     
