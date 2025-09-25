@@ -6,16 +6,21 @@ import {
   StyleSheet,
   SafeAreaView,
   Animated,
+  ScrollView,
   Image,
+  Dimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
+  const [waveOpacity] = useState(new Animated.Value(0.3));
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [gifKey, setGifKey] = useState(0);
   
   const navigation = useNavigation();
 
@@ -33,6 +38,36 @@ export default function ReflectOnFriendsScreen() {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Continuous wave animation with proper looping
+    const animateWave = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(waveOpacity, {
+            toValue: 0.6,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(waveOpacity, {
+            toValue: 0.3,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ]),
+        { iterations: -1 } // -1 means infinite loop
+      ).start();
+    };
+
+    animateWave();
+
+    // Force GIF to restart every 9 seconds to ensure continuous looping
+    const gifRestartInterval = setInterval(() => {
+      setGifKey(prev => prev + 1);
+    }, 9000);
+
+    return () => {
+      clearInterval(gifRestartInterval);
+    };
   }, []);
 
   const handleReady = async () => {
@@ -48,33 +83,25 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Background GIF */}
-      <Image
-        source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
-        style={styles.backgroundGif}
-        resizeMode="cover"
-        onError={(error) => console.log('Image load error:', error)}
-        onLoad={() => console.log('Image loaded successfully')}
-      />
+      {/* Wave animation background - positioned to cover entire screen */}
+      <Animated.View style={[styles.waveContainer, { opacity: waveOpacity }]}>
+        <Image
+          key={gifKey} // Force re-render to restart GIF
+          source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
+          style={styles.waveBackground}
+          resizeMode="cover"
+          onError={(error) => {
+            console.log('Image loading error:', error);
+          }}
+        />
+      </Animated.View>
       
-      {/* Fallback gradient background */}
-      <LinearGradient
-        colors={['#2D0A4E', '#4B0082', '#663399', '#4B0082', '#2D0A4E']}
-        style={styles.fallbackGradient}
-      />
-      
-      {/* Content overlay */}
+      {/* Strong purple overlay for text readability */}
       <View style={styles.overlay} />
       
       {/* Content */}
       <SafeAreaView style={styles.safeArea}>
-        <Animated.View style={[
-          styles.content,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}>
+        <View style={styles.content}>
           {/* Title */}
           <Text style={styles.title}>Before we start…</Text>
 
@@ -116,7 +143,7 @@ export default function ReflectOnFriendsScreen() {
             </View>
             <Text style={styles.checkboxLabel}>Don't display this page to me anymore</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -125,27 +152,20 @@ export default function ReflectOnFriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2D0A4E',
+    backgroundColor: '#2D0A4E', // Deep purple fallback
   },
-  backgroundGif: {
+  waveContainer: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: -50, // Extend beyond screen edges
+    left: -50,
+    right: -50,
+    bottom: -50,
+    width: screenWidth + 100, // Ensure full coverage
+    height: screenHeight + 100,
+  },
+  waveBackground: {
     width: '100%',
     height: '100%',
-    zIndex: 1,
-  },
-  fallbackGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 0,
   },
   overlay: {
     position: 'absolute',
@@ -153,12 +173,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(45, 10, 78, 0.4)',
-    zIndex: 2,
+    backgroundColor: 'rgba(45, 10, 78, 0.75)', // Stronger purple overlay for text readability
   },
   safeArea: {
     flex: 1,
-    zIndex: 3,
   },
   content: {
     flex: 1,
@@ -175,12 +193,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
-    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
   },
   textContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 12,
     padding: 18,
     marginBottom: 24,
@@ -190,7 +208,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
@@ -218,14 +236,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     marginBottom: 16,
-    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 8,
@@ -252,8 +270,11 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     color: '#FFFFFF',
     fontSize: 14,
-    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
+  },
+  emptyRow: {
+    height: 20,
   },
 });
