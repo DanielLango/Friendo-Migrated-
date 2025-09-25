@@ -8,6 +8,7 @@ import {
   Animated,
   Image,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -52,6 +53,14 @@ export default function ReflectOnFriendsScreen() {
         source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
         style={styles.backgroundGif}
         resizeMode="cover"
+        onError={(error) => console.log('Image load error:', error)}
+        onLoad={() => console.log('Image loaded successfully')}
+      />
+      
+      {/* Fallback gradient background */}
+      <LinearGradient
+        colors={['#2D0A4E', '#4B0082', '#663399', '#4B0082', '#2D0A4E']}
+        style={styles.fallbackGradient}
       />
       
       {/* Content overlay */}
@@ -126,6 +135,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
+    zIndex: 1,
+  },
+  fallbackGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 0,
   },
   overlay: {
     position: 'absolute',
@@ -134,9 +154,11 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(45, 10, 78, 0.4)',
+    zIndex: 2,
   },
   safeArea: {
     flex: 1,
+    zIndex: 3,
   },
   content: {
     flex: 1,
