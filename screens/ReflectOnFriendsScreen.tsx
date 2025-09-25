@@ -18,9 +18,10 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
-  const [waveOpacity] = useState(new Animated.Value(0.3));
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [gifKey, setGifKey] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   const navigation = useNavigation();
 
@@ -38,27 +39,6 @@ export default function ReflectOnFriendsScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Continuous wave animation with proper looping
-    const animateWave = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(waveOpacity, {
-            toValue: 0.6,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(waveOpacity, {
-            toValue: 0.3,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-        ]),
-        { iterations: -1 } // -1 means infinite loop
-      ).start();
-    };
-
-    animateWave();
 
     // Force GIF to restart every 9 seconds to ensure continuous looping
     const gifRestartInterval = setInterval(() => {
@@ -83,44 +63,47 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Wave animation background - positioned to cover entire screen */}
-      <Animated.View style={[styles.waveContainer, { opacity: waveOpacity }]}>
+      {/* Debug info */}
+      <View style={styles.debugInfo}>
+        <Text style={styles.debugText}>
+          Image loaded: {imageLoaded ? 'Yes' : 'No'} | Error: {imageError ? 'Yes' : 'No'}
+        </Text>
+      </View>
+
+      {/* Wave animation background - simplified */}
+      <View style={styles.waveContainer}>
         <Image
-          key={gifKey} // Force re-render to restart GIF
+          key={gifKey}
           source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
           style={styles.waveBackground}
           resizeMode="cover"
+          onLoad={() => {
+            console.log('GIF loaded successfully');
+            setImageLoaded(true);
+          }}
           onError={(error) => {
             console.log('Image loading error:', error);
+            setImageError(true);
           }}
         />
-      </Animated.View>
+      </View>
       
-      {/* Strong purple overlay for text readability */}
-      <View style={styles.overlay} />
+      {/* Much lighter overlay for debugging */}
+      <View style={styles.lightOverlay} />
       
       {/* Content */}
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
-          {/* Title */}
           <Text style={styles.title}>Before we start…</Text>
 
-          {/* Body Text with better readability */}
           <View style={styles.textContainer}>
             <Text style={styles.bodyText}>
               We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
               {'\n\n'}
-              It can help to pause and reflect on your favorite memories — who comes to mind right away?
-              {'\n\n'}
-              Maybe scroll through your photo albums or contacts, or open some of your favorite messaging apps.
-              {'\n\n'}
-              You might think of friends you often talk to on Instagram, WhatsApp, Snapchat, Facebook, or Messenger. Or perhaps your closest connections are on X, LinkedIn, TikTok, Signal, Telegram, Pinterest, or Viber.
-              {'\n\n'}
-              Whatever the case, take your time. Maybe even grab a pen and paper — and think it through.
+              Take your time to reflect on your favorite memories and connections.
             </Text>
           </View>
 
-          {/* Primary Button */}
           <TouchableOpacity 
             style={styles.readyButton}
             onPress={handleReady}
@@ -128,12 +111,10 @@ export default function ReflectOnFriendsScreen() {
             <Text style={styles.readyButtonText}>I'm Ready</Text>
           </TouchableOpacity>
 
-          {/* Subtext */}
           <Text style={styles.subtext}>
             You can always change your selection later.
           </Text>
 
-          {/* Don't show again checkbox */}
           <TouchableOpacity 
             style={styles.checkboxContainer}
             onPress={() => setDontShowAgain(!dontShowAgain)}
@@ -154,26 +135,40 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#2D0A4E', // Deep purple fallback
   },
-  waveContainer: {
+  debugInfo: {
     position: 'absolute',
-    top: -50, // Extend beyond screen edges
-    left: -50,
-    right: -50,
-    bottom: -50,
-    width: screenWidth + 100, // Ensure full coverage
-    height: screenHeight + 100,
+    top: 50,
+    left: 10,
+    right: 10,
+    zIndex: 1000,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 10,
+    borderRadius: 5,
   },
-  waveBackground: {
-    width: '100%',
-    height: '100%',
+  debugText: {
+    color: '#000',
+    fontSize: 12,
   },
-  overlay: {
+  waveContainer: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(45, 10, 78, 0.75)', // Stronger purple overlay for text readability
+    width: '100%',
+    height: '100%',
+  },
+  waveBackground: {
+    width: '100%',
+    height: '100%',
+  },
+  lightOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(45, 10, 78, 0.3)', // Much lighter overlay for debugging
   },
   safeArea: {
     flex: 1,
