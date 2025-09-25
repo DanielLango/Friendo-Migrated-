@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Video, ResizeMode } from 'expo-av';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -20,9 +21,10 @@ export default function ReflectOnFriendsScreen() {
   const [slideAnim] = useState(new Animated.Value(30));
   const [waveOpacity] = useState(new Animated.Value(0.3));
   const [dontShowAgain, setDontShowAgain] = useState(false);
-  const [gifKey, setGifKey] = useState(0);
   const [gifLoaded, setGifLoaded] = useState(false);
   const [gifError, setGifError] = useState(false);
+  const [useVideo, setUseVideo] = useState(false);
+  const videoRef = useRef<Video>(null);
   
   const navigation = useNavigation();
 
@@ -62,15 +64,18 @@ export default function ReflectOnFriendsScreen() {
 
     animateWave();
 
-    // Force GIF to restart every 9 seconds to ensure continuous looping
-    const gifRestartInterval = setInterval(() => {
-      setGifKey(prev => prev + 1);
-    }, 9000);
+    // Try Image first, fallback to Video if it fails
+    const fallbackTimer = setTimeout(() => {
+      if (!gifLoaded && !gifError) {
+        console.log('Image taking too long, trying Video component');
+        setUseVideo(true);
+      }
+    }, 3000);
 
     return () => {
-      clearInterval(gifRestartInterval);
+      clearTimeout(fallbackTimer);
     };
-  }, []);
+  }, [fadeAnim, slideAnim, waveOpacity, gifLoaded, gifError]);
 
   const handleReady = async () => {
     if (dontShowAgain) {
@@ -83,36 +88,76 @@ export default function ReflectOnFriendsScreen() {
     (navigation as any).navigate('AddFriends');
   };
 
+  const handleImageError = () => {
+    console.log('Image failed to load, switching to Video component');
+    setGifError(true);
+    setUseVideo(true);
+  };
+
+  const handleVideoLoad = () => {
+    console.log('Video loaded successfully');
+    setGifLoaded(true);
+    setGifError(false);
+  };
+
+  const handleVideoError = (error: any) => {
+    console.log('Video also failed:', error);
+    setGifError(true);
+  };
+
   return (
     <View style={styles.container}>
       {/* Wave animation background - positioned to cover entire screen */}
       <Animated.View style={[styles.waveContainer, { opacity: waveOpacity }]}>
-        {!gifError ? (
+        {!gifError && !useVideo ? (
+          // Try Image component first
           <Image
-            key={gifKey} // Force re-render to restart GIF
             source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
             style={styles.waveBackground as ImageStyle}
             resizeMode="cover"
             onLoad={() => {
-              console.log('GIF loaded successfully');
+              console.log('GIF loaded successfully via Image component');
               setGifLoaded(true);
               setGifError(false);
             }}
-            onError={(error) => {
-              console.log('Image loading error:', error);
-              setGifError(true);
-              setGifLoaded(false);
-            }}
+            onError={handleImageError}
+          />
+        ) : useVideo && !gifError ? (
+          // Fallback to Video component for better GIF handling
+          <Video
+            ref={videoRef}
+            source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
+            style={styles.waveBackground}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay={true}
+            isLooping={true}
+            isMuted={true}
+            onLoad={handleVideoLoad}
+            onError={handleVideoError}
           />
         ) : (
-          // Fallback gradient background if GIF fails to load
+          // Final fallback - solid background
           <View style={styles.fallbackBackground} />
         )}
 
         {/* Loading indicator */}
         {!gifLoaded && !gifError && (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading animation...</Text>
+            <Text style={styles.loadingText}>
+              Loading wave animation... {useVideo ? '(Video)' : '(Image)'}
+            </Text>
+          </View>
+        )}
+
+        {/* Debug info */}
+        {__DEV__ && (
+          <View style={styles.debugContainer}>
+            <Text style={styles.debugText}>
+              Status: {gifError ? 'Error' : gifLoaded ? 'Loaded' : 'Loading'}
+            </Text>
+            <Text style={styles.debugText}>
+              Method: {useVideo ? 'Video' : 'Image'}
+            </Text>
           </View>
         )}
       </Animated.View>
@@ -301,9 +346,6 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
-  emptyRow: {
-    height: 20,
-  },
   loadingContainer: {
     position: 'absolute',
     top: '50%',
@@ -323,5 +365,18 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: '#2D0A4E',
+  },
+  debugContainer: {
+    position: 'absolute',
+    top: 50,
+    left: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 8,
+    borderRadius: 4,
+  },
+  debugText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontFamily: 'monospace',
   },
 });
