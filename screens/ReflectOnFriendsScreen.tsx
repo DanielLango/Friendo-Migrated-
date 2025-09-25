@@ -100,7 +100,13 @@ export default function ReflectOnFriendsScreen() {
             <Text style={styles.bodyText}>
               We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
               {'\n\n'}
-              Take your time to reflect on your favorite memories and connections.
+              It can help to pause and reflect on your favorite memories — who comes to mind right away?
+              {'\n\n'}
+              Maybe scroll through your photo albums or contacts, or open some of your favorite messaging apps.
+              {'\n\n'}
+              You might think of friends you often talk to on Instagram, WhatsApp, Snapchat, Facebook, or Messenger. Or perhaps your closest connections are on X, LinkedIn, TikTok, Signal, Telegram, Pinterest, or Viber.
+              {'\n\n'}
+              Whatever the case, take your time. Maybe even grab a pen and paper — and think it through.
             </Text>
           </View>
 
