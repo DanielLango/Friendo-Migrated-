@@ -43,12 +43,12 @@ export default function ReflectOnFriendsScreen() {
       Animated.loop(
         Animated.sequence([
           Animated.timing(waveOpacity, {
-            toValue: 0.6,
+            toValue: 0.8, // Increased from 0.6 to make GIF more visible
             duration: 2000,
             useNativeDriver: true,
           }),
           Animated.timing(waveOpacity, {
-            toValue: 0.3,
+            toValue: 0.5, // Increased from 0.3 to make GIF more visible
             duration: 2000,
             useNativeDriver: true,
           }),
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(45, 10, 78, 0.75)', // Stronger purple overlay for text readability
+    backgroundColor: 'rgba(45, 10, 78, 0.4)', // Reduced from 0.75 to 0.4 so GIF is visible
   },
   safeArea: {
     flex: 1,
