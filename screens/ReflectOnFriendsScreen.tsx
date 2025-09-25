@@ -18,6 +18,7 @@ export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
   const [waveAnim] = useState(new Animated.Value(0));
+  const [pulseAnim] = useState(new Animated.Value(1));
   const [dontShowAgain, setDontShowAgain] = useState(false);
   
   const navigation = useNavigation();
@@ -37,18 +38,18 @@ export default function ReflectOnFriendsScreen() {
       }),
     ]).start();
 
-    // Continuous wave animation - smooth and persistent
+    // More pronounced wave animation
     const startWaveAnimation = () => {
       Animated.loop(
         Animated.sequence([
           Animated.timing(waveAnim, {
             toValue: 1,
-            duration: 3000,
+            duration: 2000,
             useNativeDriver: true,
           }),
           Animated.timing(waveAnim, {
             toValue: 0,
-            duration: 3000,
+            duration: 2000,
             useNativeDriver: true,
           }),
         ]),
@@ -57,6 +58,27 @@ export default function ReflectOnFriendsScreen() {
     };
 
     startWaveAnimation();
+
+    // Add subtle pulsing effect
+    const startPulseAnimation = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 1500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1500,
+            useNativeDriver: true,
+          }),
+        ]),
+        { iterations: -1 }
+      ).start();
+    };
+
+    startPulseAnimation();
   }, []);
 
   const handleReady = async () => {
@@ -70,69 +92,76 @@ export default function ReflectOnFriendsScreen() {
     (navigation as any).navigate('AddFriends');
   };
 
-  // Create animated wave effect using transforms
-  const waveTransform = waveAnim.interpolate({
+  // Create more visible wave effects
+  const waveTransform1 = waveAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 20],
+    outputRange: [0, 50],
   });
 
-  const waveOpacity = waveAnim.interpolate({
+  const waveTransform2 = waveAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [30, -20],
+  });
+
+  const waveOpacity1 = waveAnim.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: [0.3, 0.7, 0.3],
+    outputRange: [0.4, 0.8, 0.4],
+  });
+
+  const waveOpacity2 = waveAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0.6, 0.3, 0.6],
   });
 
   return (
     <View style={styles.container}>
-      {/* Animated wave background using LinearGradient */}
+      {/* First wave layer */}
       <Animated.View 
         style={[
           styles.waveContainer,
           {
-            opacity: waveOpacity,
-            transform: [{ translateY: waveTransform }],
+            opacity: waveOpacity1,
+            transform: [{ translateY: waveTransform1 }],
           },
         ]}
       >
         <LinearGradient
           colors={[
-            'rgba(93, 26, 148, 0.8)',
-            'rgba(45, 10, 78, 0.9)',
-            'rgba(93, 26, 148, 0.6)',
-            'rgba(45, 10, 78, 1)',
+            'rgba(147, 51, 234, 0.7)',
+            'rgba(79, 70, 229, 0.8)',
+            'rgba(147, 51, 234, 0.5)',
+            'rgba(30, 58, 138, 0.9)',
           ]}
           locations={[0, 0.3, 0.7, 1]}
           style={styles.gradientWave}
         />
       </Animated.View>
 
-      {/* Additional wave layers for depth */}
+      {/* Second wave layer */}
       <Animated.View 
         style={[
           styles.waveContainer,
           {
-            opacity: waveOpacity.interpolate({
-              inputRange: [0, 0.5, 1],
-              outputRange: [0.2, 0.5, 0.2],
-            }),
-            transform: [{ translateY: waveTransform.interpolate({
-              inputRange: [0, 20],
-              outputRange: [10, -10],
-            }) }],
+            opacity: waveOpacity2,
+            transform: [
+              { translateY: waveTransform2 },
+              { scale: pulseAnim }
+            ],
           },
         ]}
       >
         <LinearGradient
           colors={[
-            'rgba(93, 26, 148, 0.4)',
-            'rgba(45, 10, 78, 0.6)',
-            'rgba(93, 26, 148, 0.3)',
+            'rgba(168, 85, 247, 0.4)',
+            'rgba(139, 92, 246, 0.6)',
+            'rgba(124, 58, 237, 0.5)',
           ]}
           locations={[0, 0.5, 1]}
           style={styles.gradientWave}
         />
       </Animated.View>
       
-      {/* Content overlay */}
+      {/* Content overlay - reduced opacity to show animation better */}
       <View style={styles.overlay} />
       
       {/* Content */}
@@ -216,7 +245,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(45, 10, 78, 0.4)',
+    backgroundColor: 'rgba(45, 10, 78, 0.2)',
   },
   safeArea: {
     flex: 1,
