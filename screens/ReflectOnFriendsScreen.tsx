@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,25 +6,19 @@ import {
   StyleSheet,
   SafeAreaView,
   Animated,
-  Image,
   Dimensions,
-  ImageStyle,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Video, ResizeMode } from 'expo-av';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
-  const [waveOpacity] = useState(new Animated.Value(0.3));
+  const [waveAnim] = useState(new Animated.Value(0));
   const [dontShowAgain, setDontShowAgain] = useState(false);
-  const [gifLoaded, setGifLoaded] = useState(false);
-  const [gifError, setGifError] = useState(false);
-  const [useVideo, setUseVideo] = useState(false);
-  const videoRef = useRef<Video>(null);
   
   const navigation = useNavigation();
 
@@ -43,39 +37,27 @@ export default function ReflectOnFriendsScreen() {
       }),
     ]).start();
 
-    // Continuous wave animation with proper looping
-    const animateWave = () => {
+    // Continuous wave animation - smooth and persistent
+    const startWaveAnimation = () => {
       Animated.loop(
         Animated.sequence([
-          Animated.timing(waveOpacity, {
-            toValue: 0.6,
-            duration: 2000,
+          Animated.timing(waveAnim, {
+            toValue: 1,
+            duration: 3000,
             useNativeDriver: true,
           }),
-          Animated.timing(waveOpacity, {
-            toValue: 0.3,
-            duration: 2000,
+          Animated.timing(waveAnim, {
+            toValue: 0,
+            duration: 3000,
             useNativeDriver: true,
           }),
         ]),
-        { iterations: -1 } // -1 means infinite loop
+        { iterations: -1 }
       ).start();
     };
 
-    animateWave();
-
-    // Try Image first, fallback to Video if it fails
-    const fallbackTimer = setTimeout(() => {
-      if (!gifLoaded && !gifError) {
-        console.log('Image taking too long, trying Video component');
-        setUseVideo(true);
-      }
-    }, 3000);
-
-    return () => {
-      clearTimeout(fallbackTimer);
-    };
-  }, [fadeAnim, slideAnim, waveOpacity, gifLoaded, gifError]);
+    startWaveAnimation();
+  }, []);
 
   const handleReady = async () => {
     if (dontShowAgain) {
@@ -88,81 +70,69 @@ export default function ReflectOnFriendsScreen() {
     (navigation as any).navigate('AddFriends');
   };
 
-  const handleImageError = () => {
-    console.log('Image failed to load, switching to Video component');
-    setGifError(true);
-    setUseVideo(true);
-  };
+  // Create animated wave effect using transforms
+  const waveTransform = waveAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 20],
+  });
 
-  const handleVideoLoad = () => {
-    console.log('Video loaded successfully');
-    setGifLoaded(true);
-    setGifError(false);
-  };
-
-  const handleVideoError = (error: any) => {
-    console.log('Video also failed:', error);
-    setGifError(true);
-  };
+  const waveOpacity = waveAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0.3, 0.7, 0.3],
+  });
 
   return (
     <View style={styles.container}>
-      {/* Wave animation background - positioned to cover entire screen */}
-      <Animated.View style={[styles.waveContainer, { opacity: waveOpacity }]}>
-        {!gifError && !useVideo ? (
-          // Try Image component first
-          <Image
-            source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
-            style={styles.waveBackground as ImageStyle}
-            resizeMode="cover"
-            onLoad={() => {
-              console.log('GIF loaded successfully via Image component');
-              setGifLoaded(true);
-              setGifError(false);
-            }}
-            onError={handleImageError}
-          />
-        ) : useVideo && !gifError ? (
-          // Fallback to Video component for better GIF handling
-          <Video
-            ref={videoRef}
-            source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
-            style={styles.waveBackground}
-            resizeMode={ResizeMode.COVER}
-            shouldPlay={true}
-            isLooping={true}
-            isMuted={true}
-            onLoad={handleVideoLoad}
-            onError={handleVideoError}
-          />
-        ) : (
-          // Final fallback - solid background
-          <View style={styles.fallbackBackground} />
-        )}
+      {/* Animated wave background using LinearGradient */}
+      <Animated.View 
+        style={[
+          styles.waveContainer,
+          {
+            opacity: waveOpacity,
+            transform: [{ translateY: waveTransform }],
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={[
+            'rgba(93, 26, 148, 0.8)',
+            'rgba(45, 10, 78, 0.9)',
+            'rgba(93, 26, 148, 0.6)',
+            'rgba(45, 10, 78, 1)',
+          ]}
+          locations={[0, 0.3, 0.7, 1]}
+          style={styles.gradientWave}
+        />
+      </Animated.View>
 
-        {/* Loading indicator */}
-        {!gifLoaded && !gifError && (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>
-              Loading wave animation... {useVideo ? '(Video)' : '(Image)'}
-            </Text>
-          </View>
-        )}
-
-        {/* Debug info */}
-        {__DEV__ && (
-          <View style={styles.debugContainer}>
-            <Text style={styles.debugText}>
-              Status: {gifError ? 'Error' : gifLoaded ? 'Loaded' : 'Loading'}
-            </Text>
-            <Text style={styles.debugText}>
-              Method: {useVideo ? 'Video' : 'Image'}
-            </Text>
-          </View>
-        )}
+      {/* Additional wave layers for depth */}
+      <Animated.View 
+        style={[
+          styles.waveContainer,
+          {
+            opacity: waveOpacity.interpolate({
+              inputRange: [0.3, 0.7, 0.3],
+              outputRange: [0.2, 0.5, 0.2],
+            }),
+            transform: [{ translateY: waveTransform.interpolate({
+              inputRange: [0, 20],
+              outputRange: [10, -10],
+            }) }],
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={[
+            'rgba(93, 26, 148, 0.4)',
+            'rgba(45, 10, 78, 0.6)',
+            'rgba(93, 26, 148, 0.3)',
+          ]}
+          locations={[0, 0.5, 1]}
+          style={styles.gradientWave}
+        />
       </Animated.View>
       
-      {/* Strong purple overlay for text readability */}
+      {/* Content overlay */}
       <View style={styles.overlay} />
       
       {/* Content */}
@@ -180,7 +150,7 @@ export default function ReflectOnFriendsScreen() {
           {/* Body Text with better readability */}
           <View style={styles.textContainer}>
             <Text style={styles.bodyText}>
-              We invite you to take a quiet moment to think about the friends you&apos;d like to stay connected with.
+              We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
               {'\n\n'}
               It can help to pause and reflect on your favorite memories — who comes to mind right away?
               {'\n\n'}
@@ -197,7 +167,7 @@ export default function ReflectOnFriendsScreen() {
             style={styles.readyButton}
             onPress={handleReady}
           >
-            <Text style={styles.readyButtonText}>I&apos;m Ready</Text>
+            <Text style={styles.readyButtonText}>I'm Ready</Text>
           </TouchableOpacity>
 
           {/* Subtext */}
@@ -213,7 +183,7 @@ export default function ReflectOnFriendsScreen() {
             <View style={[styles.checkbox, dontShowAgain && styles.checkboxChecked]}>
               {dontShowAgain && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Don&apos;t display this page to me anymore</Text>
+            <Text style={styles.checkboxLabel}>Don't display this page to me anymore</Text>
           </TouchableOpacity>
         </Animated.View>
       </SafeAreaView>
@@ -224,18 +194,19 @@ export default function ReflectOnFriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2D0A4E', // Deep purple fallback
+    backgroundColor: '#2D0A4E',
   },
   waveContainer: {
     position: 'absolute',
-    top: -50, // Extend beyond screen edges
-    left: -50,
-    right: -50,
-    bottom: -50,
-    width: screenWidth + 100, // Ensure full coverage
-    height: screenHeight + 100,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: screenWidth,
+    height: screenHeight,
   },
-  waveBackground: {
+  gradientWave: {
+    flex: 1,
     width: '100%',
     height: '100%',
   },
@@ -245,7 +216,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(45, 10, 78, 0.75)', // Stronger purple overlay for text readability
+    backgroundColor: 'rgba(45, 10, 78, 0.4)',
   },
   safeArea: {
     flex: 1,
@@ -345,38 +316,5 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
-  },
-  loadingContainer: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -75 }, { translateY: -10 }],
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  loadingText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  fallbackBackground: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#2D0A4E',
-  },
-  debugContainer: {
-    position: 'absolute',
-    top: 50,
-    left: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 8,
-    borderRadius: 4,
-  },
-  debugText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontFamily: 'monospace',
   },
 });
