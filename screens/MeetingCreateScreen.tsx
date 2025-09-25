@@ -304,7 +304,7 @@ export default function MeetingCreateScreen() {
                       No partner venues yet in {selectedCity}
                     </Text>
                     <Text style={styles.partnershipSubtitle}>
-                      We&apos;re working on partnerships with local restaurants in your area!
+                      We're working on partnerships with local restaurants in your area!
                     </Text>
                   </View>
                 </View>
@@ -364,7 +364,7 @@ export default function MeetingCreateScreen() {
                     styles.activityConfirmText,
                     activityConfirmed && styles.activityConfirmTextActive
                   ]}>
-                    Select &quot;{getVenueCategory(selectedCategory)?.name || selectedCategory}&quot; as meeting type
+                    Select "{getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -482,7 +482,7 @@ export default function MeetingCreateScreen() {
           disabled={isCreating}
         >
           <Text style={styles.createButtonText}>
-            {isCreating ? 'Creating Meetup...' : 'Schedule Meetup'}
+            {isCreating ? 'Creating Meeting...' : 'Schedule Meeting'}
           </Text>
         </TouchableOpacity>
       </ScrollView>
