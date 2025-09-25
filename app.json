@@ -39,12 +39,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      [
-        "expo-router",
-        {
-          "origin": "https://project-d898743a.dev.kiki.dev"
-        }
-      ],
+      "expo-router",
       [
         "expo-splash-screen",
         {
