@@ -71,7 +71,7 @@ export default function ReflectOnFriendsScreen() {
           ]}
         >
           <Image 
-            source={require('../assets/images/water-waves-bg.gif')}
+            source={require('../assets/images/IMG_9429-ezgif.com-instagif.gif')}
             style={styles.backgroundImage}
             resizeMode="cover"
           />
