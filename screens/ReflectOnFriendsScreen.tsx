@@ -18,17 +18,9 @@ export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
   const [backgroundAnim] = useState(new Animated.Value(0));
-  const [gifOpacity1] = useState(new Animated.Value(1)); // Forward GIF opacity
-  const [gifOpacity2] = useState(new Animated.Value(0)); // Reverse GIF opacity
   const [dontShowAgain, setDontShowAgain] = useState(false);
   
   const navigation = useNavigation();
-
-  // GIF sources
-  const gifSources = [
-    require('../assets/images/IMG_9429-ezgif.com-instagif.gif'), // Forward
-    require('../assets/images/IMG_9429-ezgif.com-reverse.gif'),  // Reverse
-  ];
 
   useEffect(() => {
     // Start background animation first
@@ -53,26 +45,6 @@ export default function ReflectOnFriendsScreen() {
         }),
       ]).start();
     }, 500);
-
-    // Set up GIF crossfade animation (every 5 seconds)
-    const gifInterval = setInterval(() => {
-      // Crossfade between the two GIFs
-      Animated.parallel([
-        Animated.timing(gifOpacity1, {
-          toValue: gifOpacity1._value === 1 ? 0 : 1,
-          duration: 500, // 500ms smooth transition
-          useNativeDriver: true,
-        }),
-        Animated.timing(gifOpacity2, {
-          toValue: gifOpacity2._value === 0 ? 1 : 0,
-          duration: 500, // 500ms smooth transition
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, 5000);
-
-    // Cleanup interval on unmount
-    return () => clearInterval(gifInterval);
   }, []);
 
   const handleReady = async () => {
@@ -98,22 +70,9 @@ export default function ReflectOnFriendsScreen() {
             },
           ]}
         >
-          {/* Forward GIF */}
-          <Animated.Image 
-            source={gifSources[0]}
-            style={[
-              styles.backgroundImage,
-              { opacity: gifOpacity1 }
-            ]}
-            resizeMode="cover"
-          />
-          {/* Reverse GIF */}
-          <Animated.Image 
-            source={gifSources[1]}
-            style={[
-              styles.backgroundImage,
-              { opacity: gifOpacity2 }
-            ]}
+          <Image 
+            source={require('../assets/images/ezgif.com-optimize.gif')}
+            style={styles.backgroundImage}
             resizeMode="cover"
           />
           {/* Purple overlay to create the deep purple effect */}
