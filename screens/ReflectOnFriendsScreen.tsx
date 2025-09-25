@@ -6,19 +6,14 @@ import {
   StyleSheet,
   SafeAreaView,
   Animated,
-  Dimensions,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LinearGradient } from 'expo-linear-gradient';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
-  const [waveAnim] = useState(new Animated.Value(0));
-  const [pulseAnim] = useState(new Animated.Value(1));
   const [dontShowAgain, setDontShowAgain] = useState(false);
   
   const navigation = useNavigation();
@@ -37,48 +32,6 @@ export default function ReflectOnFriendsScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-
-    // More pronounced wave animation
-    const startWaveAnimation = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(waveAnim, {
-            toValue: 1,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(waveAnim, {
-            toValue: 0,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-        ]),
-        { iterations: -1 }
-      ).start();
-    };
-
-    startWaveAnimation();
-
-    // Add subtle pulsing effect
-    const startPulseAnimation = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.05,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-        ]),
-        { iterations: -1 }
-      ).start();
-    };
-
-    startPulseAnimation();
   }, []);
 
   const handleReady = async () => {
@@ -92,76 +45,16 @@ export default function ReflectOnFriendsScreen() {
     (navigation as any).navigate('AddFriends');
   };
 
-  // Create more visible wave effects
-  const waveTransform1 = waveAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 50],
-  });
-
-  const waveTransform2 = waveAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [30, -20],
-  });
-
-  const waveOpacity1 = waveAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.4, 0.8, 0.4],
-  });
-
-  const waveOpacity2 = waveAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.6, 0.3, 0.6],
-  });
-
   return (
     <View style={styles.container}>
-      {/* First wave layer */}
-      <Animated.View 
-        style={[
-          styles.waveContainer,
-          {
-            opacity: waveOpacity1,
-            transform: [{ translateY: waveTransform1 }],
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={[
-            'rgba(147, 51, 234, 0.7)',
-            'rgba(79, 70, 229, 0.8)',
-            'rgba(147, 51, 234, 0.5)',
-            'rgba(30, 58, 138, 0.9)',
-          ]}
-          locations={[0, 0.3, 0.7, 1]}
-          style={styles.gradientWave}
-        />
-      </Animated.View>
-
-      {/* Second wave layer */}
-      <Animated.View 
-        style={[
-          styles.waveContainer,
-          {
-            opacity: waveOpacity2,
-            transform: [
-              { translateY: waveTransform2 },
-              { scale: pulseAnim }
-            ],
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={[
-            'rgba(168, 85, 247, 0.4)',
-            'rgba(139, 92, 246, 0.6)',
-            'rgba(124, 58, 237, 0.5)',
-          ]}
-          locations={[0, 0.5, 1]}
-          style={styles.gradientWave}
-        />
-      </Animated.View>
+      {/* Background GIF */}
+      <Image
+        source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
+        style={styles.backgroundGif}
+        resizeMode="cover"
+      />
       
-      {/* Content overlay - reduced opacity to show animation better */}
+      {/* Content overlay */}
       <View style={styles.overlay} />
       
       {/* Content */}
@@ -225,17 +118,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#2D0A4E',
   },
-  waveContainer: {
+  backgroundGif: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    width: screenWidth,
-    height: screenHeight,
-  },
-  gradientWave: {
-    flex: 1,
     width: '100%',
     height: '100%',
   },
@@ -245,7 +133,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(45, 10, 78, 0.2)',
+    backgroundColor: 'rgba(45, 10, 78, 0.4)',
   },
   safeArea: {
     flex: 1,
@@ -265,12 +153,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
   },
   textContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     borderRadius: 12,
     padding: 18,
     marginBottom: 24,
@@ -280,7 +168,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,
-    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
@@ -308,14 +196,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     marginBottom: 16,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 8,
@@ -342,7 +230,7 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     color: '#FFFFFF',
     fontSize: 14,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
