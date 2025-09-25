@@ -19,8 +19,15 @@ export default function ReflectOnFriendsScreen() {
   const [slideAnim] = useState(new Animated.Value(30));
   const [backgroundAnim] = useState(new Animated.Value(0));
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [currentGif, setCurrentGif] = useState(0); // 0 for forward, 1 for reverse
   
   const navigation = useNavigation();
+
+  // GIF sources
+  const gifSources = [
+    require('../assets/images/IMG_9429-ezgif.com-instagif.gif'), // Forward
+    require('../assets/images/IMG_9429-ezgif.com-reverse.gif'),  // Reverse
+  ];
 
   useEffect(() => {
     // Start background animation first
@@ -45,6 +52,14 @@ export default function ReflectOnFriendsScreen() {
         }),
       ]).start();
     }, 500);
+
+    // Set up GIF alternating timer (every 5 seconds)
+    const gifInterval = setInterval(() => {
+      setCurrentGif(prev => prev === 0 ? 1 : 0);
+    }, 5000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(gifInterval);
   }, []);
 
   const handleReady = async () => {
@@ -71,7 +86,7 @@ export default function ReflectOnFriendsScreen() {
           ]}
         >
           <Image 
-            source={require('../assets/images/IMG_9429-ezgif.com-instagif.gif')}
+            source={gifSources[currentGif]}
             style={styles.backgroundImage}
             resizeMode="cover"
           />
