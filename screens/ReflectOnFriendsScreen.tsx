@@ -111,7 +111,7 @@ export default function ReflectOnFriendsScreen() {
           styles.waveContainer,
           {
             opacity: waveOpacity.interpolate({
-              inputRange: [0.3, 0.7, 0.3],
+              inputRange: [0, 0.5, 1],
               outputRange: [0.2, 0.5, 0.2],
             }),
             transform: [{ translateY: waveTransform.interpolate({
