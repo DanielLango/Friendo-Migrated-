@@ -6,7 +6,6 @@ import {
   StyleSheet,
   SafeAreaView,
   Animated,
-  ScrollView,
   Image,
   Dimensions,
 } from 'react-native';
@@ -60,10 +59,10 @@ export default function ReflectOnFriendsScreen() {
 
     animateWave();
 
-    // Force GIF to restart every 9 seconds to ensure continuous looping
+    // Force GIF to restart every 5 seconds to ensure continuous looping
     const gifRestartInterval = setInterval(() => {
       setGifKey(prev => prev + 1);
-    }, 9000);
+    }, 5000);
 
     return () => {
       clearInterval(gifRestartInterval);
@@ -105,14 +104,14 @@ export default function ReflectOnFriendsScreen() {
           {/* Body Text with better readability */}
           <View style={styles.textContainer}>
             <Text style={styles.bodyText}>
-              We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
-              {'\n\n'}
+              We invite you to take a quiet moment to think about the friends you&apos;d like to stay connected with.
+              {'\\n\\n'}
               It can help to pause and reflect on your favorite memories — who comes to mind right away?
-              {'\n\n'}
+              {'\\n\\n'}
               Maybe scroll through your photo albums or contacts, or open some of your favorite messaging apps.
-              {'\n\n'}
+              {'\\n\\n'}
               You might think of friends you often talk to on Instagram, WhatsApp, Snapchat, Facebook, or Messenger. Or perhaps your closest connections are on X, LinkedIn, TikTok, Signal, Telegram, Pinterest, or Viber.
-              {'\n\n'}
+              {'\\n\\n'}
               Whatever the case, take your time. Maybe even grab a pen and paper — and think it through.
             </Text>
           </View>
@@ -122,7 +121,7 @@ export default function ReflectOnFriendsScreen() {
             style={styles.readyButton}
             onPress={handleReady}
           >
-            <Text style={styles.readyButtonText}>I'm Ready</Text>
+            <Text style={styles.readyButtonText}>I&apos;m Ready</Text>
           </TouchableOpacity>
 
           {/* Subtext */}
@@ -138,7 +137,7 @@ export default function ReflectOnFriendsScreen() {
             <View style={[styles.checkbox, dontShowAgain && styles.checkboxChecked]}>
               {dontShowAgain && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Don't display this page to me anymore</Text>
+            <Text style={styles.checkboxLabel}>Don&apos;t display this page to me anymore</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
