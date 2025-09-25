@@ -17,9 +17,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
-  const [waveOpacity] = useState(new Animated.Value(0.7));
   const [dontShowAgain, setDontShowAgain] = useState(false);
-  const [gifKey, setGifKey] = useState(0);
   
   const navigation = useNavigation();
 
@@ -37,36 +35,6 @@ export default function ReflectOnFriendsScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Continuous wave animation with proper looping
-    const animateWave = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(waveOpacity, {
-            toValue: 0.9,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(waveOpacity, {
-            toValue: 0.7,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-        ]),
-        { iterations: -1 }
-      ).start();
-    };
-
-    animateWave();
-
-    // Force GIF to restart every 5 seconds to ensure continuous looping
-    const gifRestartInterval = setInterval(() => {
-      setGifKey(prev => prev + 1);
-    }, 5000);
-
-    return () => {
-      clearInterval(gifRestartInterval);
-    };
   }, []);
 
   const handleReady = async () => {
@@ -82,17 +50,11 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* GIF Background with purple tint */}
-      <Animated.View style={[styles.gifContainer, { opacity: waveOpacity }]}>
-        <Image
-          key={gifKey}
-          source={require('../assets/images/IMG_9429-ezgif.com-cut.gif')}
-          style={styles.gifBackground}
-          resizeMode="cover"
-        />
-        {/* Purple tint overlay - MUCH lighter */}
-        <View style={styles.purpleTint} />
-      </Animated.View>
+      {/* Simple purple background for now - we'll add GIF once you upload the 3MB version */}
+      <View style={styles.backgroundContainer}>
+        {/* Placeholder for GIF - currently just purple gradient */}
+        <View style={styles.purpleBackground} />
+      </View>
       
       {/* Content */}
       <SafeAreaView style={styles.safeArea}>
@@ -108,7 +70,7 @@ export default function ReflectOnFriendsScreen() {
           {/* Title */}
           <Text style={styles.title}>Before we start…</Text>
 
-          {/* Body Text with better readability */}
+          {/* Body Text */}
           <View style={styles.textContainer}>
             <Text style={styles.bodyText}>
               We invite you to take a quiet moment to think about the friends you'd like to stay connected with.
@@ -155,9 +117,9 @@ export default function ReflectOnFriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2D0A4E', // Deep purple fallback
+    backgroundColor: '#2D0A4E',
   },
-  gifContainer: {
+  backgroundContainer: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -166,18 +128,10 @@ const styles = StyleSheet.create({
     width: screenWidth,
     height: screenHeight,
   },
-  gifBackground: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-  purpleTint: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(45, 10, 78, 0.3)', // Very light purple tint
+  purpleBackground: {
+    flex: 1,
+    backgroundColor: '#2D0A4E',
+    // We'll replace this with your GIF once you upload it
   },
   safeArea: {
     flex: 1,
@@ -202,7 +156,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   textContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Darker background for better text readability
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderRadius: 12,
     padding: 18,
     marginBottom: 24,
