@@ -17,24 +17,34 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
+  const [backgroundAnim] = useState(new Animated.Value(0));
   const [dontShowAgain, setDontShowAgain] = useState(false);
   
   const navigation = useNavigation();
 
   useEffect(() => {
-    // Start content animation
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    // Start background animation first
+    Animated.timing(backgroundAnim, {
+      toValue: 1,
+      duration: 2000,
+      useNativeDriver: true,
+    }).start();
+
+    // Then start content animation
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 500);
   }, []);
 
   const handleReady = async () => {
@@ -50,10 +60,24 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Simple purple background for now - we'll add GIF once you upload the 3MB version */}
+      {/* Background with water animation and purple overlay */}
       <View style={styles.backgroundContainer}>
-        {/* Placeholder for GIF - currently just purple gradient */}
-        <View style={styles.purpleBackground} />
+        <Animated.View 
+          style={[
+            styles.backgroundImageContainer,
+            {
+              opacity: backgroundAnim,
+            },
+          ]}
+        >
+          <Image 
+            source={require('../assets/images/water-waves-bg.gif')}
+            style={styles.backgroundImage}
+            resizeMode="cover"
+          />
+          {/* Purple overlay to create the deep purple effect */}
+          <View style={styles.purpleOverlay} />
+        </Animated.View>
       </View>
       
       {/* Content */}
@@ -128,10 +152,23 @@ const styles = StyleSheet.create({
     width: screenWidth,
     height: screenHeight,
   },
-  purpleBackground: {
+  backgroundImageContainer: {
     flex: 1,
+    position: 'relative',
+  },
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  purpleOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: '#2D0A4E',
-    // We'll replace this with your GIF once you upload it
+    opacity: 0.85, // Strong purple overlay to create the deep purple effect
   },
   safeArea: {
     flex: 1,
