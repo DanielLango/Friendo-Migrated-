@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "scheme": "friendconnect",
     "splash": {
       "image": "./assets/images/splash-icon.png",
@@ -40,12 +40,6 @@
     },
     "plugins": [
       [
-        "expo-router",
-        {
-          "origin": "https://project-d898743a.dev.kiki.dev"
-        }
-      ],
-      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
@@ -58,9 +52,6 @@
       "expo-web-browser",
       "expo-mail-composer",
       "expo-calendar"
-    ],
-    "experiments": {
-      "typedRoutes": true
-    }
+    ]
   }
 }
