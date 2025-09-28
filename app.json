@@ -4,15 +4,9 @@
     "slug": "user-app-6378f569",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/appacella-logo-partial.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "scheme": "friendconnect",
-    "splash": {
-      "image": "./assets/images/appacella-logo-partial.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "dev.kiki.userapp.6378f569",
@@ -23,10 +17,6 @@
     },
     "android": {
       "package": "dev.kiki.userapp.gdhipfgj",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/appacella-logo-partial.png",
-        "backgroundColor": "#ffffff"
-      },
       "permissions": [
         "android.permission.READ_CALENDAR",
         "android.permission.WRITE_CALENDAR",
@@ -35,19 +25,9 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "single",
-      "favicon": "./assets/images/appacella-logo-partial.png"
+      "output": "single"
     },
     "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/appacella-logo-partial.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
       "expo-font",
       "expo-web-browser",
       "expo-mail-composer",
