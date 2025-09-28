@@ -2,10 +2,10 @@ module.exports = function(api) {
   api.cache(true);
   return {
     presets: [
-      'babel-preset-expo',
-      '@babel/preset-flow'
+      'babel-preset-expo'
     ],
     plugins: [
+      '@babel/plugin-transform-flow-strip-types',
       'react-native-reanimated/plugin',
     ],
   };
