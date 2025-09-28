@@ -157,7 +157,7 @@ export default function StatsScreen() {
         <View style={styles.loadingContent}>
           <Text style={styles.loadingEmoji}>✨</Text>
           <Text style={styles.loadingText}>Analyzing your friendships...</Text>
-          <Text style={styles.loadingSubtext}>Creating your {currentYear} Wrapped</Text>
+          <Text style={styles.loadingSubtext}>Creating your {currentYear} In a Nutshell</Text>
         </View>
       </SafeAreaView>
     );
@@ -186,7 +186,7 @@ export default function StatsScreen() {
             <View style={styles.titleContainer}>
               <Text style={styles.sparkles}>✨</Text>
               <Text style={styles.title}>Your {currentYear}</Text>
-              <Text style={styles.subtitle}>Friendship Wrapped</Text>
+              <Text style={styles.subtitle}>Friendship In a Nutshell</Text>
               <Text style={styles.sparkles}>✨</Text>
             </View>
           </View>

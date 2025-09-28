@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useBasic } from '@basictech/expo';
 import { Friend } from '../types';
 import { notificationService } from '../utils/notificationService';
@@ -22,7 +23,24 @@ interface NotificationModalProps {
 export default function NotificationModal({ visible, friend, onClose }: NotificationModalProps) {
   const [selectedFrequency, setSelectedFrequency] = useState<'days' | 'weekly' | 'monthly'>(friend.notificationFrequency || 'days');
   const [customDays, setCustomDays] = useState((friend.notificationDays || 7).toString());
+  const [notificationTime, setNotificationTime] = useState(new Date());
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const { db } = useBasic();
+
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
+    setShowTimePicker(Platform.OS === 'ios');
+    if (selectedTime) {
+      setNotificationTime(selectedTime);
+    }
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
 
   const handleSave = async () => {
     if (db) {
@@ -88,13 +106,17 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
               <View style={[styles.radio, selectedFrequency === 'days' && styles.radioSelected]} />
               <Text style={styles.optionText}>days</Text>
               {selectedFrequency === 'days' && (
-                <TextInput
-                  style={styles.input}
-                  value={customDays}
-                  onChangeText={setCustomDays}
-                  keyboardType="numeric"
-                  placeholder="7"
-                />
+                <View style={styles.daysContainer}>
+                  <Text style={styles.everyText}>every</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={customDays}
+                    onChangeText={setCustomDays}
+                    keyboardType="numeric"
+                    placeholder="7"
+                  />
+                  <Text style={styles.everyText}>days</Text>
+                </View>
               )}
             </TouchableOpacity>
 
@@ -139,6 +161,28 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
                 </View>
               )}
             </TouchableOpacity>
+          </View>
+
+          <View style={styles.timeSection}>
+            <Text style={styles.timeSectionTitle}>🕐 Notification Time</Text>
+            <TouchableOpacity
+              style={styles.timeSelector}
+              onPress={() => setShowTimePicker(true)}
+            >
+              <Text style={styles.timeSelectorText}>
+                {formatTime(notificationTime)}
+              </Text>
+              <Text style={styles.dropdownIcon}>🕐</Text>
+            </TouchableOpacity>
+            
+            {showTimePicker && (
+              <DateTimePicker
+                value={notificationTime}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleTimeChange}
+              />
+            )}
           </View>
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
@@ -213,6 +257,38 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     width: 50,
     textAlign: 'center',
+  },
+  daysContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timeSection: {
+    marginBottom: 20,
+  },
+  timeSectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 10,
+  },
+  timeSelector: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  timeSelectorText: {
+    fontSize: 16,
+    color: '#333333',
+  },
+  dropdownIcon: {
+    fontSize: 12,
+    color: '#666666',
   },
   weeklyContainer: {
     flexDirection: 'row',
