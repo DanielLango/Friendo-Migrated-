@@ -13,7 +13,7 @@ const config = getDefaultConfig(__dirname, {
 config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 config.resolver.unstable_enablePackageExports = true;
 
-// Clear asset cache
-config.transformer.assetExts = [...config.transformer.assetExts];
+// Ensure Babel processes node_modules for Flow syntax
+config.transformer.babelTransformerPath = require.resolve('metro-react-native-babel-transformer');
 
 module.exports = wrapWithReanimatedMetroConfig(config);
