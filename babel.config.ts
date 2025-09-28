@@ -9,6 +9,20 @@ module.exports = function(api) {
     plugins: [
       '@babel/plugin-syntax-flow',
       'react-native-reanimated/plugin'
+    ],
+    ignore: [],
+    only: undefined,
+    overrides: [
+      {
+        test: /node_modules\/expo/,
+        presets: [
+          'babel-preset-expo',
+          '@babel/preset-flow'
+        ],
+        plugins: [
+          '@babel/plugin-syntax-flow'
+        ]
+      }
     ]
   };
 };
