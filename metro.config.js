@@ -25,20 +25,8 @@ config.transformer.getTransformOptions = async () => ({
   },
 });
 
-// Override the default behavior to transform node_modules
+// Ensure all files are transformed, including node_modules
 config.transformer.enableBabelRCLookup = false;
 config.transformer.enableBabelRuntime = false;
-
-// Force transformation of node_modules by overriding the transform filter
-const originalTransform = config.transformer.transform;
-config.transformer.transform = {
-  ...originalTransform,
-  // Apply transformations to all files, including node_modules
-  unstable_transform: {
-    ...originalTransform?.unstable_transform,
-    // Force transformation of Flow files in node_modules
-    forceTransformNodeModules: true,
-  }
-};
 
 module.exports = wrapWithReanimatedMetroConfig(config);
