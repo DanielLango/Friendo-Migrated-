@@ -5,7 +5,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
 import { notificationService } from './utils/notificationService';
-import * as Notifications from 'expo-notifications';
 
 // Screens
 import LoginScreen from './screens/LoginScreen';

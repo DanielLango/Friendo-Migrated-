@@ -169,7 +169,7 @@ export default function MainScreen() {
       <FlatList
         data={friends}
         renderItem={renderFriend}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => String(item.id)}
         style={styles.friendsList}
         contentContainerStyle={styles.friendsListContent}
         showsVerticalScrollIndicator={false}

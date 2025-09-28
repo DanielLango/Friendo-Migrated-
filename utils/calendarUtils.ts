@@ -1,7 +1,7 @@
 import * as Calendar from 'expo-calendar';
 import * as FileSystem from 'expo-file-system';
 import { Alert, Platform } from 'react-native';
-import { Friend, Meeting } from '../types';
+import { Friend } from '../types';
 
 export interface CalendarEvent {
   title: string;
@@ -105,7 +105,7 @@ export const generateICSFile = (event: CalendarEvent): string => {
 export const downloadICSFile = async (event: CalendarEvent, filename: string = 'meeting.ics'): Promise<boolean> => {
   try {
     const icsContent = generateICSFile(event);
-    const fileUri = `${FileSystem.documentDirectory}${filename}`;
+    const fileUri = FileSystem.documentDirectory ? `${FileSystem.documentDirectory}${filename}` : filename;
     
     await FileSystem.writeAsStringAsync(fileUri, icsContent);
     
