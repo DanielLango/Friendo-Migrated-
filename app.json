@@ -4,12 +4,12 @@
     "slug": "user-app-6378f569",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/appacella-logo-partial.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "scheme": "friendconnect",
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/appacella-logo-partial.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -24,7 +24,7 @@
     "android": {
       "package": "dev.kiki.userapp.gdhipfgj",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/appacella-logo-partial.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
@@ -36,13 +36,13 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/appacella-logo-partial.png"
     },
     "plugins": [
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/appacella-logo-partial.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
