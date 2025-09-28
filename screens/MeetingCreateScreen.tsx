@@ -448,7 +448,7 @@ export default function MeetingCreateScreen() {
               style={styles.emailInput}
               value={friendEmail}
               onChangeText={setFriendEmail}
-              placeholder="Friend's email address"
+              placeholder="You can type here an email address"
               keyboardType="email-address"
               autoCapitalize="none"
             />
@@ -482,7 +482,7 @@ export default function MeetingCreateScreen() {
           disabled={isCreating}
         >
           <Text style={styles.createButtonText}>
-            {isCreating ? 'Creating Meeting...' : 'Schedule Meeting'}
+            {isCreating ? 'Creating Meetup...' : 'Schedule Meetup'}
           </Text>
         </TouchableOpacity>
       </ScrollView>
