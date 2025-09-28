@@ -1,5 +1,6 @@
 module.exports = function(api) {
-  api.cache(false); // Disable caching to ensure fresh config
+  // Disable caching completely to ensure fresh config
+  api.cache(false);
   
   return {
     presets: [
@@ -7,7 +8,17 @@ module.exports = function(api) {
       '@babel/preset-flow'
     ],
     plugins: [
+      '@babel/plugin-syntax-flow',
       'react-native-reanimated/plugin'
     ],
+    overrides: [
+      {
+        test: /\.tsx?$/,
+        presets: [
+          'babel-preset-expo',
+          '@babel/preset-flow'
+        ]
+      }
+    ]
   };
 };
