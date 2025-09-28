@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
+    "@babel/plugin-syntax-flow": "^7.27.1",
     "@babel/plugin-transform-flow-strip-types": "^7.27.1",
     "@babel/preset-flow": "^7.27.1",
     "@basictech/expo": "^0.0.5",
