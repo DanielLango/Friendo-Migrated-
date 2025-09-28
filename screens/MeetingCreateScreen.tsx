@@ -387,44 +387,49 @@ export default function MeetingCreateScreen() {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📅 Sync to Calendar</Text>
+          <Text style={styles.sectionTitle}>📅 Calendar Options</Text>
           
+          {/* Primary - Big Button */}
           <TouchableOpacity
-            style={styles.checkboxContainer}
-            onPress={() => setGoogleCalendar(!googleCalendar)}
-          >
-            <View style={[styles.checkbox, googleCalendar && styles.checkboxChecked]}>
-              {googleCalendar && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <View style={styles.checkboxContent}>
-              <Text style={styles.checkboxLabel}>Google Calendar</Text>
-              <Text style={styles.checkboxSubtext}>Add to device calendar + download ICS</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.checkboxContainer}
-            onPress={() => setOutlookCalendar(!outlookCalendar)}
-          >
-            <View style={[styles.checkbox, outlookCalendar && styles.checkboxChecked]}>
-              {outlookCalendar && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <View style={styles.checkboxContent}>
-              <Text style={styles.checkboxLabel}>Outlook</Text>
-              <Text style={styles.checkboxSubtext}>Download ICS file for import</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.checkboxContainer}
+            style={[styles.primaryCalendarButton, appleCalendar && styles.primaryCalendarButtonActive]}
             onPress={() => setAppleCalendar(!appleCalendar)}
           >
-            <View style={[styles.checkbox, appleCalendar && styles.checkboxChecked]}>
-              {appleCalendar && <Text style={styles.checkmark}>✓</Text>}
+            <Text style={styles.primaryCalendarIcon}>📱</Text>
+            <View style={styles.primaryCalendarContent}>
+              <Text style={[styles.primaryCalendarTitle, appleCalendar && styles.primaryCalendarTitleActive]}>
+                Add to My Calendar
+              </Text>
+              <Text style={[styles.primaryCalendarSubtext, appleCalendar && styles.primaryCalendarSubtextActive]}>
+                (Uses your phone's calendar app)
+              </Text>
             </View>
-            <View style={styles.checkboxContent}>
-              <Text style={styles.checkboxLabel}>Apple Calendar</Text>
-              <Text style={styles.checkboxSubtext}>Add to device calendar</Text>
+          </TouchableOpacity>
+
+          {/* Manual Import Option */}
+          <TouchableOpacity
+            style={[styles.manualImportButton, (googleCalendar || outlookCalendar) && styles.manualImportButtonActive]}
+            onPress={() => {
+              const newState = !(googleCalendar || outlookCalendar);
+              setGoogleCalendar(newState);
+              setOutlookCalendar(newState);
+            }}
+          >
+            <Text style={styles.manualImportIcon}>📄</Text>
+            <View style={styles.manualImportContent}>
+              <Text style={[styles.manualImportTitle, (googleCalendar || outlookCalendar) && styles.manualImportTitleActive]}>
+                MANUAL IMPORT
+              </Text>
+              <View style={styles.manualImportRow}>
+                <View style={[styles.manualImportCheckbox, (googleCalendar || outlookCalendar) && styles.manualImportCheckboxActive]}>
+                  {(googleCalendar || outlookCalendar) && <Text style={styles.manualImportCheckmark}>✓</Text>}
+                </View>
+                <Text style={[styles.manualImportSubtext, (googleCalendar || outlookCalendar) && styles.manualImportSubtextActive]}>
+                  Download .ics file
+                </Text>
+              </View>
+              <Text style={[styles.manualImportDescription, (googleCalendar || outlookCalendar) && styles.manualImportDescriptionActive]}>
+                (Works with any calendar app)
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -755,5 +760,122 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  primaryCalendarButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  primaryCalendarButtonActive: {
+    backgroundColor: '#8000FF',
+    borderColor: '#8000FF',
+  },
+  primaryCalendarIcon: {
+    fontSize: 24,
+    marginRight: 16,
+  },
+  primaryCalendarContent: {
+    flex: 1,
+  },
+  primaryCalendarTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  primaryCalendarTitleActive: {
+    color: '#FFFFFF',
+  },
+  primaryCalendarSubtext: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  primaryCalendarSubtextActive: {
+    color: '#E0E0FF',
+  },
+  manualImportButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  manualImportButtonActive: {
+    backgroundColor: '#F8F9FA',
+    borderColor: '#8000FF',
+  },
+  manualImportIcon: {
+    fontSize: 20,
+    marginRight: 16,
+    marginTop: 2,
+  },
+  manualImportContent: {
+    flex: 1,
+  },
+  manualImportTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 8,
+  },
+  manualImportTitleActive: {
+    color: '#8000FF',
+  },
+  manualImportRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  manualImportCheckbox: {
+    width: 16,
+    height: 16,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    borderRadius: 3,
+    marginRight: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  manualImportCheckboxActive: {
+    backgroundColor: '#8000FF',
+    borderColor: '#8000FF',
+  },
+  manualImportCheckmark: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  manualImportSubtext: {
+    fontSize: 14,
+    color: '#333333',
+    fontWeight: '500',
+  },
+  manualImportSubtextActive: {
+    color: '#8000FF',
+  },
+  manualImportDescription: {
+    fontSize: 12,
+    color: '#666666',
+    marginLeft: 24,
+  },
+  manualImportDescriptionActive: {
+    color: '#666666',
   },
 });
