@@ -1,109 +1,109 @@
 export const schema = {
-  "tables": {
-    "friends": {
-      "type": "collection",
-      "fields": {
-        "city": {
-          "type": "string",
-          "indexed": true
+  project_id: "fe8af65a-bcdf-49c1-9e22-3624e0506558",
+  version: 2,
+  tables: {
+    friends: {
+      type: "collection",
+      fields: {
+        city: {
+          type: "string",
+          indexed: true
         },
-        "name": {
-          "type": "string",
-          "indexed": true
+        name: {
+          type: "string",
+          indexed: true
         },
-        "email": {
-          "type": "string",
-          "indexed": true
+        email: {
+          type: "string",
+          indexed: true
         },
-        "source": {
-          "type": "string",
-          "indexed": true
+        source: {
+          type: "string",
+          indexed: true
         },
-        "isLocal": {
-          "type": "boolean",
-          "indexed": true
+        isLocal: {
+          type: "boolean",
+          indexed: true
         },
-        "isOnline": {
-          "type": "boolean",
-          "indexed": true
+        isOnline: {
+          type: "boolean",
+          indexed: true
         },
-        "createdAt": {
-          "type": "number",
-          "indexed": true
+        createdAt: {
+          type: "number",
+          indexed: true
         },
-        "friendType": {
-          "type": "string",
-          "indexed": true
+        friendType: {
+          type: "string",
+          indexed: true
         },
-        "profilePicture": {
-          "type": "string",
-          "indexed": true
+        profilePicture: {
+          type: "string",
+          indexed: true
         },
-        "notificationDays": {
-          "type": "number",
-          "indexed": true
+        notificationDays: {
+          type: "number",
+          indexed: true
         },
-        "notificationFrequency": {
-          "type": "string",
-          "indexed": true
+        notificationFrequency: {
+          type: "string",
+          indexed: true
         }
       }
     },
-    "meetings": {
-      "type": "collection",
-      "fields": {
-        "date": {
-          "type": "string",
-          "indexed": true
+    meetings: {
+      type: "collection",
+      fields: {
+        date: {
+          type: "string",
+          indexed: true
         },
-        "notes": {
-          "type": "string",
-          "indexed": true
+        notes: {
+          type: "string",
+          indexed: true
         },
-        "venue": {
-          "type": "string",
-          "indexed": true
+        venue: {
+          type: "string",
+          indexed: true
         },
-        "activity": {
-          "type": "string",
-          "indexed": true
+        activity: {
+          type: "string",
+          indexed: true
         },
-        "friendId": {
-          "type": "string",
-          "indexed": true
+        friendId: {
+          type: "string",
+          indexed: true
         },
-        "createdAt": {
-          "type": "number",
-          "indexed": true
+        createdAt: {
+          type: "number",
+          indexed: true
         },
-        "city": {
-          "type": "string",
-          "indexed": true
+        city: {
+          type: "string",
+          indexed: true
         }
       }
     },
-    "friendshipMemos": {
-      "type": "collection",
-      "fields": {
-        "memo": {
-          "type": "string",
-          "indexed": true
+    friendshipMemos: {
+      type: "collection",
+      fields: {
+        memo: {
+          type: "string",
+          indexed: true
         },
-        "year": {
-          "type": "number",
-          "indexed": true
+        year: {
+          type: "number",
+          indexed: true
         },
-        "friendId": {
-          "type": "string",
-          "indexed": true
+        friendId: {
+          type: "string",
+          indexed: true
         },
-        "createdAt": {
-          "type": "number",
-          "indexed": true
+        createdAt: {
+          type: "number",
+          indexed: true
         }
       }
     }
-  },
-  "version": 2,
-  "project_id": "fe8af65a-bcdf-49c1-9e22-3624e0506558"
-};
+  }
+} as const;
