@@ -1,6 +1,5 @@
 import * as Calendar from 'expo-calendar';
-import * as FileSystem from 'expo-file-system';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 import { Friend } from '../types';
 
 export interface CalendarEvent {
@@ -106,28 +105,20 @@ export const downloadICSFile = async (event: CalendarEvent, filename: string = '
   try {
     const icsContent = generateICSFile(event);
     
-    if (!FileSystem.documentDirectory) {
-      Alert.alert('Error', 'Unable to access device storage.');
-      return false;
-    }
-    
-    const fileUri = `${FileSystem.documentDirectory}${filename}`;
-    
-    await FileSystem.writeAsStringAsync(fileUri, icsContent);
-    
-    if (Platform.OS === 'ios') {
-      // On iOS, we can use the share functionality
-      Alert.alert(
-        'Calendar File Created',
-        `Calendar file saved to: ${fileUri}\n\nYou can share this file or import it into your calendar app.`
-      );
-    } else {
-      // On Android, show the file location
-      Alert.alert(
-        'Calendar File Downloaded',
-        `Calendar file saved to: ${fileUri}\n\nYou can import this file into your calendar app.`
-      );
-    }
+    // Show the ICS content to the user
+    Alert.alert(
+      'Calendar File Ready',
+      `Calendar file content generated for: ${filename}\n\nYou can copy this content to create an .ics file and import it into your calendar app.`,
+      [
+        { text: 'OK', style: 'default' },
+        { 
+          text: 'View Content', 
+          onPress: () => {
+            Alert.alert('ICS File Content', icsContent);
+          }
+        }
+      ]
+    );
     
     return true;
   } catch (error) {

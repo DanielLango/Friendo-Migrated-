@@ -29,7 +29,7 @@ export default function MainScreen() {
     if (db) {
       try {
         const friendsData = await db.from('friends').getAll();
-        setFriends((friendsData || []) as any);
+        setFriends((friendsData || []) as Friend[]);
       } catch (error) {
         console.error('Error loading friends:', error);
       }
@@ -40,7 +40,7 @@ export default function MainScreen() {
     if (db) {
       try {
         const meetingsData = await db.from('meetings').getAll();
-        setMeetings((meetingsData || []) as any);
+        setMeetings((meetingsData || []) as Meeting[]);
       } catch (error) {
         console.error('Error loading meetings:', error);
       }
@@ -60,24 +60,24 @@ export default function MainScreen() {
             try {
               if (db) {
                 // Delete all meetings for this friend
-                const friendMeetings = meetings.filter(meeting => meeting.friendId === friend.id);
+                const friendMeetings = meetings.filter(meeting => String(meeting.friendId) === String(friend.id));
                 for (const meeting of friendMeetings) {
-                  await db.from('meetings').delete(meeting.id);
+                  await db.from('meetings').delete(String(meeting.id));
                 }
                 
                 // Delete all friendship memos for this friend
                 try {
                   const friendshipMemos = await db.from('friendshipMemos').getAll();
-                  const friendMemos = (friendshipMemos || []).filter((memo: any) => memo.friendId === friend.id);
+                  const friendMemos = (friendshipMemos || []).filter((memo: any) => String(memo.friendId) === String(friend.id));
                   for (const memo of friendMemos) {
-                    await db.from('friendshipMemos').delete(memo.id);
+                    await db.from('friendshipMemos').delete(String(memo.id));
                   }
                 } catch (error) {
                   console.log('No friendship memos to delete or error:', error);
                 }
                 
                 // Delete the friend
-                await db.from('friends').delete(friend.id);
+                await db.from('friends').delete(String(friend.id));
                 
                 // Reload data
                 await loadFriends();
@@ -131,7 +131,7 @@ export default function MainScreen() {
   };
 
   const getFriendMeetings = (friendId: string) => {
-    return meetings.filter(meeting => meeting.friendId === friendId);
+    return meetings.filter(meeting => String(meeting.friendId) === friendId);
   };
 
   const renderFriend = ({ item }: { item: Friend }) => (
