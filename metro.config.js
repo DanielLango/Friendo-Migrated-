@@ -13,10 +13,20 @@ const config = getDefaultConfig(__dirname, {
 config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 config.resolver.unstable_enablePackageExports = true;
 
-// Configure transformer to handle Flow syntax in node_modules
+// Configure transformer to handle Flow syntax everywhere including node_modules
 config.transformer.babelTransformerPath = require.resolve('metro-react-native-babel-transformer');
-
-// Ensure node_modules are transformed for Flow syntax
 config.transformer.unstable_allowRequireContext = true;
+
+// Force transformation of node_modules for Flow syntax
+config.transformer.getTransformOptions = async () => ({
+  transform: {
+    experimentalImportSupport: false,
+    inlineRequires: true,
+  },
+});
+
+// Ensure all files are transformed, including node_modules
+config.transformer.enableBabelRCLookup = false;
+config.transformer.enableBabelRuntime = false;
 
 module.exports = wrapWithReanimatedMetroConfig(config);
