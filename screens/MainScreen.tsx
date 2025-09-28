@@ -137,7 +137,7 @@ export default function MainScreen() {
   const renderFriend = ({ item }: { item: Friend }) => (
     <FriendRow
       friend={item}
-      meetings={getFriendMeetings(item.id)}
+      meetings={getFriendMeetings(String(item.id))}
       onScheduleNext={handleScheduleNext}
       onMeetingPress={handleMeetingPress}
       deleteMode={deleteMode}
