@@ -3,4 +3,7 @@ const { wrapWithReanimatedMetroConfig } = require('react-native-reanimated/metro
 
 const config = getDefaultConfig(__dirname);
 
+// Enable Flow syntax support
+config.resolver.sourceExts = [...config.resolver.sourceExts, 'flow'];
+
 module.exports = wrapWithReanimatedMetroConfig(config);
