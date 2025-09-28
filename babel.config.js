@@ -3,8 +3,14 @@ module.exports = function(api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      '@babel/plugin-syntax-flow',
       'react-native-reanimated/plugin',
+    ],
+    overrides: [
+      {
+        test: /node_modules/,
+        presets: ['@babel/preset-flow'],
+        plugins: ['@babel/plugin-syntax-flow'],
+      },
     ],
   };
 };
