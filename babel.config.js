@@ -1,5 +1,5 @@
 module.exports = function(api) {
-  api.cache(true);
+  api.cache(false); // Disable caching to ensure fresh config
   
   return {
     presets: [

@@ -10,6 +10,7 @@
     "lint": "expo lint"
   },
   "dependencies": {
+    "@babel/plugin-syntax-flow": "^7.27.1",
     "@babel/preset-flow": "^7.27.1",
     "@basictech/expo": "^0.0.5",
     "@expo/metro-runtime": "~6.1.2",
