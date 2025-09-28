@@ -1,5 +1,4 @@
 module.exports = function(api) {
-  // Disable caching completely to ensure fresh config
   api.cache(false);
   
   return {
@@ -11,12 +10,17 @@ module.exports = function(api) {
       '@babel/plugin-syntax-flow',
       'react-native-reanimated/plugin'
     ],
+    ignore: [],
+    only: undefined,
     overrides: [
       {
-        test: /\.tsx?$/,
+        test: /node_modules\/expo/,
         presets: [
           'babel-preset-expo',
           '@babel/preset-flow'
+        ],
+        plugins: [
+          '@babel/plugin-syntax-flow'
         ]
       }
     ]

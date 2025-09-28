@@ -1,5 +1,5 @@
 module.exports = function(api) {
-  api.cache(true);
+  api.cache(false);
   
   return {
     presets: [
@@ -7,7 +7,8 @@ module.exports = function(api) {
       '@babel/preset-flow'
     ],
     plugins: [
+      '@babel/plugin-syntax-flow',
       'react-native-reanimated/plugin'
-    ],
+    ]
   };
 };
