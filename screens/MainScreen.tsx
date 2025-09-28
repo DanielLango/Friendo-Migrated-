@@ -29,7 +29,7 @@ export default function MainScreen() {
     if (db) {
       try {
         const friendsData = await db.from('friends').getAll();
-        setFriends((friendsData || []) as Friend[]);
+        setFriends((friendsData || []) as unknown as Friend[]);
       } catch (error) {
         console.error('Error loading friends:', error);
       }
@@ -40,7 +40,7 @@ export default function MainScreen() {
     if (db) {
       try {
         const meetingsData = await db.from('meetings').getAll();
-        setMeetings((meetingsData || []) as Meeting[]);
+        setMeetings((meetingsData || []) as unknown as Meeting[]);
       } catch (error) {
         console.error('Error loading meetings:', error);
       }
