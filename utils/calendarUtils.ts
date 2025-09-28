@@ -1,5 +1,5 @@
 import * as Calendar from 'expo-calendar';
-import * as FileSystem from 'expo-file-system';
+import { documentDirectory, writeAsStringAsync } from 'expo-file-system';
 import { Alert, Platform } from 'react-native';
 import { Friend } from '../types';
 
@@ -44,7 +44,7 @@ export const addEventToCalendar = async (event: CalendarEvent): Promise<boolean>
       return false;
     }
 
-    const eventId = await Calendar.createEventAsync(defaultCalendar.id, {
+    await Calendar.createEventAsync(defaultCalendar.id, {
       title: event.title,
       startDate: event.startDate,
       endDate: event.endDate,
@@ -105,9 +105,15 @@ export const generateICSFile = (event: CalendarEvent): string => {
 export const downloadICSFile = async (event: CalendarEvent, filename: string = 'meeting.ics'): Promise<boolean> => {
   try {
     const icsContent = generateICSFile(event);
-    const fileUri = FileSystem.documentDirectory ? `${FileSystem.documentDirectory}${filename}` : filename;
     
-    await FileSystem.writeAsStringAsync(fileUri, icsContent);
+    if (!documentDirectory) {
+      Alert.alert('Error', 'Unable to access device storage.');
+      return false;
+    }
+    
+    const fileUri = `${documentDirectory}${filename}`;
+    
+    await writeAsStringAsync(fileUri, icsContent);
     
     if (Platform.OS === 'ios') {
       // On iOS, we can use the share functionality
