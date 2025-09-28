@@ -3,6 +3,7 @@ module.exports = function(api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
+      '@babel/plugin-syntax-flow',
       'react-native-reanimated/plugin',
     ],
   };
