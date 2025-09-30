@@ -1,28 +1,10 @@
 module.exports = function(api) {
-  api.cache(false);
+  api.cache(true);
   
   return {
-    presets: [
-      'babel-preset-expo',
-      '@babel/preset-flow'
-    ],
+    presets: ['babel-preset-expo'],
     plugins: [
-      '@babel/plugin-syntax-flow',
       'react-native-reanimated/plugin'
-    ],
-    ignore: [],
-    only: undefined,
-    overrides: [
-      {
-        test: /node_modules\/expo/,
-        presets: [
-          'babel-preset-expo',
-          '@babel/preset-flow'
-        ],
-        plugins: [
-          '@babel/plugin-syntax-flow'
-        ]
-      }
     ]
   };
 };
