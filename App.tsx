@@ -1,25 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text } from 'react-native';
 
 export default function App() {
-  console.log('App component is rendering');
-  
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Hello World - Friendo App</Text>
-    </View>
-  );
+  return React.createElement(Text, null, 'Hello World');
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-  },
-  text: {
-    fontSize: 20,
-    color: '#000000',
-  },
-});
