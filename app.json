@@ -7,6 +7,12 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "scheme": "friendconnect",
+    "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "dev.kiki.userapp.6378f569",
@@ -17,6 +23,10 @@
     },
     "android": {
       "package": "dev.kiki.userapp.gdhipfgj",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
       "permissions": [
         "android.permission.READ_CALENDAR",
         "android.permission.WRITE_CALENDAR",
@@ -25,13 +35,20 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "single"
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-font",
       "expo-web-browser",
       "expo-mail-composer",
-      "expo-calendar"
+      "expo-calendar",
+      [
+        "expo-router",
+        {
+          "origin": false
+        }
+      ]
     ]
   }
 }

@@ -10,16 +10,12 @@ import {
 } from 'react-native';
 import { useBasic } from '@basictech/expo';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../App';
 import FriendoLogo from '../components/FriendoLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
-
 export default function LoginScreen() {
   const { login, isLoading, isSignedIn } = useBasic();
-  const navigation = useNavigation<LoginScreenNavigationProp>();
+  const navigation = useNavigation();
 
   React.useEffect(() => {
     const checkSkipReflection = async () => {
@@ -27,13 +23,13 @@ export default function LoginScreen() {
         try {
           const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
           if (skipReflection === 'true') {
-            navigation.navigate('AddFriends');
+            navigation.navigate('AddFriends' as never);
           } else {
-            navigation.navigate('ReflectOnFriends');
+            navigation.navigate('ReflectOnFriends' as never);
           }
         } catch (error) {
           console.error('Error checking reflection preference:', error);
-          navigation.navigate('ReflectOnFriends');
+          navigation.navigate('ReflectOnFriends' as never);
         }
       }
     };

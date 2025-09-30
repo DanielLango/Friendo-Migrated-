@@ -17,6 +17,19 @@ import MainScreen from './screens/MainScreen';
 import StatsScreen from './screens/StatsScreen';
 import MeetingCreateScreen from './screens/MeetingCreateScreen';
 
+export type RootStackParamList = {
+  Login: undefined;
+  ReflectOnFriends: undefined;
+  AddFriends: undefined;
+  Onboarding: undefined;
+  Sync: undefined;
+  ContactSelect: undefined;
+  ManualAdd: undefined;
+  Main: undefined;
+  Stats: undefined;
+  MeetingCreate: undefined;
+};
+
 const Stack = createStackNavigator();
 
 export default function App() {
