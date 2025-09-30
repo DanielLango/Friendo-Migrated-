@@ -1,1 +1,1 @@
-// This file has been removed - using babel.config.js instead
+// This file is not used - babel.config.js is the active configuration
