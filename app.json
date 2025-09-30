@@ -14,6 +14,8 @@
       "bundler": "metro",
       "output": "single"
     },
-    "plugins": []
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }
