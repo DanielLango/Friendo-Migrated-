@@ -4,45 +4,17 @@
     "slug": "user-app-6378f569",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": false,
-    "scheme": "friendconnect",
     "icon": "./assets/images/icon.png",
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "dev.kiki.userapp.6378f569",
-      "infoPlist": {
-        "NSCalendarsUsageDescription": "This app needs access to your calendar to add meeting events.",
-        "NSContactsUsageDescription": "This app needs access to your contacts to help you find friends."
-      }
-    },
-    "android": {
-      "package": "dev.kiki.userapp.gdhipfgj",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "permissions": [
-        "android.permission.READ_CALENDAR",
-        "android.permission.WRITE_CALENDAR",
-        "android.permission.READ_CONTACTS"
-      ]
-    },
     "web": {
       "bundler": "metro",
-      "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "output": "single"
     },
     "plugins": [
-      "expo-font",
-      "expo-web-browser",
-      "expo-mail-composer",
-      "expo-calendar",
       [
         "expo-router",
         {

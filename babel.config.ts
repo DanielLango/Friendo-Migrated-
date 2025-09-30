@@ -1,1 +1,0 @@
-// This file is no longer needed - using babel.config.js instead
