@@ -1,4 +1,2 @@
-import { AppRegistry } from 'react-native';
-import App from './App';
-
-AppRegistry.registerComponent('main', () => App);
+// This file is kept for compatibility but redirects to index.ts
+require('./index.ts');
