@@ -1,1 +1,0 @@
-// This file is not used - metro.config.js is the active configuration

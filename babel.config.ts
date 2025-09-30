@@ -1,1 +1,0 @@
-// This file is not used - babel.config.js is the active configuration
