@@ -14,13 +14,6 @@
       "bundler": "metro",
       "output": "single"
     },
-    "plugins": [
-      [
-        "expo-router",
-        {
-          "origin": false
-        }
-      ]
-    ]
+    "plugins": []
   }
 }
