@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Hello World</Text>
+      <Text style={styles.text}>Hello World - App is Working!</Text>
     </View>
   );
 }
@@ -18,5 +19,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 20,
+    color: '#000',
   },
 });
