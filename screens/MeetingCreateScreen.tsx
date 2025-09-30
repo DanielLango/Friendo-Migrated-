@@ -10,13 +10,12 @@ import {
   Alert,
   Platform,
   Linking,
+  Modal,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Friend } from '../types';
-import { sendMeetingInvitation } from '../utils/emailUtils';
-import { createMeetingEvent, createAndDownloadMeetingICS } from '../utils/calendarUtils';
 import SimpleCitySelector from '../components/SimpleCitySelector';
 import VenueCategorySelector from '../components/VenueCategorySelector';
 import PartnerVenueSelector from '../components/PartnerVenueSelector';
@@ -30,14 +29,11 @@ export default function MeetingCreateScreen() {
   const [selectedVenue, setSelectedVenue] = useState<string>('');
   const [selectedCity, setSelectedCity] = useState('');
   const [cityPlaceId, setCityPlaceId] = useState('');
-  const [googleCalendar, setGoogleCalendar] = useState(false);
-  const [outlookCalendar, setOutlookCalendar] = useState(false);
-  const [appleCalendar, setAppleCalendar] = useState(false);
-  const [sendInvitation, setSendInvitation] = useState(false);
-  const [friendEmail, setFriendEmail] = useState('');
+  const [addToCalendar, setAddToCalendar] = useState(false);
   const [meetingNotes, setMeetingNotes] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [activityConfirmed, setActivityConfirmed] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   
   const navigation = useNavigation();
   const route = useRoute();
@@ -119,11 +115,6 @@ export default function MeetingCreateScreen() {
       return;
     }
 
-    if (sendInvitation && !friendEmail.trim()) {
-      Alert.alert('Error', 'Please enter friend\'s email to send invitation');
-      return;
-    }
-
     setIsCreating(true);
 
     try {
@@ -170,51 +161,13 @@ export default function MeetingCreateScreen() {
         // Don't fail the whole operation for notification errors
       }
 
-      // Handle calendar integration
-      try {
-        if (googleCalendar || outlookCalendar || appleCalendar) {
-          if (googleCalendar || appleCalendar) {
-            // Add to device calendar
-            await createMeetingEvent(friend, selectedDate, meetingNotes);
-          }
-          
-          if (outlookCalendar || googleCalendar) {
-            // Create downloadable ICS file
-            await createAndDownloadMeetingICS(friend, selectedDate, meetingNotes);
-          }
-        }
-      } catch (calendarError) {
-        console.error('Calendar error:', calendarError);
-        // Don't fail the whole operation for calendar errors
+      // Show calendar instructions if user selected calendar option
+      if (addToCalendar) {
+        setShowInstructions(true);
+      } else {
+        Alert.alert('Success', 'Meeting scheduled successfully!');
+        navigation.goBack();
       }
-
-      // Send email invitation if requested
-      try {
-        if (sendInvitation && friendEmail.trim()) {
-          const friendWithEmail = { ...friend, email: friendEmail.trim() };
-          const emailSent = await sendMeetingInvitation(
-            friendWithEmail, 
-            selectedDate, 
-            user?.email || 'friendo-user@example.com',
-            meetingNotes,
-            selectedVenue,
-            selectedCity
-          );
-          
-          if (emailSent) {
-            Alert.alert('Success', 'Meeting scheduled and invitation sent!');
-          } else {
-            Alert.alert('Partial Success', 'Meeting scheduled but failed to send invitation.');
-          }
-        } else {
-          Alert.alert('Success', 'Meeting scheduled successfully!');
-        }
-      } catch (emailError) {
-        console.error('Email error:', emailError);
-        Alert.alert('Partial Success', 'Meeting scheduled but failed to send invitation.');
-      }
-
-      navigation.goBack();
     } catch (error) {
       console.error('Error creating meeting:', error);
       
@@ -387,77 +340,20 @@ export default function MeetingCreateScreen() {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📅 Calendar Options</Text>
+          <Text style={styles.sectionTitle}>📅 Calendar Option</Text>
           
-          {/* Primary - Big Button */}
           <TouchableOpacity
-            style={[styles.primaryCalendarButton, appleCalendar && styles.primaryCalendarButtonActive]}
-            onPress={() => setAppleCalendar(!appleCalendar)}
+            style={[styles.calendarButton, addToCalendar && styles.calendarButtonActive]}
+            onPress={() => setAddToCalendar(!addToCalendar)}
           >
-            <Text style={styles.primaryCalendarIcon}>📱</Text>
-            <View style={styles.primaryCalendarContent}>
-              <Text style={[styles.primaryCalendarTitle, appleCalendar && styles.primaryCalendarTitleActive]}>
-                Add to My Calendar
-              </Text>
-              <Text style={[styles.primaryCalendarSubtext, appleCalendar && styles.primaryCalendarSubtextActive]}>
-                (Uses your phone's calendar app)
-              </Text>
+            <View style={[styles.checkbox, addToCalendar && styles.checkboxChecked]}>
+              {addToCalendar && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <View style={styles.calendarContent}>
+              <Text style={styles.calendarLabel}>📱 Add to Calendar</Text>
+              <Text style={styles.calendarSubtext}>Get instructions for adding this to your phone's calendar</Text>
             </View>
           </TouchableOpacity>
-
-          {/* Manual Import Option */}
-          <TouchableOpacity
-            style={[styles.manualImportButton, (googleCalendar || outlookCalendar) && styles.manualImportButtonActive]}
-            onPress={() => {
-              const newState = !(googleCalendar || outlookCalendar);
-              setGoogleCalendar(newState);
-              setOutlookCalendar(newState);
-            }}
-          >
-            <Text style={styles.manualImportIcon}>📄</Text>
-            <View style={styles.manualImportContent}>
-              <Text style={[styles.manualImportTitle, (googleCalendar || outlookCalendar) && styles.manualImportTitleActive]}>
-                MANUAL IMPORT
-              </Text>
-              <View style={styles.manualImportRow}>
-                <View style={[styles.manualImportCheckbox, (googleCalendar || outlookCalendar) && styles.manualImportCheckboxActive]}>
-                  {(googleCalendar || outlookCalendar) && <Text style={styles.manualImportCheckmark}>✓</Text>}
-                </View>
-                <Text style={[styles.manualImportSubtext, (googleCalendar || outlookCalendar) && styles.manualImportSubtextActive]}>
-                  Download .ics file
-                </Text>
-              </View>
-              <Text style={[styles.manualImportDescription, (googleCalendar || outlookCalendar) && styles.manualImportDescriptionActive]}>
-                (Works with any calendar app)
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.checkboxContainer}
-            onPress={() => setSendInvitation(!sendInvitation)}
-          >
-            <View style={[styles.checkbox, sendInvitation && styles.checkboxChecked]}>
-              {sendInvitation && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <View style={styles.checkboxContent}>
-              <Text style={styles.checkboxLabel}>📧 Send this to an e-mail if you would like to:</Text>
-              <Text style={styles.checkboxSubtext}>(E-mail with meeting details)</Text>
-            </View>
-          </TouchableOpacity>
-
-          {sendInvitation && (
-            <TextInput
-              style={styles.emailInput}
-              value={friendEmail}
-              onChangeText={setFriendEmail}
-              placeholder="You can type here an email address"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          )}
         </View>
 
         <View style={styles.section}>
@@ -467,7 +363,7 @@ export default function MeetingCreateScreen() {
               • Click outside the box once filled
             </Text>
             <Text style={styles.notesHint}>
-              • This will be included in calendar invites and email invitations
+              • Add any details about the meeting
             </Text>
           </View>
           <TextInput
@@ -491,6 +387,88 @@ export default function MeetingCreateScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Calendar Instructions Modal */}
+      <Modal
+        visible={showInstructions}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => {
+          setShowInstructions(false);
+          navigation.goBack();
+        }}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>What to do now?</Text>
+            <TouchableOpacity 
+              onPress={() => {
+                setShowInstructions(false);
+                navigation.goBack();
+              }}
+              style={styles.modalCloseButton}
+            >
+              <Text style={styles.modalCloseText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.modalContent}>
+            <View style={styles.instructionSection}>
+              <Text style={styles.instructionTitle}>📱 Calendar Instructions</Text>
+              <Text style={styles.instructionSubtitle}>
+                (In case you selected a calendar option)
+              </Text>
+            </View>
+
+            <View style={styles.instructionStep}>
+              <Text style={styles.stepNumber}>1.</Text>
+              <Text style={styles.stepText}>
+                After you clicked on 'Schedule Meetup', go into your smartphone's default calendar app and navigate to the day you have chosen for the meet-up.
+              </Text>
+            </View>
+
+            <View style={styles.instructionStep}>
+              <Text style={styles.stepNumber}>2.</Text>
+              <Text style={styles.stepText}>
+                Edit the time of the event in the calendar as you wish
+              </Text>
+            </View>
+
+            <View style={styles.instructionStep}>
+              <Text style={styles.stepNumber}>3.</Text>
+              <Text style={styles.stepText}>
+                Under invitee you can add an email, if you want. Your default calendar app will send the invitation to this email.
+              </Text>
+            </View>
+
+            <View style={styles.meetingDetails}>
+              <Text style={styles.detailsTitle}>📋 Meeting Details</Text>
+              <Text style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Friend:</Text> {friend.name}
+              </Text>
+              <Text style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Date:</Text> {selectedDate.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  month: 'long', 
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </Text>
+              <Text style={styles.detailItem}>
+                <Text style={styles.detailLabel}>Activity:</Text> {getVenueCategory(selectedCategory)?.name || selectedCategory}
+              </Text>
+              <Text style={styles.detailItem}>
+                <Text style={styles.detailLabel}>City:</Text> {selectedCity}
+              </Text>
+              {meetingNotes && (
+                <Text style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Notes:</Text> {meetingNotes}
+                </Text>
+              )}
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -680,10 +658,33 @@ const styles = StyleSheet.create({
   activityConfirmTextActive: {
     color: '#FFFFFF',
   },
-  checkboxContainer: {
+  calendarButton: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 15,
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  calendarButtonActive: {
+    backgroundColor: '#F8F9FA',
+    borderColor: '#8000FF',
+  },
+  calendarContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  calendarLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  calendarSubtext: {
+    fontSize: 14,
+    color: '#666666',
   },
   checkbox: {
     width: 20,
@@ -691,10 +692,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#8000FF',
     borderRadius: 4,
-    marginRight: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
   },
   checkboxChecked: {
     backgroundColor: '#8000FF',
@@ -703,29 +702,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 'bold',
-  },
-  checkboxContent: {
-    flex: 1,
-  },
-  checkboxLabel: {
-    fontSize: 14,
-    color: '#333333',
-    fontWeight: '500',
-  },
-  checkboxSubtext: {
-    fontSize: 12,
-    color: '#666666',
-    marginTop: 2,
-  },
-  emailInput: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 16,
-    marginTop: 10,
-    marginLeft: 32,
   },
   notesInput: {
     borderWidth: 1,
@@ -761,121 +737,95 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  primaryCalendarButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  primaryCalendarButtonActive: {
-    backgroundColor: '#8000FF',
-    borderColor: '#8000FF',
-  },
-  primaryCalendarIcon: {
-    fontSize: 24,
-    marginRight: 16,
-  },
-  primaryCalendarContent: {
+  // Modal styles
+  modalContainer: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  primaryCalendarTitle: {
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 4,
   },
-  primaryCalendarTitleActive: {
+  modalCloseButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#8000FF',
+    borderRadius: 6,
+  },
+  modalCloseText: {
     color: '#FFFFFF',
-  },
-  primaryCalendarSubtext: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  primaryCalendarSubtextActive: {
-    color: '#E0E0FF',
-  },
-  manualImportButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-  },
-  manualImportButtonActive: {
-    backgroundColor: '#F8F9FA',
-    borderColor: '#8000FF',
-  },
-  manualImportIcon: {
-    fontSize: 20,
-    marginRight: 16,
-    marginTop: 2,
-  },
-  manualImportContent: {
-    flex: 1,
-  },
-  manualImportTitle: {
     fontSize: 16,
+    fontWeight: '600',
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  instructionSection: {
+    marginTop: 20,
+    marginBottom: 30,
+    alignItems: 'center',
+  },
+  instructionTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333333',
     marginBottom: 8,
   },
-  manualImportTitleActive: {
-    color: '#8000FF',
-  },
-  manualImportRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  manualImportCheckbox: {
-    width: 16,
-    height: 16,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    borderRadius: 3,
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  manualImportCheckboxActive: {
-    backgroundColor: '#8000FF',
-    borderColor: '#8000FF',
-  },
-  manualImportCheckmark: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  manualImportSubtext: {
+  instructionSubtitle: {
     fontSize: 14,
-    color: '#333333',
-    fontWeight: '500',
+    color: '#666666',
+    fontStyle: 'italic',
   },
-  manualImportSubtextActive: {
+  instructionStep: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  stepNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
     color: '#8000FF',
+    marginRight: 12,
+    marginTop: 2,
   },
-  manualImportDescription: {
-    fontSize: 12,
-    color: '#666666',
-    marginLeft: 24,
+  stepText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333333',
+    lineHeight: 22,
   },
-  manualImportDescriptionActive: {
-    color: '#666666',
+  meetingDetails: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 20,
+    marginBottom: 30,
+  },
+  detailsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 15,
+  },
+  detailItem: {
+    fontSize: 16,
+    color: '#333333',
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  detailLabel: {
+    fontWeight: 'bold',
+    color: '#8000FF',
   },
 });
