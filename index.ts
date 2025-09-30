@@ -11,6 +11,9 @@ registerRootComponent(App);
 // the environment is set up appropriately
 registerRootComponent(App);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
