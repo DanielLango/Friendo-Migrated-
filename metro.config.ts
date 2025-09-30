@@ -1,3 +1,1 @@
-const { getDefaultConfig } = require('@expo/metro-config');
-const config = getDefaultConfig(__dirname);
-module.exports = config;
+// This file is not used - metro.config.js is the active configuration
