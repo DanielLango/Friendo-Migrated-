@@ -30,7 +30,7 @@ export type RootStackParamList = {
   MeetingCreate: undefined;
 };
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
