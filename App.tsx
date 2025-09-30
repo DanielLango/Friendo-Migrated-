@@ -1,11 +1,14 @@
 import React from 'react';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { Text } from 'react-native';
 
 export default function App() {
   return React.createElement(Text, null, 'Hello World');
 }
 =======
+=======
+>>>>>>> Stashed changes
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -67,4 +70,7 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
