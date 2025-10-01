@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import LoginScreen from './screens/LoginScreen';
-import ReflectOnFriendsScreen from './screens/ReflectOnFriends Screen';
+import ReflectOnFriendsScreen from './screens/ReflectOnFriendsScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import SyncScreen from './screens/SyncScreen';
 import ContactSelectScreen from './screens/ContactSelectScreen';
