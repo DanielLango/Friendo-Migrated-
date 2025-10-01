@@ -141,7 +141,7 @@ export default function LoginScreen() {
         style={styles.troubleshootIcon}
         onPress={() => setShowTroubleshooting(!showTroubleshooting)}
       >
-        <Text style={styles.troubleshootText}>auth. bug help</Text>
+        <Text style={styles.troubleshootText}>auth. issue help</Text>
       </TouchableOpacity>
 
       <View style={styles.content}>
