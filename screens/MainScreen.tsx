@@ -12,18 +12,64 @@ import { useNavigation } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import { Friend, Meeting } from '../types';
 import FriendRow from '../components/FriendRow';
+import { handleBasicTechError, clearAllAuthData } from '../utils/authUtils';
 
 export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [deleteMode, setDeleteMode] = useState(false);
+  const [hasAuthError, setHasAuthError] = useState(false);
   const navigation = useNavigation();
-  const { db, signout } = useBasic();
+  const { db, signout, isSignedIn } = useBasic();
 
   useEffect(() => {
-    loadFriends();
-    loadMeetings();
-  }, [db]);
+    if (isSignedIn && db) {
+      loadData();
+    }
+  }, [db, isSignedIn]);
+
+  const loadData = async () => {
+    try {
+      await Promise.all([loadFriends(), loadMeetings()]);
+      setHasAuthError(false); // Reset error state on successful load
+    } catch (error) {
+      console.error('Error loading data:', error);
+      handleDataLoadError(error);
+    }
+  };
+
+  const handleDataLoadError = (error: any) => {
+    const errorInfo = handleBasicTechError(error);
+    
+    if (errorInfo.type === 'TOKEN_ERROR') {
+      setHasAuthError(true);
+      Alert.alert(
+        'Session Expired',
+        'Your authentication session has expired. Please clear your auth data and sign in again.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Clear Auth Data', 
+            onPress: handleClearAuthAndSignOut,
+            style: 'destructive'
+          }
+        ]
+      );
+    } else {
+      Alert.alert('Error', 'Failed to load data. Please try again.');
+    }
+  };
+
+  const handleClearAuthAndSignOut = async () => {
+    try {
+      await clearAllAuthData();
+      await signout();
+      // Navigation back to login will happen automatically via App.tsx
+    } catch (error) {
+      console.error('Error clearing auth data:', error);
+      Alert.alert('Notice', 'Please restart the app and try again.');
+    }
+  };
 
   const loadFriends = async () => {
     if (db) {
@@ -32,6 +78,7 @@ export default function MainScreen() {
         setFriends((friendsData || []) as unknown as Friend[]);
       } catch (error) {
         console.error('Error loading friends:', error);
+        throw error; // Re-throw to be caught by loadData
       }
     }
   };
@@ -43,6 +90,7 @@ export default function MainScreen() {
         setMeetings((meetingsData || []) as unknown as Meeting[]);
       } catch (error) {
         console.error('Error loading meetings:', error);
+        throw error; // Re-throw to be caught by loadData
       }
     }
   };
@@ -144,6 +192,35 @@ export default function MainScreen() {
     />
   );
 
+  // If there's an auth error, show error state
+  if (hasAuthError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>Authentication Error</Text>
+          <Text style={styles.errorText}>
+            Your session has expired. Please clear your authentication data and sign in again.
+          </Text>
+          <TouchableOpacity 
+            style={styles.clearAuthButton}
+            onPress={handleClearAuthAndSignOut}
+          >
+            <Text style={styles.clearAuthButtonText}>Clear Auth Data & Sign Out</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => {
+              setHasAuthError(false);
+              loadData();
+            }}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -196,6 +273,49 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FF6B6B',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 30,
+  },
+  clearAuthButton: {
+    backgroundColor: '#FF6B6B',
+    borderRadius: 8,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    marginBottom: 15,
+  },
+  clearAuthButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  retryButton: {
+    backgroundColor: '#8000FF',
+    borderRadius: 8,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   header: {
     paddingHorizontal: 20,

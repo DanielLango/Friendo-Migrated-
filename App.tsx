@@ -52,12 +52,22 @@ class ErrorBoundary extends React.Component<
     console.error('App Error Boundary caught error:', error);
     console.error('Error Info:', errorInfo);
     
-    // Show user-friendly error message
-    Alert.alert(
-      'App Error',
-      'Something went wrong. Please restart the app or clear your authentication data if the problem persists.',
-      [{ text: 'OK' }]
-    );
+    // Check if it's a BasicTech authentication error
+    if (error?.message?.includes('Failed to refresh token') ||
+        error?.message?.includes('failed_to_get_token') ||
+        error?.message?.includes('Bad Request')) {
+      Alert.alert(
+        'Authentication Error',
+        'Your session has expired. Please restart the app and clear your authentication data using the troubleshooting option on the login screen.',
+        [{ text: 'OK' }]
+      );
+    } else {
+      Alert.alert(
+        'App Error',
+        'Something went wrong. Please restart the app or clear your authentication data if the problem persists.',
+        [{ text: 'OK' }]
+      );
+    }
   }
 
   render() {
