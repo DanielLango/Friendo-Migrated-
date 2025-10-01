@@ -18,7 +18,9 @@ export default function BasicTechInterceptor({ children }: BasicTechInterceptorP
           error?.message?.includes('Bad Request')) {
         console.log('Token error caught, showing error screen');
         setHasError(true);
-        event.preventDefault?.();
+        if (event.preventDefault) {
+          event.preventDefault();
+        }
       }
     };
 
