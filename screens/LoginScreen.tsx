@@ -12,22 +12,25 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import FriendoLogo from '../components/FriendoLogo';
+import { useBasic } from '@basictech/expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
   const navigation = useNavigation<LoginScreenNavigationProp>();
-  const [isLoading, setIsLoading] = React.useState(false);
+  const { isSignedIn, login, isLoading, user } = useBasic();
   const [showTroubleshooting, setShowTroubleshooting] = React.useState(false);
 
-  const handleLogin = async () => {
-    setIsLoading(true);
+  React.useEffect(() => {
+    if (isSignedIn && user) {
+      // User is signed in, navigate to the appropriate screen
+      checkNavigationDestination();
+    }
+  }, [isSignedIn, user]);
+
+  const checkNavigationDestination = async () => {
     try {
-      // Simulate login process
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user should skip reflection screen
       const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
       if (skipReflection === 'true') {
         navigation.navigate('AddFriends');
@@ -35,9 +38,17 @@ export default function LoginScreen() {
         navigation.navigate('ReflectOnFriends');
       }
     } catch (error) {
+      console.error('Error checking navigation destination:', error);
+      navigation.navigate('ReflectOnFriends');
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error) {
+      console.error('Login error:', error);
       Alert.alert('Login Error', 'Failed to sign in. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -71,12 +82,6 @@ export default function LoginScreen() {
             <Text style={styles.subtitle}>
               Sign in to start tracking your friendships
             </Text>
-
-            <View style={styles.debugContainer}>
-              <Text style={styles.debugText}>
-                🔧 Debug Mode: BasicTech temporarily disabled to fix the error
-              </Text>
-            </View>
             
             <TouchableOpacity 
               style={styles.loginButton}
@@ -84,13 +89,9 @@ export default function LoginScreen() {
               disabled={isLoading}
             >
               <Text style={styles.loginButtonText}>
-                {isLoading ? 'SIGNING IN...' : 'Continue (Debug Mode)'}
+                {isLoading ? 'SIGNING IN...' : 'Sign in with Kiki Auth'}
               </Text>
             </TouchableOpacity>
-
-            <Text style={styles.footerText}>
-              BasicTech authentication will be restored once the error is resolved.
-            </Text>
 
             <TouchableOpacity 
               style={styles.privacyButton}
@@ -108,7 +109,7 @@ export default function LoginScreen() {
             <Text style={styles.troubleshootingTitle}>Troubleshooting</Text>
             
             <Text style={styles.troubleshootingText}>
-              The app is currently running without BasicTech to isolate the "Cannot read property 'S' of undefined" error.
+              If you're experiencing login issues, try clearing your data.
             </Text>
             
             <TouchableOpacity 
@@ -173,20 +174,6 @@ const styles = StyleSheet.create({
     color: '#666666',
     lineHeight: 22,
   },
-  debugContainer: {
-    backgroundColor: '#FFF3CD',
-    borderColor: '#FFEAA7',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 20,
-  },
-  debugText: {
-    fontSize: 14,
-    color: '#856404',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
   loginButton: {
     backgroundColor: '#EC4899',
     borderRadius: 8,
@@ -244,13 +231,6 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 16,
     fontWeight: '500',
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 20,
   },
   privacyButton: {
     marginTop: 20,
