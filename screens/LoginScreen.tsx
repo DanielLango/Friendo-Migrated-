@@ -141,36 +141,57 @@ export default function LoginScreen() {
         style={styles.troubleshootIcon}
         onPress={() => setShowTroubleshooting(!showTroubleshooting)}
       >
-        <MaterialIcons name="build" size={24} color="#666666" />
+        <MaterialIcons name="brush" size={24} color="#666666" />
       </TouchableOpacity>
 
       <View style={styles.content}>
-        <View style={styles.logoContainer}>
-          <FriendoLogo />
-        </View>
-        
-        <Text style={styles.title}>Login to Friendo</Text>
-        
-        <Text style={styles.subtitle}>
-          Sign in to start tracking your friendships
-        </Text>
-        
-        <TouchableOpacity 
-          style={styles.loginButton}
-          onPress={handleBasicTechLogin}
-          disabled={isLoading}
-        >
-          <Text style={styles.loginButtonText}>
-            {isLoading ? 'SIGNING IN...' : 'Sign in with basic.id'}
-          </Text>
-        </TouchableOpacity>
+        {/* Main login content - hidden when troubleshooting is shown */}
+        {!showTroubleshooting && (
+          <>
+            <View style={styles.logoContainer}>
+              <FriendoLogo />
+            </View>
+            
+            <Text style={styles.title}>Login to Friendo</Text>
+            
+            <Text style={styles.subtitle}>
+              Sign in to start tracking your friendships
+            </Text>
+            
+            <TouchableOpacity 
+              style={styles.loginButton}
+              onPress={handleBasicTechLogin}
+              disabled={isLoading}
+            >
+              <Text style={styles.loginButtonText}>
+                {isLoading ? 'SIGNING IN...' : 'Sign in with basic.id'}
+              </Text>
+            </TouchableOpacity>
+
+            <Text style={styles.footerText}>
+              Friendo uses basic.id to keep your data secure and under your control. You can revoke access at any time.
+            </Text>
+
+            <TouchableOpacity 
+              style={styles.privacyButton}
+              onPress={() => Linking.openURL('https://basic.tech/privacy')}
+            >
+              <Text style={styles.privacyButtonText}>
+                Click Here to Read our Privacy Policy
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         {/* Troubleshooting section - only shown when icon is tapped */}
         {showTroubleshooting && (
           <View style={styles.troubleshootingContainer}>
+            <Text style={styles.troubleshootingTitle}>Troubleshooting</Text>
+            
             <Text style={styles.troubleshootingText}>
               In case you experience any authentication or login errors or bugs, please press here:
             </Text>
+            
             <TouchableOpacity 
               style={styles.clearButton}
               onPress={clearAllAuthData}
@@ -180,21 +201,19 @@ export default function LoginScreen() {
                 {isClearing ? 'CLEARING...' : 'Clear Auth Data & Retry'}
               </Text>
             </TouchableOpacity>
+
+            <Text style={styles.noteText}>
+              Please note: You will need to type in your username or email and the password again in basic.id
+            </Text>
+
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => setShowTroubleshooting(false)}
+            >
+              <Text style={styles.backButtonText}>← Back to Login</Text>
+            </TouchableOpacity>
           </View>
         )}
-
-        <Text style={styles.footerText}>
-          Friendo uses basic.id to keep your data secure and under your control. You can revoke access at any time.
-        </Text>
-
-        <TouchableOpacity 
-          style={styles.privacyButton}
-          onPress={() => Linking.openURL('https://www.privacypolicies.com/live/213b96d7-30cf-4a41-a182-38624ac19603')}
-        >
-          <Text style={styles.privacyButtonText}>
-            Click Here to Read our Privacy Policy
-          </Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -256,24 +275,56 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E9ECEF',
   },
+  troubleshootingFullContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  troubleshootingTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 30,
+    color: '#333333',
+  },
   troubleshootingText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666666',
     textAlign: 'center',
-    marginBottom: 15,
-    lineHeight: 20,
+    marginBottom: 30,
+    lineHeight: 22,
   },
   clearButton: {
     backgroundColor: '#FF6B6B',
-    borderRadius: 6,
-    height: 40,
+    borderRadius: 8,
+    height: 50,
+    paddingHorizontal: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 20,
   },
   clearButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
+  },
+  noteText: {
+    fontSize: 14,
+    color: '#888888',
+    textAlign: 'center',
+    marginBottom: 40,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  backButton: {
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+  },
+  backButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '500',
   },
   footerText: {
     fontSize: 14,
