@@ -16,6 +16,7 @@ import FriendoLogo from '../components/FriendoLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { MaterialIcons } from '@expo/vector-icons';
+import { checkNetworkConnectivity, handleNetworkError } from '../utils/networkUtils';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -96,11 +97,40 @@ export default function LoginScreen() {
 
   const handleBasicTechLogin = async () => {
     try {
+      // Check network connectivity first
+      const isConnected = await checkNetworkConnectivity();
+      if (!isConnected) {
+        Alert.alert(
+          'No Internet Connection',
+          'Please check your internet connection and try again.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
       await login();
       // Navigation will happen via useEffect when isSignedIn changes
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      Alert.alert('Login Error', 'Failed to sign in. Please try again.');
+      
+      const errorInfo = handleNetworkError(error);
+      
+      if (errorInfo.type === 'NETWORK_ERROR') {
+        Alert.alert(
+          'Connection Error', 
+          errorInfo.message + ' If the problem persists, try clearing your auth data using the troubleshooting icon.',
+          [{ text: 'OK' }]
+        );
+      } else if (error?.message?.includes('Failed to refresh token') ||
+                 error?.message?.includes('failed_to_get_token')) {
+        Alert.alert(
+          'Authentication Error',
+          'Your session has expired. Please clear your auth data using the troubleshooting icon and try again.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('Login Error', 'Failed to sign in. Please try again.');
+      }
     }
   };
 
