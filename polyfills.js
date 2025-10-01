@@ -25,15 +25,6 @@ if (Platform.OS !== 'web') {
   if (typeof global === 'undefined') {
     (window as any).global = window;
   }
-  
-  // Mock NativeEventEmitter for web
-  if (!global.NativeEventEmitter) {
-    global.NativeEventEmitter = class MockNativeEventEmitter {
-      addListener() { return { remove: () => {} }; }
-      removeAllListeners() {}
-      removeSubscription() {}
-    };
-  }
 }
 
 export {};
