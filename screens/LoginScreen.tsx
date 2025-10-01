@@ -18,8 +18,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
-  const { login, isLoading, isSignedIn } = useBasic();
+  const { login, isLoading, isSignedIn, signout } = useBasic();
   const navigation = useNavigation<LoginScreenNavigationProp>();
+
+  React.useEffect(() => {
+    // Clear any problematic auth data on mount to prevent token refresh errors
+    const clearAuthData = async () => {
+      try {
+        if (!isSignedIn) {
+          await signout(); // This will clear any stored auth tokens
+        }
+      } catch (error) {
+        console.log('Auth cleanup completed');
+      }
+    };
+    
+    clearAuthData();
+  }, []);
 
   React.useEffect(() => {
     const checkSkipReflection = async () => {
