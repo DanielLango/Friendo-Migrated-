@@ -2532,6 +2532,11 @@ expo-constants@~18.0.8, expo-constants@~18.0.9:
     "@expo/config" "~12.0.9"
     "@expo/env" "~2.0.7"
 
+expo-contacts@~15.0.9:
+  version "15.0.9"
+  resolved "https://registry.yarnpkg.com/expo-contacts/-/expo-contacts-15.0.9.tgz#c64e69d3053430019854ceacd9af3ac34d708038"
+  integrity sha512-eIkpMNGmalRz3gA5w/4s8SLbAigUzaIRcBIu469JRKGWo6GH/3sKdP+oEVU5nomt0FwOnSOnEVTS50uex6IcNQ==
+
 expo-crypto@~15.0.7:
   version "15.0.7"
   resolved "https://registry.yarnpkg.com/expo-crypto/-/expo-crypto-15.0.7.tgz#0d06a621ddbcfdcfbcb9961462ee227b52a4f73b"
