@@ -15,6 +15,7 @@ import { RootStackParamList } from '../App';
 import FriendoLogo from '../components/FriendoLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { MaterialIcons } from '@expo/vector-icons';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -22,6 +23,7 @@ export default function LoginScreen() {
   const { login, isLoading, isSignedIn, signout } = useBasic();
   const navigation = useNavigation<LoginScreenNavigationProp>();
   const [isClearing, setIsClearing] = React.useState(false);
+  const [showTroubleshooting, setShowTroubleshooting] = React.useState(false);
 
   React.useEffect(() => {
     // Clear any problematic auth data on mount to prevent token refresh errors
@@ -104,6 +106,14 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Troubleshooting icon in top right corner */}
+      <TouchableOpacity 
+        style={styles.troubleshootIcon}
+        onPress={() => setShowTroubleshooting(!showTroubleshooting)}
+      >
+        <MaterialIcons name="build" size={24} color="#666666" />
+      </TouchableOpacity>
+
       <View style={styles.content}>
         <View style={styles.logoContainer}>
           <FriendoLogo />
@@ -125,16 +135,23 @@ export default function LoginScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* Clear Auth Data Button */}
-        <TouchableOpacity 
-          style={styles.clearButton}
-          onPress={clearAllAuthData}
-          disabled={isClearing || isLoading}
-        >
-          <Text style={styles.clearButtonText}>
-            {isClearing ? 'CLEARING...' : 'Clear Auth Data & Retry'}
-          </Text>
-        </TouchableOpacity>
+        {/* Troubleshooting section - only shown when icon is tapped */}
+        {showTroubleshooting && (
+          <View style={styles.troubleshootingContainer}>
+            <Text style={styles.troubleshootingText}>
+              In case you experience any authentication or login errors or bugs, please press here:
+            </Text>
+            <TouchableOpacity 
+              style={styles.clearButton}
+              onPress={clearAllAuthData}
+              disabled={isClearing || isLoading}
+            >
+              <Text style={styles.clearButtonText}>
+                {isClearing ? 'CLEARING...' : 'Clear Auth Data & Retry'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <Text style={styles.footerText}>
           Friendo uses basic.id to keep your data secure and under your control. You can revoke access at any time.
@@ -157,6 +174,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  troubleshootIcon: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    zIndex: 1,
+    padding: 10,
   },
   content: {
     flex: 1,
@@ -194,13 +218,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  troubleshootingContainer: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    padding: 20,
+    marginBottom: 30,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  troubleshootingText: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 15,
+    lineHeight: 20,
+  },
   clearButton: {
     backgroundColor: '#FF6B6B',
-    borderRadius: 8,
-    height: 50,
+    borderRadius: 6,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 30,
   },
   clearButtonText: {
     color: '#FFFFFF',
