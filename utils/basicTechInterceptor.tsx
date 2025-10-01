@@ -11,22 +11,24 @@ export default function BasicTechInterceptor({ children }: BasicTechInterceptorP
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    const handleError = (event: any) => {
-      const error = event.reason || event.error;
-      if (error?.message?.includes('Failed to refresh token') ||
-          error?.message?.includes('failed_to_get_token') ||
-          error?.message?.includes('Bad Request')) {
-        console.log('Token error caught, showing error screen');
-        setHasError(true);
-        if (event.preventDefault) {
-          event.preventDefault();
+    // Only add web event listeners if we're on web
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      const handleError = (event: any) => {
+        const error = event.reason || event.error;
+        if (error?.message?.includes('Failed to refresh token') ||
+            error?.message?.includes('failed_to_get_token') ||
+            error?.message?.includes('Bad Request')) {
+          console.log('Token error caught, showing error screen');
+          setHasError(true);
+          if (event.preventDefault) {
+            event.preventDefault();
+          }
         }
-      }
-    };
+      };
 
-    if (typeof window !== 'undefined') {
       window.addEventListener('unhandledrejection', handleError);
       window.addEventListener('error', handleError);
+      
       return () => {
         window.removeEventListener('unhandledrejection', handleError);
         window.removeEventListener('error', handleError);
