@@ -17,7 +17,21 @@ import StatsScreen from './screens/StatsScreen';
 import MeetingCreateScreen from './screens/MeetingCreateScreen';
 import AddFriendsScreen from './screens/AddFriendsScreen';
 
-const Stack = createStackNavigator();
+// Define navigation types
+export type RootStackParamList = {
+  Login: undefined;
+  ReflectOnFriends: undefined;
+  Onboarding: undefined;
+  Sync: undefined;
+  ContactSelect: undefined;
+  ManualAdd: undefined;
+  Main: undefined;
+  Stats: undefined;
+  MeetingCreate: undefined;
+  AddFriends: undefined;
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
@@ -29,20 +43,6 @@ export default function App() {
             screenOptions={{
               headerShown: false,
               gestureEnabled: true,
-              cardStyleInterpolator: ({ current, layouts }) => {
-                return {
-                  cardStyle: {
-                    transform: [
-                      {
-                        translateX: current.progress.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [layouts.screen.width, 0],
-                        }),
-                      },
-                    ],
-                  },
-                };
-              },
             }}
           >
             <Stack.Screen name="Login" component={LoginScreen} />

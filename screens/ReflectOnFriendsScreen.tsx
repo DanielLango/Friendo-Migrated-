@@ -60,7 +60,7 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Background with water animation and purple overlay */}
+      {/* Background with animated purple overlay */}
       <View style={styles.backgroundContainer}>
         <Animated.View 
           style={[
@@ -70,11 +70,8 @@ export default function ReflectOnFriendsScreen() {
             },
           ]}
         >
-          <Image 
-            source={require('../assets/images/ezgif.com-optimize.gif')}
-            style={styles.backgroundImage}
-            resizeMode="cover"
-          />
+          {/* Solid purple background instead of image */}
+          <View style={styles.solidBackground} />
           {/* Purple overlay to create the deep purple effect */}
           <View style={styles.purpleOverlay} />
         </Animated.View>
@@ -155,6 +152,12 @@ const styles = StyleSheet.create({
   backgroundImageContainer: {
     flex: 1,
     position: 'relative',
+  },
+  solidBackground: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    backgroundColor: '#1A0B2E',
   },
   backgroundImage: {
     width: '100%',
