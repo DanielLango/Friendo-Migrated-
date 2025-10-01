@@ -136,12 +136,12 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Troubleshooting icon in top right corner */}
+      {/* Troubleshooting text in top right corner */}
       <TouchableOpacity 
         style={styles.troubleshootIcon}
         onPress={() => setShowTroubleshooting(!showTroubleshooting)}
       >
-        <MaterialIcons name="brush" size={24} color="#666666" />
+        <Text style={styles.troubleshootText}>auth. bug help</Text>
       </TouchableOpacity>
 
       <View style={styles.content}>
@@ -230,6 +230,11 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 1,
     padding: 10,
+  },
+  troubleshootText: {
+    fontSize: 12,
+    color: '#666666',
+    fontStyle: 'italic',
   },
   content: {
     flex: 1,
