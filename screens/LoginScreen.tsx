@@ -8,7 +8,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import { useBasic } from '@basictech/expo';
+// import { useBasic } from '@basictech/expo';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
@@ -21,7 +21,15 @@ import { checkNetworkConnectivity, handleNetworkError } from '../utils/networkUt
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
-  const { login, isLoading, isSignedIn, signout } = useBasic();
+  // Temporarily mock the useBasic hook
+  const mockBasic = {
+    login: async () => { throw new Error('BasicProvider not available'); },
+    isLoading: false,
+    isSignedIn: false,
+    signout: async () => { console.log('Mock signout'); }
+  };
+  
+  const { login, isLoading, isSignedIn, signout } = mockBasic; // useBasic();
   const navigation = useNavigation<LoginScreenNavigationProp>();
   const [isClearing, setIsClearing] = React.useState(false);
   const [showTroubleshooting, setShowTroubleshooting] = React.useState(false);
@@ -113,24 +121,11 @@ export default function LoginScreen() {
     } catch (error: any) {
       console.error('Login error:', error);
       
-      const errorInfo = handleNetworkError(error);
-      
-      if (errorInfo.type === 'NETWORK_ERROR') {
-        Alert.alert(
-          'Connection Error', 
-          errorInfo.message + ' If the problem persists, try clearing your auth data using the troubleshooting icon.',
-          [{ text: 'OK' }]
-        );
-      } else if (error?.message?.includes('Failed to refresh token') ||
-                 error?.message?.includes('failed_to_get_token')) {
-        Alert.alert(
-          'Authentication Error',
-          'Your session has expired. Please clear your auth data using the troubleshooting icon and try again.',
-          [{ text: 'OK' }]
-        );
-      } else {
-        Alert.alert('Login Error', 'Failed to sign in. Please try again.');
-      }
+      Alert.alert(
+        'BasicProvider Not Available',
+        'The authentication system is temporarily unavailable. This is likely due to a configuration issue.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -157,6 +152,12 @@ export default function LoginScreen() {
             <Text style={styles.subtitle}>
               Sign in to start tracking your friendships
             </Text>
+
+            <View style={styles.debugContainer}>
+              <Text style={styles.debugText}>
+                🔧 Debug Mode: BasicProvider temporarily disabled to isolate error
+              </Text>
+            </View>
             
             <TouchableOpacity 
               style={styles.loginButton}
@@ -258,6 +259,20 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     color: '#666666',
     lineHeight: 22,
+  },
+  debugContainer: {
+    backgroundColor: '#FFF3CD',
+    borderColor: '#FFEAA7',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+  },
+  debugText: {
+    fontSize: 14,
+    color: '#856404',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   loginButton: {
     backgroundColor: '#EC4899',
