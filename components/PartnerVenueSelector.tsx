@@ -27,7 +27,7 @@ export default function PartnerVenueSelector({
           No partner venues yet in {selectedCity}
         </Text>
         <Text style={styles.noVenuesSubtext}>
-          We&apos;re working on partnerships with local {(category?.name?.toLowerCase() || 'venue') + 's'} in your area!
+          We&apos;re working on partnerships with local {category?.name ? `${category.name.toLowerCase()}s` : 'venues'} in your area!
         </Text>
         <View style={styles.genericOption}>
           <TouchableOpacity
