@@ -1,5 +1,4 @@
 import { registerRootComponent } from 'expo';
-import './utils/global-error-handler';
 
 import App from './App';
 
