@@ -27,7 +27,7 @@ export default function PartnerVenueSelector({
           No partner venues yet in {selectedCity}
         </Text>
         <Text style={styles.noVenuesSubtext}>
-          We&apos;re working on partnerships with local {category?.name ? `${category.name.toLowerCase()}s` : 'venues'} in your area!
+          {`We're working on partnerships with local ${category?.name ? `${category.name.toLowerCase()}s` : 'venues'} in your area!`}
         </Text>
         <View style={styles.genericOption}>
           <TouchableOpacity
@@ -41,7 +41,7 @@ export default function PartnerVenueSelector({
               styles.genericButtonText,
               selectedVenue === `Generic ${category?.name || 'Venue'}` && styles.genericButtonTextSelected
             ]}>
-              📍 Select &quot;{category?.name || 'Venue'}&quot; as meeting type
+              {`📍 Select "${category?.name || 'Venue'}" as meeting type`}
             </Text>
           </TouchableOpacity>
         </View>
@@ -52,7 +52,7 @@ export default function PartnerVenueSelector({
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>
-        🤝 Highlighted Advertisement Partners - {category?.name || 'Venue'}s in {selectedCity}
+        {`🤝 Highlighted Advertisement Partners - ${category?.name || 'Venue'}s in ${selectedCity}`}
       </Text>
       
       <ScrollView style={styles.venueList} nestedScrollEnabled>
@@ -151,13 +151,13 @@ export default function PartnerVenueSelector({
             styles.genericVenueText,
             selectedVenue === `Generic ${category?.name || 'Venue'}` && styles.genericVenueTextSelected
           ]}>
-            📍 Other {category?.name || 'Venue'} (Generic)
+            {`📍 Other ${category?.name || 'Venue'} (Generic)`}
           </Text>
           <Text style={[
             styles.genericVenueSubtext,
             selectedVenue === `Generic ${category?.name || 'Venue'}` && styles.genericVenueSubtextSelected
           ]}>
-            Choose your own {category?.name?.toLowerCase() || 'venue'}
+            {`Choose your own ${category?.name?.toLowerCase() || 'venue'}`}
           </Text>
         </TouchableOpacity>
       </ScrollView>

@@ -256,10 +256,10 @@ export default function MeetingCreateScreen() {
                         Highlighted Advertisement Partners
                       </Text>
                       <Text style={styles.partnershipSubtitle}>
-                        No partner venues yet in {selectedCity}
+                        {`No partner venues yet in ${selectedCity}`}
                       </Text>
                       <Text style={styles.partnershipSubtitle}>
-                        We're working on partnerships with local restaurants in your area!
+                        We&apos;re working on partnerships with local restaurants in your area!
                       </Text>
                     </View>
                   </View>
@@ -319,7 +319,7 @@ export default function MeetingCreateScreen() {
                       styles.activityConfirmText,
                       activityConfirmed && styles.activityConfirmTextActive
                     ]}>
-                      Select "{getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type
+                      {`Select "${getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type`}
                     </Text>
                   </TouchableOpacity>
                 </View>
