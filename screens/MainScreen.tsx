@@ -12,62 +12,37 @@ import { useNavigation } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import { Friend, Meeting } from '../types';
 import FriendRow from '../components/FriendRow';
-import { handleBasicTechError, clearAllAuthData } from '../utils/authUtils';
+import AuthWrapper from '../utils/authWrapper';
 
 export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [deleteMode, setDeleteMode] = useState(false);
-  const [hasAuthError, setHasAuthError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
-  const { db, signout, isSignedIn } = useBasic();
+  const { db, signout } = useBasic();
 
   useEffect(() => {
-    if (isSignedIn && db) {
-      loadData();
-    }
-  }, [db, isSignedIn]);
+    loadData();
+  }, [db]);
 
   const loadData = async () => {
+    if (!db) return;
+    
+    setIsLoading(true);
     try {
-      await Promise.all([loadFriends(), loadMeetings()]);
-      setHasAuthError(false); // Reset error state on successful load
+      const [friendsData, meetingsData] = await Promise.all([
+        db.from('friends').getAll().catch(() => []),
+        db.from('meetings').getAll().catch(() => [])
+      ]);
+      
+      setFriends((friendsData || []) as unknown as Friend[]);
+      setMeetings((meetingsData || []) as unknown as Meeting[]);
     } catch (error) {
       console.error('Error loading data:', error);
-      handleDataLoadError(error);
-    }
-  };
-
-  const handleDataLoadError = (error: any) => {
-    const errorInfo = handleBasicTechError(error);
-    
-    if (errorInfo.type === 'TOKEN_ERROR') {
-      setHasAuthError(true);
-      Alert.alert(
-        'Session Expired',
-        'Your authentication session has expired. Please clear your auth data and sign in again.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Clear Auth Data', 
-            onPress: handleClearAuthAndSignOut,
-            style: 'destructive'
-          }
-        ]
-      );
-    } else {
-      Alert.alert('Error', 'Failed to load data. Please try again.');
-    }
-  };
-
-  const handleClearAuthAndSignOut = async () => {
-    try {
-      await clearAllAuthData();
-      await signout();
-      // Navigation back to login will happen automatically via App.tsx
-    } catch (error) {
-      console.error('Error clearing auth data:', error);
-      Alert.alert('Notice', 'Please restart the app and try again.');
+      // Don't show alert here, let AuthWrapper handle auth errors
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -78,7 +53,6 @@ export default function MainScreen() {
         setFriends((friendsData || []) as unknown as Friend[]);
       } catch (error) {
         console.error('Error loading friends:', error);
-        throw error; // Re-throw to be caught by loadData
       }
     }
   };
@@ -90,7 +64,6 @@ export default function MainScreen() {
         setMeetings((meetingsData || []) as unknown as Meeting[]);
       } catch (error) {
         console.error('Error loading meetings:', error);
-        throw error; // Re-throw to be caught by loadData
       }
     }
   };
@@ -192,80 +165,59 @@ export default function MainScreen() {
     />
   );
 
-  // If there's an auth error, show error state
-  if (hasAuthError) {
-    return (
+  return (
+    <AuthWrapper>
       <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>Authentication Error</Text>
-          <Text style={styles.errorText}>
-            Your session has expired. Please clear your authentication data and sign in again.
-          </Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Friendo</Text>
+          <Text style={styles.subtitle}>Your Friends ({friends.length})</Text>
           <TouchableOpacity 
-            style={styles.clearAuthButton}
-            onPress={handleClearAuthAndSignOut}
+            style={styles.deleteButton}
+            onPress={() => setDeleteMode(!deleteMode)}
           >
-            <Text style={styles.clearAuthButtonText}>Clear Auth Data & Sign Out</Text>
+            <Text style={styles.deleteButtonText}>🗑️</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.retryButton}
-            onPress={() => {
-              setHasAuthError(false);
-              loadData();
-            }}
-          >
-            <Text style={styles.retryButtonText}>Try Again</Text>
+        </View>
+
+        {deleteMode && (
+          <View style={styles.deleteModeHeader}>
+            <Text style={styles.deleteModeText}>Tap a friend to delete them</Text>
+            <TouchableOpacity onPress={() => setDeleteMode(false)}>
+              <Text style={styles.cancelDeleteText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading your friends...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={friends}
+            renderItem={renderFriend}
+            keyExtractor={(item) => String(item.id)}
+            style={styles.friendsList}
+            contentContainerStyle={styles.friendsListContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+
+        <View style={styles.bottomNavigation}>
+          <TouchableOpacity style={styles.navButton} onPress={handleStats}>
+            <Text style={styles.navButtonText}>📊 Stats</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.navButton} onPress={handleAddMore}>
+            <Text style={styles.navButtonText}>➕ Add More</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.navButton} onPress={handleProfile}>
+            <Text style={styles.navButtonText}>👤 Profile</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Friendo</Text>
-        <Text style={styles.subtitle}>Your Friends ({friends.length})</Text>
-        <TouchableOpacity 
-          style={styles.deleteButton}
-          onPress={() => setDeleteMode(!deleteMode)}
-        >
-          <Text style={styles.deleteButtonText}>🗑️</Text>
-        </TouchableOpacity>
-      </View>
-
-      {deleteMode && (
-        <View style={styles.deleteModeHeader}>
-          <Text style={styles.deleteModeText}>Tap a friend to delete them</Text>
-          <TouchableOpacity onPress={() => setDeleteMode(false)}>
-            <Text style={styles.cancelDeleteText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <FlatList
-        data={friends}
-        renderItem={renderFriend}
-        keyExtractor={(item) => String(item.id)}
-        style={styles.friendsList}
-        contentContainerStyle={styles.friendsListContent}
-        showsVerticalScrollIndicator={false}
-      />
-
-      <View style={styles.bottomNavigation}>
-        <TouchableOpacity style={styles.navButton} onPress={handleStats}>
-          <Text style={styles.navButtonText}>📊 Stats</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navButton} onPress={handleAddMore}>
-          <Text style={styles.navButtonText}>➕ Add More</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navButton} onPress={handleProfile}>
-          <Text style={styles.navButtonText}>👤 Profile</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    </AuthWrapper>
   );
 }
 
@@ -274,48 +226,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-  errorContainer: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 30,
   },
-  errorTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FF6B6B',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  errorText: {
+  loadingText: {
     fontSize: 16,
     color: '#666666',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 30,
-  },
-  clearAuthButton: {
-    backgroundColor: '#FF6B6B',
-    borderRadius: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    marginBottom: 15,
-  },
-  clearAuthButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  retryButton: {
-    backgroundColor: '#8000FF',
-    borderRadius: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   header: {
     paddingHorizontal: 20,

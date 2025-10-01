@@ -21,6 +21,7 @@ import VenueCategorySelector from '../components/VenueCategorySelector';
 import PartnerVenueSelector from '../components/PartnerVenueSelector';
 import { getVenueCategory } from '../utils/venueTypes';
 import { notificationService } from '../utils/notificationService';
+import AuthWrapper from '../utils/authWrapper';
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -189,287 +190,289 @@ export default function MeetingCreateScreen() {
   const selectedCategoryData = getVenueCategory(selectedCategory);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Schedule with {friend?.name}</Text>
-        <View style={styles.placeholder} />
-      </View>
-
-      <ScrollView style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📅 Select Date</Text>
-          <TouchableOpacity
-            style={styles.dateSelector}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={styles.dateSelectorText}>
-              {selectedDate.toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                month: 'short', 
-                day: 'numeric',
-                year: 'numeric'
-              })}
-            </Text>
-            <Text style={styles.dropdownIcon}>📅</Text>
+    <AuthWrapper>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backButton}>← Back</Text>
           </TouchableOpacity>
-          
-          {showDatePicker && (
-            <DateTimePicker
-              value={selectedDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={handleDateChange}
-              minimumDate={new Date()}
-            />
-          )}
+          <Text style={styles.title}>Schedule with {friend?.name}</Text>
+          <View style={styles.placeholder} />
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📍 Select City</Text>
-          <SimpleCitySelector
-            selectedCity={selectedCity}
-            onCitySelect={handleCitySelect}
-            placeholder="Choose a city..."
-          />
-        </View>
-
-        {selectedCity && (
+        <ScrollView style={styles.content}>
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🎯 Type of Activity</Text>
-            <VenueCategorySelector
-              selectedCategory={selectedCategory}
-              onCategorySelect={handleCategorySelect}
-              selectedCity={selectedCity}
-            />
-            
-            {selectedCategory && (
-              <View style={styles.partnershipSection}>
-                <View style={styles.partnershipHeader}>
-                  <Text style={styles.partnershipIcon}>🏪</Text>
-                  <View style={styles.partnershipHeaderText}>
-                    <Text style={styles.partnershipTitle}>
-                      Highlighted Advertisement Partners
-                    </Text>
-                    <Text style={styles.partnershipSubtitle}>
-                      No partner venues yet in {selectedCity}
-                    </Text>
-                    <Text style={styles.partnershipSubtitle}>
-                      We're working on partnerships with local restaurants in your area!
-                    </Text>
-                  </View>
-                </View>
-                
-                <View style={styles.partnershipBoxes}>
-                  <View style={styles.partnershipBox}>
-                    <Text style={styles.partnershipBoxTitle}>Want to be featured on this list?</Text>
-                    <Text style={styles.partnershipBoxText}>
-                      Submit your venue here — get your business on our upcoming list of top 5 spots locals are recommended to in each city.
-                    </Text>
-                    <TouchableOpacity 
-                      style={styles.partnershipButton}
-                      onPress={() => {
-                        const url = 'https://www.ambrozitestudios.com/contact-4';
-                        Linking.openURL(url).catch(err => {
-                          console.error('Failed to open URL:', err);
-                          Alert.alert('Error', 'Could not open the link');
-                        });
-                      }}
-                    >
-                      <Text style={styles.partnershipButtonText}>Apply here</Text>
-                    </TouchableOpacity>
-                  </View>
-                  
-                  <View style={styles.partnershipBox}>
-                    <Text style={styles.partnershipBoxTitle}>Want to help promote great local spots?</Text>
-                    <Text style={styles.partnershipBoxText}>
-                      Join our soon-starting affiliate program and earn small commissions by helping great venues get discovered.
-                    </Text>
-                    <TouchableOpacity 
-                      style={styles.partnershipButton}
-                      onPress={() => {
-                        const url = 'https://www.ambrozitestudios.com/contact-4';
-                        Linking.openURL(url).catch(err => {
-                          console.error('Failed to open URL:', err);
-                          Alert.alert('Error', 'Could not open the link');
-                        });
-                      }}
-                    >
-                      <Text style={styles.partnershipButtonText}>Apply here</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                
-                <TouchableOpacity 
-                  style={[
-                    styles.activityConfirmButton,
-                    activityConfirmed && styles.activityConfirmButtonActive
-                  ]}
-                  onPress={() => setActivityConfirmed(!activityConfirmed)}
-                >
-                  <Text style={[
-                    styles.activityConfirmIcon,
-                    activityConfirmed && styles.activityConfirmIconActive
-                  ]}>📍</Text>
-                  <Text style={[
-                    styles.activityConfirmText,
-                    activityConfirmed && styles.activityConfirmTextActive
-                  ]}>
-                    Select "{getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        )}
-
-        {selectedCategoryData && selectedCategory === 'park' && (
-          <View style={styles.section}>
-            <View style={styles.parkInfo}>
-              <Text style={styles.parkInfoIcon}>🌳</Text>
-              <View style={styles.parkInfoText}>
-                <Text style={styles.parkInfoTitle}>Park Activity Selected</Text>
-                <Text style={styles.parkInfoSubtext}>
-                  Perfect for outdoor meetups! You can choose the specific park when you meet.
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📅 Calendar Option</Text>
-          
-          <TouchableOpacity
-            style={[styles.calendarButton, addToCalendar && styles.calendarButtonActive]}
-            onPress={() => setAddToCalendar(!addToCalendar)}
-          >
-            <View style={[styles.checkbox, addToCalendar && styles.checkboxChecked]}>
-              {addToCalendar && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <View style={styles.calendarContent}>
-              <Text style={styles.calendarLabel}>📱 Add to Calendar</Text>
-              <Text style={styles.calendarSubtext}>Get instructions for adding this to your phone's calendar</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📝 Additional Details</Text>
-          <View style={styles.notesHints}>
-            <Text style={styles.notesHint}>
-              • Click outside the box once filled
-            </Text>
-            <Text style={styles.notesHint}>
-              • Add any details about the meeting
-            </Text>
-          </View>
-          <TextInput
-            style={styles.notesInput}
-            value={meetingNotes}
-            onChangeText={setMeetingNotes}
-            placeholder="Add any details about the meeting... (e.g., 'Looking forward to catching up!' or 'Let's discuss the project')"
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <TouchableOpacity 
-          style={[styles.createButton, isCreating && styles.createButtonDisabled]} 
-          onPress={handleCreateMeeting}
-          disabled={isCreating}
-        >
-          <Text style={styles.createButtonText}>
-            {isCreating ? 'Creating Meetup...' : 'Schedule Meetup'}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-
-      {/* Calendar Instructions Modal */}
-      <Modal
-        visible={showInstructions}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => {
-          setShowInstructions(false);
-          navigation.goBack();
-        }}
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>What to do now?</Text>
-            <TouchableOpacity 
-              onPress={() => {
-                setShowInstructions(false);
-                navigation.goBack();
-              }}
-              style={styles.modalCloseButton}
+            <Text style={styles.sectionTitle}>📅 Select Date</Text>
+            <TouchableOpacity
+              style={styles.dateSelector}
+              onPress={() => setShowDatePicker(true)}
             >
-              <Text style={styles.modalCloseText}>Done</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={styles.modalContent}>
-            <View style={styles.instructionSection}>
-              <Text style={styles.instructionTitle}>📱 Calendar Instructions</Text>
-              <Text style={styles.instructionSubtitle}>
-                (In case you selected a calendar option)
-              </Text>
-            </View>
-
-            <View style={styles.instructionStep}>
-              <Text style={styles.stepNumber}>1.</Text>
-              <Text style={styles.stepText}>
-                After you clicked on 'Schedule Meetup', go into your smartphone's default calendar app and navigate to the day you have chosen for the meet-up.
-              </Text>
-            </View>
-
-            <View style={styles.instructionStep}>
-              <Text style={styles.stepNumber}>2.</Text>
-              <Text style={styles.stepText}>
-                Edit the time of the event in the calendar as you wish
-              </Text>
-            </View>
-
-            <View style={styles.instructionStep}>
-              <Text style={styles.stepNumber}>3.</Text>
-              <Text style={styles.stepText}>
-                Under invitee you can add an email, if you want. Your default calendar app will send the invitation to this email.
-              </Text>
-            </View>
-
-            <View style={styles.meetingDetails}>
-              <Text style={styles.detailsTitle}>📋 Meeting Details</Text>
-              <Text style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Friend:</Text> {friend.name}
-              </Text>
-              <Text style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Date:</Text> {selectedDate.toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  month: 'long', 
+              <Text style={styles.dateSelectorText}>
+                {selectedDate.toLocaleDateString('en-US', { 
+                  weekday: 'short', 
+                  month: 'short', 
                   day: 'numeric',
                   year: 'numeric'
                 })}
               </Text>
-              <Text style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Activity:</Text> {getVenueCategory(selectedCategory)?.name || selectedCategory}
-              </Text>
-              <Text style={styles.detailItem}>
-                <Text style={styles.detailLabel}>City:</Text> {selectedCity}
-              </Text>
-              {meetingNotes && (
-                <Text style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Notes:</Text> {meetingNotes}
-                </Text>
+              <Text style={styles.dropdownIcon}>📅</Text>
+            </TouchableOpacity>
+            
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleDateChange}
+                minimumDate={new Date()}
+              />
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📍 Select City</Text>
+            <SimpleCitySelector
+              selectedCity={selectedCity}
+              onCitySelect={handleCitySelect}
+              placeholder="Choose a city..."
+            />
+          </View>
+
+          {selectedCity && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>🎯 Type of Activity</Text>
+              <VenueCategorySelector
+                selectedCategory={selectedCategory}
+                onCategorySelect={handleCategorySelect}
+                selectedCity={selectedCity}
+              />
+              
+              {selectedCategory && (
+                <View style={styles.partnershipSection}>
+                  <View style={styles.partnershipHeader}>
+                    <Text style={styles.partnershipIcon}>🏪</Text>
+                    <View style={styles.partnershipHeaderText}>
+                      <Text style={styles.partnershipTitle}>
+                        Highlighted Advertisement Partners
+                      </Text>
+                      <Text style={styles.partnershipSubtitle}>
+                        No partner venues yet in {selectedCity}
+                      </Text>
+                      <Text style={styles.partnershipSubtitle}>
+                        We're working on partnerships with local restaurants in your area!
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.partnershipBoxes}>
+                    <View style={styles.partnershipBox}>
+                      <Text style={styles.partnershipBoxTitle}>Want to be featured on this list?</Text>
+                      <Text style={styles.partnershipBoxText}>
+                        Submit your venue here — get your business on our upcoming list of top 5 spots locals are recommended to in each city.
+                      </Text>
+                      <TouchableOpacity 
+                        style={styles.partnershipButton}
+                        onPress={() => {
+                          const url = 'https://www.ambrozitestudios.com/contact-4';
+                          Linking.openURL(url).catch(err => {
+                            console.error('Failed to open URL:', err);
+                            Alert.alert('Error', 'Could not open the link');
+                          });
+                        }}
+                      >
+                        <Text style={styles.partnershipButtonText}>Apply here</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    <View style={styles.partnershipBox}>
+                      <Text style={styles.partnershipBoxTitle}>Want to help promote great local spots?</Text>
+                      <Text style={styles.partnershipBoxText}>
+                        Join our soon-starting affiliate program and earn small commissions by helping great venues get discovered.
+                      </Text>
+                      <TouchableOpacity 
+                        style={styles.partnershipButton}
+                        onPress={() => {
+                          const url = 'https://www.ambrozitestudios.com/contact-4';
+                          Linking.openURL(url).catch(err => {
+                            console.error('Failed to open URL:', err);
+                            Alert.alert('Error', 'Could not open the link');
+                          });
+                        }}
+                      >
+                        <Text style={styles.partnershipButtonText}>Apply here</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  
+                  <TouchableOpacity 
+                    style={[
+                      styles.activityConfirmButton,
+                      activityConfirmed && styles.activityConfirmButtonActive
+                    ]}
+                    onPress={() => setActivityConfirmed(!activityConfirmed)}
+                  >
+                    <Text style={[
+                      styles.activityConfirmIcon,
+                      activityConfirmed && styles.activityConfirmIconActive
+                    ]}>📍</Text>
+                    <Text style={[
+                      styles.activityConfirmText,
+                      activityConfirmed && styles.activityConfirmTextActive
+                    ]}>
+                      Select "{getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
-    </SafeAreaView>
+          )}
+
+          {selectedCategoryData && selectedCategory === 'park' && (
+            <View style={styles.section}>
+              <View style={styles.parkInfo}>
+                <Text style={styles.parkInfoIcon}>🌳</Text>
+                <View style={styles.parkInfoText}>
+                  <Text style={styles.parkInfoTitle}>Park Activity Selected</Text>
+                  <Text style={styles.parkInfoSubtext}>
+                    Perfect for outdoor meetups! You can choose the specific park when you meet.
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📅 Calendar Option</Text>
+            
+            <TouchableOpacity
+              style={[styles.calendarButton, addToCalendar && styles.calendarButtonActive]}
+              onPress={() => setAddToCalendar(!addToCalendar)}
+            >
+              <View style={[styles.checkbox, addToCalendar && styles.checkboxChecked]}>
+                {addToCalendar && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+              <View style={styles.calendarContent}>
+                <Text style={styles.calendarLabel}>📱 Add to Calendar</Text>
+                <Text style={styles.calendarSubtext}>Get instructions for adding this to your phone's calendar</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📝 Additional Details</Text>
+            <View style={styles.notesHints}>
+              <Text style={styles.notesHint}>
+                • Click outside the box once filled
+              </Text>
+              <Text style={styles.notesHint}>
+                • Add any details about the meeting
+              </Text>
+            </View>
+            <TextInput
+              style={styles.notesInput}
+              value={meetingNotes}
+              onChangeText={setMeetingNotes}
+              placeholder="Add any details about the meeting... (e.g., 'Looking forward to catching up!' or 'Let's discuss the project')"
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+          </View>
+
+          <TouchableOpacity 
+            style={[styles.createButton, isCreating && styles.createButtonDisabled]} 
+            onPress={handleCreateMeeting}
+            disabled={isCreating}
+          >
+            <Text style={styles.createButtonText}>
+              {isCreating ? 'Creating Meetup...' : 'Schedule Meetup'}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        {/* Calendar Instructions Modal */}
+        <Modal
+          visible={showInstructions}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => {
+            setShowInstructions(false);
+            navigation.goBack();
+          }}
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>What to do now?</Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  setShowInstructions(false);
+                  navigation.goBack();
+                }}
+                style={styles.modalCloseButton}
+              >
+                <Text style={styles.modalCloseText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalContent}>
+              <View style={styles.instructionSection}>
+                <Text style={styles.instructionTitle}>📱 Calendar Instructions</Text>
+                <Text style={styles.instructionSubtitle}>
+                  (In case you selected a calendar option)
+                </Text>
+              </View>
+
+              <View style={styles.instructionStep}>
+                <Text style={styles.stepNumber}>1.</Text>
+                <Text style={styles.stepText}>
+                  After you clicked on 'Schedule Meetup', go into your smartphone's default calendar app and navigate to the day you have chosen for the meet-up.
+                </Text>
+              </View>
+
+              <View style={styles.instructionStep}>
+                <Text style={styles.stepNumber}>2.</Text>
+                <Text style={styles.stepText}>
+                  Edit the time of the event in the calendar as you wish
+                </Text>
+              </View>
+
+              <View style={styles.instructionStep}>
+                <Text style={styles.stepNumber}>3.</Text>
+                <Text style={styles.stepText}>
+                  Under invitee you can add an email, if you want. Your default calendar app will send the invitation to this email.
+                </Text>
+              </View>
+
+              <View style={styles.meetingDetails}>
+                <Text style={styles.detailsTitle}>📋 Meeting Details</Text>
+                <Text style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Friend:</Text> {friend.name}
+                </Text>
+                <Text style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Date:</Text> {selectedDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    month: 'long', 
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </Text>
+                <Text style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Activity:</Text> {getVenueCategory(selectedCategory)?.name || selectedCategory}
+                </Text>
+                <Text style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>City:</Text> {selectedCity}
+                </Text>
+                {meetingNotes && (
+                  <Text style={styles.detailItem}>
+                    <Text style={styles.detailLabel}>Notes:</Text> {meetingNotes}
+                  </Text>
+                )}
+              </View>
+            </ScrollView>
+          </SafeAreaView>
+        </Modal>
+      </SafeAreaView>
+    </AuthWrapper>
   );
 }
 
