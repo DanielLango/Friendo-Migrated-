@@ -14,12 +14,14 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import FriendoLogo from '../components/FriendoLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
   const { login, isLoading, isSignedIn, signout } = useBasic();
   const navigation = useNavigation<LoginScreenNavigationProp>();
+  const [isClearing, setIsClearing] = React.useState(false);
 
   React.useEffect(() => {
     // Clear any problematic auth data on mount to prevent token refresh errors
@@ -35,6 +37,40 @@ export default function LoginScreen() {
     
     clearAuthData();
   }, []);
+
+  const clearAllAuthData = async () => {
+    setIsClearing(true);
+    try {
+      // Clear AsyncStorage auth data
+      await AsyncStorage.multiRemove([
+        'basic_auth_token',
+        'basic_refresh_token', 
+        'basic_user_data',
+        'basic_session',
+        'skipReflectionScreen'
+      ]);
+      
+      // Clear SecureStore auth data
+      try {
+        await SecureStore.deleteItemAsync('basic_auth_token');
+        await SecureStore.deleteItemAsync('basic_refresh_token');
+        await SecureStore.deleteItemAsync('basic_user_data');
+        await SecureStore.deleteItemAsync('basic_session');
+      } catch (secureError) {
+        console.log('SecureStore clear completed');
+      }
+      
+      // Force signout to clear any remaining state
+      await signout();
+      
+      Alert.alert('Success', 'All authentication data cleared. You can now try logging in again.');
+    } catch (error) {
+      console.error('Error clearing auth data:', error);
+      Alert.alert('Notice', 'Auth data clearing completed. Please try logging in again.');
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
   React.useEffect(() => {
     const checkSkipReflection = async () => {
@@ -86,6 +122,17 @@ export default function LoginScreen() {
         >
           <Text style={styles.loginButtonText}>
             {isLoading ? 'SIGNING IN...' : 'Sign in with basic.id'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Clear Auth Data Button */}
+        <TouchableOpacity 
+          style={styles.clearButton}
+          onPress={clearAllAuthData}
+          disabled={isClearing || isLoading}
+        >
+          <Text style={styles.clearButtonText}>
+            {isClearing ? 'CLEARING...' : 'Clear Auth Data & Retry'}
           </Text>
         </TouchableOpacity>
 
@@ -145,6 +192,19 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  clearButton: {
+    backgroundColor: '#FF6B6B',
+    borderRadius: 8,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 30,
+  },
+  clearButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: 'bold',
   },
   footerText: {
