@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
-import BasicTechInterceptor from './utils/basicTechInterceptor';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import LoginScreen from './screens/LoginScreen';
 import ReflectOnFriendsScreen from './screens/ReflectOnFriendsScreen';
@@ -34,9 +34,9 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <BasicProvider project_id={schema.project_id} schema={schema}>
-        <BasicTechInterceptor>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <BasicProvider project_id={schema.project_id} schema={schema}>
           <NavigationContainer>
             <Stack.Navigator initialRouteName="Login">
               <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
@@ -51,8 +51,8 @@ export default function App() {
               <Stack.Screen name="AddFriends" component={AddFriendsScreen} options={{ headerShown: false }} />
             </Stack.Navigator>
           </NavigationContainer>
-        </BasicTechInterceptor>
-      </BasicProvider>
-    </SafeAreaProvider>
+        </BasicProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
