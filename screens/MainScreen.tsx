@@ -12,13 +12,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import { Friend, Meeting } from '../types';
 import FriendRow from '../components/FriendRow';
-import AuthWrapper from '../utils/authWrapper';
+import { createSafeDbWrapper } from '../utils/safeDbWrapper';
 
 export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [deleteMode, setDeleteMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasAuthError, setHasAuthError] = useState(false);
   const navigation = useNavigation();
   const { db, signout } = useBasic();
 
@@ -30,41 +31,60 @@ export default function MainScreen() {
     if (!db) return;
     
     setIsLoading(true);
+    setHasAuthError(false);
+    
+    const safeDb = createSafeDbWrapper(db, () => setHasAuthError(true));
+    
     try {
-      const [friendsData, meetingsData] = await Promise.all([
-        db.from('friends').getAll().catch(() => []),
-        db.from('meetings').getAll().catch(() => [])
+      const [friendsResult, meetingsResult] = await Promise.all([
+        safeDb.safeGetAll<Friend>('friends'),
+        safeDb.safeGetAll<Meeting>('meetings')
       ]);
       
-      setFriends((friendsData || []) as unknown as Friend[]);
-      setMeetings((meetingsData || []) as unknown as Meeting[]);
+      if (friendsResult.shouldSignOut || meetingsResult.shouldSignOut) {
+        setHasAuthError(true);
+        return;
+      }
+      
+      setFriends(friendsResult.data || []);
+      setMeetings(meetingsResult.data || []);
     } catch (error) {
       console.error('Error loading data:', error);
-      // Don't show alert here, let AuthWrapper handle auth errors
+      // Don't show alert here, let the error handling take care of it
     } finally {
       setIsLoading(false);
     }
   };
 
   const loadFriends = async () => {
-    if (db) {
-      try {
-        const friendsData = await db.from('friends').getAll();
-        setFriends((friendsData || []) as unknown as Friend[]);
-      } catch (error) {
-        console.error('Error loading friends:', error);
-      }
+    if (!db) return;
+    
+    const safeDb = createSafeDbWrapper(db, () => setHasAuthError(true));
+    const result = await safeDb.safeGetAll<Friend>('friends');
+    
+    if (result.shouldSignOut) {
+      setHasAuthError(true);
+      return;
+    }
+    
+    if (result.success) {
+      setFriends(result.data || []);
     }
   };
 
   const loadMeetings = async () => {
-    if (db) {
-      try {
-        const meetingsData = await db.from('meetings').getAll();
-        setMeetings((meetingsData || []) as unknown as Meeting[]);
-      } catch (error) {
-        console.error('Error loading meetings:', error);
-      }
+    if (!db) return;
+    
+    const safeDb = createSafeDbWrapper(db, () => setHasAuthError(true));
+    const result = await safeDb.safeGetAll<Meeting>('meetings');
+    
+    if (result.shouldSignOut) {
+      setHasAuthError(true);
+      return;
+    }
+    
+    if (result.success) {
+      setMeetings(result.data || []);
     }
   };
 
@@ -78,34 +98,55 @@ export default function MainScreen() {
           text: 'Delete', 
           style: 'destructive',
           onPress: async () => {
+            if (!db) return;
+            
+            const safeDb = createSafeDbWrapper(db, () => setHasAuthError(true));
+            
             try {
-              if (db) {
-                // Delete all meetings for this friend
-                const friendMeetings = meetings.filter(meeting => String(meeting.friendId) === String(friend.id));
-                for (const meeting of friendMeetings) {
-                  await db.from('meetings').delete(String(meeting.id));
+              // Delete all meetings for this friend
+              const friendMeetings = meetings.filter(meeting => String(meeting.friendId) === String(friend.id));
+              for (const meeting of friendMeetings) {
+                const deleteResult = await safeDb.safeDelete('meetings', String(meeting.id));
+                if (deleteResult.shouldSignOut) {
+                  setHasAuthError(true);
+                  return;
                 }
-                
-                // Delete all friendship memos for this friend
-                try {
-                  const friendshipMemos = await db.from('friendshipMemos').getAll();
-                  const friendMemos = (friendshipMemos || []).filter((memo: any) => String(memo.friendId) === String(friend.id));
-                  for (const memo of friendMemos) {
-                    await db.from('friendshipMemos').delete(String(memo.id));
+              }
+              
+              // Delete all friendship memos for this friend
+              const memosResult = await safeDb.safeGetAll('friendshipMemos');
+              if (memosResult.shouldSignOut) {
+                setHasAuthError(true);
+                return;
+              }
+              
+              if (memosResult.success && memosResult.data) {
+                const friendMemos = (memosResult.data as any[]).filter((memo: any) => String(memo.friendId) === String(friend.id));
+                for (const memo of friendMemos) {
+                  const deleteMemoResult = await safeDb.safeDelete('friendshipMemos', String(memo.id));
+                  if (deleteMemoResult.shouldSignOut) {
+                    setHasAuthError(true);
+                    return;
                   }
-                } catch (error) {
-                  console.log('No friendship memos to delete or error:', error);
                 }
-                
-                // Delete the friend
-                await db.from('friends').delete(String(friend.id));
-                
+              }
+              
+              // Delete the friend
+              const deleteFriendResult = await safeDb.safeDelete('friends', String(friend.id));
+              if (deleteFriendResult.shouldSignOut) {
+                setHasAuthError(true);
+                return;
+              }
+              
+              if (deleteFriendResult.success) {
                 // Reload data
                 await loadFriends();
                 await loadMeetings();
                 
                 setDeleteMode(false);
                 Alert.alert('Success', `${friend.name} has been deleted.`);
+              } else {
+                Alert.alert('Error', deleteFriendResult.error || 'Failed to delete friend');
               }
             } catch (error) {
               console.error('Error deleting friend:', error);
@@ -165,59 +206,73 @@ export default function MainScreen() {
     />
   );
 
-  return (
-    <AuthWrapper>
+  // Show auth error screen if needed
+  if (hasAuthError) {
+    return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Friendo</Text>
-          <Text style={styles.subtitle}>Your Friends ({friends.length})</Text>
-          <TouchableOpacity 
-            style={styles.deleteButton}
-            onPress={() => setDeleteMode(!deleteMode)}
-          >
-            <Text style={styles.deleteButtonText}>🗑️</Text>
-          </TouchableOpacity>
-        </View>
-
-        {deleteMode && (
-          <View style={styles.deleteModeHeader}>
-            <Text style={styles.deleteModeText}>Tap a friend to delete them</Text>
-            <TouchableOpacity onPress={() => setDeleteMode(false)}>
-              <Text style={styles.cancelDeleteText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading your friends...</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={friends}
-            renderItem={renderFriend}
-            keyExtractor={(item) => String(item.id)}
-            style={styles.friendsList}
-            contentContainerStyle={styles.friendsListContent}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-
-        <View style={styles.bottomNavigation}>
-          <TouchableOpacity style={styles.navButton} onPress={handleStats}>
-            <Text style={styles.navButtonText}>📊 Stats</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.navButton} onPress={handleAddMore}>
-            <Text style={styles.navButtonText}>➕ Add More</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.navButton} onPress={handleProfile}>
-            <Text style={styles.navButtonText}>👤 Profile</Text>
-          </TouchableOpacity>
+        <View style={[styles.loadingContainer, { backgroundColor: '#FFF3CD' }]}>
+          <Text style={[styles.loadingText, { color: '#856404', fontSize: 18, fontWeight: 'bold' }]}>
+            🔐 Authentication Error
+          </Text>
+          <Text style={[styles.loadingText, { color: '#856404', marginTop: 10 }]}>
+            Your session has expired. The app will handle this automatically.
+          </Text>
         </View>
       </SafeAreaView>
-    </AuthWrapper>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Friendo</Text>
+        <Text style={styles.subtitle}>Your Friends ({friends.length})</Text>
+        <TouchableOpacity 
+          style={styles.deleteButton}
+          onPress={() => setDeleteMode(!deleteMode)}
+        >
+          <Text style={styles.deleteButtonText}>🗑️</Text>
+        </TouchableOpacity>
+      </View>
+
+      {deleteMode && (
+        <View style={styles.deleteModeHeader}>
+          <Text style={styles.deleteModeText}>Tap a friend to delete them</Text>
+          <TouchableOpacity onPress={() => setDeleteMode(false)}>
+            <Text style={styles.cancelDeleteText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading your friends...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={friends}
+          renderItem={renderFriend}
+          keyExtractor={(item) => String(item.id)}
+          style={styles.friendsList}
+          contentContainerStyle={styles.friendsListContent}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+
+      <View style={styles.bottomNavigation}>
+        <TouchableOpacity style={styles.navButton} onPress={handleStats}>
+          <Text style={styles.navButtonText}>📊 Stats</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.navButton} onPress={handleAddMore}>
+          <Text style={styles.navButtonText}>➕ Add More</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.navButton} onPress={handleProfile}>
+          <Text style={styles.navButtonText}>👤 Profile</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 

@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
 import { Alert } from 'react-native';
+import BasicTechInterceptor from './utils/basicTechInterceptor';
 
 // Import all screens
 import LoginScreen from './screens/LoginScreen';
@@ -45,6 +46,12 @@ class ErrorBoundary extends React.Component<
   }
 
   static getDerivedStateFromError(error: Error) {
+    // Don't catch BasicTech errors here - let the interceptor handle them
+    if (error?.message?.includes('Failed to refresh token') ||
+        error?.message?.includes('failed_to_get_token') ||
+        error?.message?.includes('Bad Request')) {
+      return { hasError: false }; // Let the interceptor handle it
+    }
     return { hasError: true, error };
   }
 
@@ -52,19 +59,13 @@ class ErrorBoundary extends React.Component<
     console.error('App Error Boundary caught error:', error);
     console.error('Error Info:', errorInfo);
     
-    // Check if it's a BasicTech authentication error
-    if (error?.message?.includes('Failed to refresh token') ||
-        error?.message?.includes('failed_to_get_token') ||
-        error?.message?.includes('Bad Request')) {
-      Alert.alert(
-        'Authentication Error',
-        'Your session has expired. Please restart the app and clear your authentication data using the troubleshooting option on the login screen.',
-        [{ text: 'OK' }]
-      );
-    } else {
+    // Only handle non-BasicTech errors
+    if (!error?.message?.includes('Failed to refresh token') &&
+        !error?.message?.includes('failed_to_get_token') &&
+        !error?.message?.includes('Bad Request')) {
       Alert.alert(
         'App Error',
-        'Something went wrong. Please restart the app or clear your authentication data if the problem persists.',
+        'Something went wrong. Please restart the app.',
         [{ text: 'OK' }]
       );
     }
@@ -87,26 +88,28 @@ export default function App() {
           project_id={schema.project_id} 
           schema={schema}
         >
-          <NavigationContainer>
-            <Stack.Navigator 
-              initialRouteName="Login"
-              screenOptions={{
-                headerShown: false,
-                gestureEnabled: true,
-              }}
-            >
-              <Stack.Screen name="Login" component={LoginScreen} />
-              <Stack.Screen name="ReflectOnFriends" component={ReflectOnFriendsScreen} />
-              <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-              <Stack.Screen name="Sync" component={SyncScreen} />
-              <Stack.Screen name="ContactSelect" component={ContactSelectScreen} />
-              <Stack.Screen name="ManualAdd" component={ManualAddScreen} />
-              <Stack.Screen name="Main" component={MainScreen} />
-              <Stack.Screen name="Stats" component={StatsScreen} />
-              <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
-              <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
+          <BasicTechInterceptor>
+            <NavigationContainer>
+              <Stack.Navigator 
+                initialRouteName="Login"
+                screenOptions={{
+                  headerShown: false,
+                  gestureEnabled: true,
+                }}
+              >
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="ReflectOnFriends" component={ReflectOnFriendsScreen} />
+                <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+                <Stack.Screen name="Sync" component={SyncScreen} />
+                <Stack.Screen name="ContactSelect" component={ContactSelectScreen} />
+                <Stack.Screen name="ManualAdd" component={ManualAddScreen} />
+                <Stack.Screen name="Main" component={MainScreen} />
+                <Stack.Screen name="Stats" component={StatsScreen} />
+                <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
+                <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </BasicTechInterceptor>
         </BasicProvider>
       </SafeAreaProvider>
     </ErrorBoundary>
