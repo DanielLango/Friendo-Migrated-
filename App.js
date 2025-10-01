@@ -2,12 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 export default function App() {
-  console.log('App component is rendering...');
-  
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Friendo App is Loading!</Text>
-      <Text style={styles.subtext}>Basic setup working</Text>
+      <Text style={styles.text}>Hello Friendo!</Text>
+      <Text style={styles.subtext}>Minimal test version</Text>
     </View>
   );
 }
@@ -17,7 +15,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#ffffff',
   },
   text: {
     fontSize: 24,
