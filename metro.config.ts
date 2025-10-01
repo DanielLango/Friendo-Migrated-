@@ -2,13 +2,14 @@ import { getDefaultConfig } from '@expo/metro-config';
 
 const config = getDefaultConfig(__dirname);
 
-// Add web-specific resolver configuration
+// Web-specific resolver configuration
 config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 
-// Add alias for problematic web modules
+// Add resolver alias for web platform
 config.resolver.alias = {
   ...(config.resolver.alias || {}),
-  'react-native-web/dist/exports/NativeEventEmitter': 'react-native-web/dist/exports/DeviceEventEmitter',
+  // Mock NativeEventEmitter for web
+  'react-native-web/dist/exports/NativeEventEmitter': require.resolve('./web-polyfills/NativeEventEmitter.web.js'),
 };
 
 // Ensure proper source extensions
