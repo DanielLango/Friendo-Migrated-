@@ -14,21 +14,20 @@ export default function AuthWrapper({ children, fallback }: AuthWrapperProps) {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    // Listen for unhandled promise rejections that might be auth-related
-    const handleUnhandledRejection = (event: any) => {
-      const error = event.reason || event.detail?.reason;
-      if (error?.message?.includes('Failed to refresh token') ||
-          error?.message?.includes('failed_to_get_token') ||
-          error?.message?.includes('Bad Request')) {
-        
-        console.error('Auth error caught by wrapper:', error);
-        setHasAuthError(true);
-        setErrorMessage('Your session has expired. Please clear your auth data and sign in again.');
-      }
-    };
+    // Only add web event listeners if we're on web
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      const handleUnhandledRejection = (event: any) => {
+        const error = event.reason || event.detail?.reason;
+        if (error?.message?.includes('Failed to refresh token') ||
+            error?.message?.includes('failed_to_get_token') ||
+            error?.message?.includes('Bad Request')) {
+          
+          console.error('Auth error caught by wrapper:', error);
+          setHasAuthError(true);
+          setErrorMessage('Your session has expired. Please clear your auth data and sign in again.');
+        }
+      };
 
-    // Add event listeners for unhandled promise rejections
-    if (typeof window !== 'undefined') {
       window.addEventListener('unhandledrejection', handleUnhandledRejection);
       return () => {
         window.removeEventListener('unhandledrejection', handleUnhandledRejection);
