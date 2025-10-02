@@ -9,23 +9,14 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import { Friend } from '../types';
-import CitySelector from '../components/CitySelector';
-import { sendCalendarInvite, sendEmailInvite } from '../utils/emailUtils';
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedCity, setSelectedCity] = useState('');
   const [meetingNotes, setMeetingNotes] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  const [syncToGoogleCalendar, setSyncToGoogleCalendar] = useState(false);
-  const [syncToOutlook, setSyncToOutlook] = useState(false);
-  const [syncToAppleCalendar, setSyncToAppleCalendar] = useState(false);
-  const [sendEmail, setSendEmail] = useState(false);
   
   const navigation = useNavigation();
   const route = useRoute();
@@ -52,13 +43,6 @@ export default function MeetingCreateScreen() {
     );
   }
 
-  const handleDateChange = (event: any, date?: Date) => {
-    setShowDatePicker(false);
-    if (date) {
-      setSelectedDate(date);
-    }
-  };
-
   const handleCreateMeeting = async () => {
     setIsCreating(true);
 
@@ -74,7 +58,7 @@ export default function MeetingCreateScreen() {
         date: selectedDate.toISOString(),
         activity: 'General meetup',
         venue: 'To be decided',
-        city: selectedCity || 'To be decided',
+        city: 'To be decided',
         notes: meetingNotes || '',
         createdAt: Date.now(),
       };
@@ -84,39 +68,6 @@ export default function MeetingCreateScreen() {
       const newMeeting = await db.from('meetings').add(meetingData);
       console.log('Meeting created successfully:', newMeeting);
 
-      // Handle calendar syncing
-      if (syncToGoogleCalendar || syncToOutlook || syncToAppleCalendar) {
-        try {
-          await sendCalendarInvite({
-            friendName: friend.name,
-            friendEmail: friend.email || '',
-            date: selectedDate,
-            city: selectedCity,
-            notes: meetingNotes,
-            syncToGoogle: syncToGoogleCalendar,
-            syncToOutlook: syncToOutlook,
-            syncToApple: syncToAppleCalendar,
-          });
-        } catch (error) {
-          console.error('Error syncing to calendar:', error);
-        }
-      }
-
-      // Handle email invitation
-      if (sendEmail && friend.email) {
-        try {
-          await sendEmailInvite({
-            friendName: friend.name,
-            friendEmail: friend.email,
-            date: selectedDate,
-            city: selectedCity,
-            notes: meetingNotes,
-          });
-        } catch (error) {
-          console.error('Error sending email:', error);
-        }
-      }
-
       Alert.alert('Success', 'Meeting scheduled successfully!');
       navigation.goBack();
     } catch (error) {
@@ -125,6 +76,12 @@ export default function MeetingCreateScreen() {
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const addDays = (date: Date, days: number) => {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
   };
 
   const formatDate = (date: Date) => {
@@ -147,104 +104,49 @@ export default function MeetingCreateScreen() {
       </View>
 
       <ScrollView style={styles.content}>
-        {/* Date Selection */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📅 Select Date</Text>
+          <Text style={styles.sectionSubtitle}>Choose when you want to meet:</Text>
+          
           <TouchableOpacity
-            style={styles.dateSelector}
-            onPress={() => setShowDatePicker(true)}
+            style={[styles.dateOption, selectedDate.toDateString() === new Date().toDateString() && styles.dateOptionSelected]}
+            onPress={() => setSelectedDate(new Date())}
           >
-            <Text style={styles.dateSelectorText}>
-              {formatDate(selectedDate)}
+            <Text style={[styles.dateOptionText, selectedDate.toDateString() === new Date().toDateString() && styles.dateOptionTextSelected]}>
+              Today - {formatDate(new Date())}
             </Text>
-            <Text style={styles.calendarIcon}>📅</Text>
-          </TouchableOpacity>
-          
-          {showDatePicker && (
-            <DateTimePicker
-              value={selectedDate}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-              minimumDate={new Date()}
-            />
-          )}
-        </View>
-
-        {/* City Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📍 Select City</Text>
-          <CitySelector
-            selectedCity={selectedCity}
-            onCitySelect={setSelectedCity}
-          />
-        </View>
-
-        {/* Calendar Sync */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📅 Sync to Calendar</Text>
-          
-          <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => setSyncToGoogleCalendar(!syncToGoogleCalendar)}
-          >
-            <View style={[styles.checkbox, syncToGoogleCalendar && styles.checkboxChecked]}>
-              {syncToGoogleCalendar && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <View style={styles.checkboxContent}>
-              <Text style={styles.checkboxTitle}>Google Calendar</Text>
-              <Text style={styles.checkboxSubtitle}>Add to device calendar + download ICS</Text>
-            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => setSyncToOutlook(!syncToOutlook)}
+            style={[styles.dateOption, selectedDate.toDateString() === addDays(new Date(), 1).toDateString() && styles.dateOptionSelected]}
+            onPress={() => setSelectedDate(addDays(new Date(), 1))}
           >
-            <View style={[styles.checkbox, syncToOutlook && styles.checkboxChecked]}>
-              {syncToOutlook && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <View style={styles.checkboxContent}>
-              <Text style={styles.checkboxTitle}>Outlook</Text>
-              <Text style={styles.checkboxSubtitle}>Download ICS file for import</Text>
-            </View>
+            <Text style={[styles.dateOptionText, selectedDate.toDateString() === addDays(new Date(), 1).toDateString() && styles.dateOptionTextSelected]}>
+              Tomorrow - {formatDate(addDays(new Date(), 1))}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => setSyncToAppleCalendar(!syncToAppleCalendar)}
+            style={[styles.dateOption, selectedDate.toDateString() === addDays(new Date(), 7).toDateString() && styles.dateOptionSelected]}
+            onPress={() => setSelectedDate(addDays(new Date(), 7))}
           >
-            <View style={[styles.checkbox, syncToAppleCalendar && styles.checkboxChecked]}>
-              {syncToAppleCalendar && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <View style={styles.checkboxContent}>
-              <Text style={styles.checkboxTitle}>Apple Calendar</Text>
-              <Text style={styles.checkboxSubtitle}>Add to device calendar</Text>
-            </View>
+            <Text style={[styles.dateOptionText, selectedDate.toDateString() === addDays(new Date(), 7).toDateString() && styles.dateOptionTextSelected]}>
+              Next Week - {formatDate(addDays(new Date(), 7))}
+            </Text>
           </TouchableOpacity>
-        </View>
 
-        {/* Email Invitation */}
-        <View style={styles.section}>
           <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => setSendEmail(!sendEmail)}
+            style={[styles.dateOption, selectedDate.toDateString() === addDays(new Date(), 14).toDateString() && styles.dateOptionSelected]}
+            onPress={() => setSelectedDate(addDays(new Date(), 14))}
           >
-            <View style={[styles.checkbox, sendEmail && styles.checkboxChecked]}>
-              {sendEmail && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <View style={styles.checkboxContent}>
-              <Text style={styles.emailTitle}>📧 Send this to an e-mail if you would like to:</Text>
-              <Text style={styles.emailSubtitle}>(E-mail with meeting details)</Text>
-            </View>
+            <Text style={[styles.dateOptionText, selectedDate.toDateString() === addDays(new Date(), 14).toDateString() && styles.dateOptionTextSelected]}>
+              In 2 Weeks - {formatDate(addDays(new Date(), 14))}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Additional Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📝 Additional Details</Text>
-          <Text style={styles.detailsHint}>• Click outside the box once filled</Text>
-          <Text style={styles.detailsHint}>• This will be included in calendar invites and email invitations</Text>
+          <Text style={styles.sectionTitle}>📝 Meeting Notes</Text>
           <TextInput
             style={styles.notesInput}
             value={meetingNotes}
@@ -309,79 +211,33 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333333',
+    marginBottom: 8,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#666666',
     marginBottom: 15,
   },
-  dateSelector: {
+  dateOption: {
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 10,
     backgroundColor: '#FFFFFF',
   },
-  dateSelectorText: {
-    fontSize: 16,
-    color: '#333333',
-  },
-  calendarIcon: {
-    fontSize: 16,
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 15,
-    paddingVertical: 5,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
+  dateOptionSelected: {
     borderColor: '#8000FF',
-    borderRadius: 4,
-    marginRight: 15,
-    marginTop: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#F8F4FF',
   },
-  checkboxChecked: {
-    backgroundColor: '#8000FF',
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  checkboxContent: {
-    flex: 1,
-  },
-  checkboxTitle: {
+  dateOptionText: {
     fontSize: 16,
-    fontWeight: '600',
     color: '#333333',
-    marginBottom: 2,
   },
-  checkboxSubtitle: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  emailTitle: {
-    fontSize: 16,
+  dateOptionTextSelected: {
+    color: '#8000FF',
     fontWeight: '600',
-    color: '#333333',
-    marginBottom: 2,
-  },
-  emailSubtitle: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  detailsHint: {
-    fontSize: 12,
-    color: '#999999',
-    marginBottom: 5,
-    fontStyle: 'italic',
   },
   notesInput: {
     borderWidth: 1,
@@ -392,7 +248,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 100,
     backgroundColor: '#FAFAFA',
-    marginTop: 10,
   },
   createButton: {
     backgroundColor: '#4CAF50',
