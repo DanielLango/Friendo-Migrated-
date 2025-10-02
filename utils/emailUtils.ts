@@ -1,182 +1,120 @@
-import * as MailComposer from 'expo-mail-composer';
-import { Alert } from 'react-native';
-import { Friend } from '../types';
+import { Alert, Linking } from 'react-native';
 
-export interface EmailOptions {
-  to: string[];
-  subject: string;
-  body: string;
-  isHtml?: boolean;
-  attachments?: string[];
+interface CalendarInviteParams {
+  friendName: string;
+  friendEmail: string;
+  date: Date;
+  city: string;
+  notes: string;
+  syncToGoogle?: boolean;
+  syncToOutlook?: boolean;
+  syncToApple?: boolean;
 }
 
-export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
+interface EmailInviteParams {
+  friendName: string;
+  friendEmail: string;
+  date: Date;
+  city: string;
+  notes: string;
+}
+
+export const sendCalendarInvite = async (params: CalendarInviteParams) => {
+  const { friendName, date, city, notes, syncToGoogle, syncToOutlook, syncToApple } = params;
+  
+  const startDate = date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const endDate = new Date(date.getTime() + 60 * 60 * 1000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  
+  const title = encodeURIComponent(`Meeting with ${friendName}`);
+  const details = encodeURIComponent(`Meeting with ${friendName} in ${city}. ${notes}`);
+  const location = encodeURIComponent(city);
+
   try {
-    const isAvailable = await MailComposer.isAvailableAsync();
-    
-    if (!isAvailable) {
-      Alert.alert(
-        'Email Not Available',
-        'Email is not available on this device. Please set up an email account in your device settings.'
-      );
-      return false;
+    if (syncToGoogle) {
+      const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&location=${location}`;
+      await Linking.openURL(googleUrl);
     }
 
-    const result = await MailComposer.composeAsync({
-      recipients: options.to,
-      subject: options.subject,
-      body: options.body,
-      isHtml: options.isHtml || false,
-      attachments: options.attachments || [],
-    });
+    if (syncToOutlook) {
+      // Generate ICS file content
+      const icsContent = generateICSContent({
+        title: `Meeting with ${friendName}`,
+        startDate: date,
+        endDate: new Date(date.getTime() + 60 * 60 * 1000),
+        location: city,
+        description: `Meeting with ${friendName} in ${city}. ${notes}`,
+      });
+      
+      // In a real app, you would save this as a file and allow download
+      Alert.alert('ICS File', 'ICS file content generated. In a real app, this would be downloaded.');
+    }
 
-    return result.status === MailComposer.MailComposerStatus.SENT;
+    if (syncToApple) {
+      // For Apple Calendar, we would use the device's calendar API
+      Alert.alert('Apple Calendar', 'Meeting would be added to device calendar.');
+    }
   } catch (error) {
-    console.error('Error sending email:', error);
-    Alert.alert('Email Error', 'Failed to send email. Please try again.');
-    return false;
+    console.error('Error opening calendar:', error);
+    Alert.alert('Error', 'Failed to open calendar application.');
   }
 };
 
-export const sendFriendInvitation = async (friend: Friend, userEmail: string): Promise<boolean> => {
-  const subject = `You're invited to connect on Friendo!`;
-  const body = `
-    <html>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #8000FF;">You're invited to Friendo! 🎉</h2>
-          
-          <p>Hi ${friend.name}!</p>
-          
-          <p>Your friend <strong>${userEmail}</strong> has invited you to join Friendo - the app that helps friends stay connected and meet up regularly.</p>
-          
-          <div style="background-color: #f8f4ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
-            <h3 style="color: #8000FF; margin-top: 0;">What is Friendo?</h3>
-            <ul>
-              <li>📅 Schedule regular meetups with friends</li>
-              <li>🔔 Get reminders to stay in touch</li>
-              <li>📊 Track your friendship connections</li>
-              <li>💜 Build stronger relationships</li>
-            </ul>
-          </div>
-          
-          <p>Download Friendo today and start building stronger friendships!</p>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="#" style="background-color: #8000FF; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">Download Friendo</a>
-          </div>
-          
-          <p style="color: #666; font-size: 14px;">
-            This invitation was sent by ${userEmail}. If you don't want to receive these invitations, please contact them directly.
-          </p>
-        </div>
-      </body>
-    </html>
-  `;
+export const sendEmailInvite = async (params: EmailInviteParams) => {
+  const { friendName, friendEmail, date, city, notes } = params;
+  
+  const subject = encodeURIComponent(`Meeting Invitation - ${date.toLocaleDateString()}`);
+  const body = encodeURIComponent(`Hi ${friendName},
 
-  return await sendEmail({
-    to: [friend.email || ''],
-    subject,
-    body,
-    isHtml: true,
-  });
+I'd like to schedule a meeting with you!
+
+Date: ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}
+Location: ${city}
+
+${notes ? `Additional details: ${notes}` : ''}
+
+Looking forward to seeing you!
+
+Best regards`);
+
+  const mailtoUrl = `mailto:${friendEmail}?subject=${subject}&body=${body}`;
+  
+  try {
+    const canOpen = await Linking.canOpenURL(mailtoUrl);
+    if (canOpen) {
+      await Linking.openURL(mailtoUrl);
+    } else {
+      Alert.alert('Email Error', 'No email app available to send the invitation.');
+    }
+  } catch (error) {
+    console.error('Error opening email:', error);
+    Alert.alert('Error', 'Failed to open email application.');
+  }
 };
 
-export const sendMeetingReminder = async (friend: Friend, meetingDate: Date, userEmail: string): Promise<boolean> => {
-  const subject = `Reminder: Meeting with ${friend.name} tomorrow!`;
-  const body = `
-    <html>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #8000FF;">Meeting Reminder 📅</h2>
-          
-          <p>Hi there!</p>
-          
-          <p>This is a friendly reminder that you have a meeting scheduled with <strong>${friend.name}</strong> tomorrow!</p>
-          
-          <div style="background-color: #f8f4ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
-            <h3 style="color: #8000FF; margin-top: 0;">Meeting Details</h3>
-            <p><strong>Friend:</strong> ${friend.name}</p>
-            <p><strong>Date:</strong> ${meetingDate.toLocaleDateString()}</p>
-            <p><strong>Time:</strong> ${meetingDate.toLocaleTimeString()}</p>
-            <p><strong>Type:</strong> ${friend.friendType}</p>
-          </div>
-          
-          <p>Don't forget to:</p>
-          <ul>
-            <li>Confirm the meeting time</li>
-            <li>Choose a location if needed</li>
-            <li>Log the meeting in Friendo after you meet</li>
-          </ul>
-          
-          <p>Have a great time catching up! 😊</p>
-          
-          <p style="color: #666; font-size: 14px;">
-            This reminder was sent by Friendo. You can adjust your notification settings in the app.
-          </p>
-        </div>
-      </body>
-    </html>
-  `;
+const generateICSContent = (params: {
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  location: string;
+  description: string;
+}) => {
+  const { title, startDate, endDate, location, description } = params;
+  
+  const formatDate = (date: Date) => {
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  };
 
-  return await sendEmail({
-    to: [userEmail],
-    subject,
-    body,
-    isHtml: true,
-  });
-};
-
-export const sendMeetingInvitation = async (friend: Friend, meetingDate: Date, userEmail: string, notes?: string, venue?: string, city?: string): Promise<boolean> => {
-  const subject = `Meeting Invitation: Let's catch up!`;
-  const body = `
-    <html>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #8000FF;">You're invited to meet up! 🎉</h2>
-          
-          <p>Hi ${friend.name}!</p>
-          
-          <p><strong>${userEmail}</strong> has invited you to meet up!</p>
-          
-          <div style="background-color: #f8f4ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
-            <h3 style="color: #8000FF; margin-top: 0;">Meeting Details</h3>
-            <p><strong>Date:</strong> ${meetingDate.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}</p>
-            <p><strong>Time:</strong> ${meetingDate.toLocaleTimeString('en-US', { 
-              hour: 'numeric', 
-              minute: '2-digit',
-              hour12: true 
-            })}</p>
-            ${venue ? `<p><strong>Venue:</strong> ${venue}</p>` : ''}
-            ${city ? `<p><strong>City:</strong> ${city}</p>` : ''}
-          </div>
-          
-          ${notes ? `
-          <div style="background-color: #fff8e1; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
-            <h4 style="margin-top: 0; color: #f57c00;">Additional Details:</h4>
-            <p style="margin-bottom: 0;">${notes}</p>
-          </div>
-          ` : ''}
-          
-          <p>Looking forward to seeing you there! 😊</p>
-          
-          <p style="color: #666; font-size: 14px;">
-            This invitation was sent via Friendo. Please confirm your attendance with ${userEmail}.
-          </p>
-        </div>
-      </body>
-    </html>
-  `;
-
-  return await sendEmail({
-    to: [friend.email || ''],
-    subject,
-    body,
-    isHtml: true,
-  });
+  return `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Friendo//Meeting Scheduler//EN
+BEGIN:VEVENT
+UID:${Date.now()}@friendo.app
+DTSTAMP:${formatDate(new Date())}
+DTSTART:${formatDate(startDate)}
+DTEND:${formatDate(endDate)}
+SUMMARY:${title}
+DESCRIPTION:${description}
+LOCATION:${location}
+END:VEVENT
+END:VCALENDAR`;
 };

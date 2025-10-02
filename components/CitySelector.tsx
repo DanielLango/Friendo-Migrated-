@@ -1,216 +1,175 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  FlatList,
+  TextInput,
+} from 'react-native';
 
 interface CitySelectorProps {
   selectedCity: string;
-  onCitySelect: (city: string, placeId: string) => void;
-  placeholder?: string;
+  onCitySelect: (city: string) => void;
 }
 
-export default function CitySelector({ 
-  selectedCity, 
-  onCitySelect, 
-  placeholder = "Select city..." 
-}: CitySelectorProps) {
-  const [showSelector, setShowSelector] = useState(false);
+const popularCities = [
+  'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix',
+  'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose',
+  'Austin', 'Jacksonville', 'Fort Worth', 'Columbus', 'Charlotte',
+  'San Francisco', 'Indianapolis', 'Seattle', 'Denver', 'Washington DC',
+  'Boston', 'El Paso', 'Nashville', 'Detroit', 'Oklahoma City',
+  'Portland', 'Las Vegas', 'Memphis', 'Louisville', 'Baltimore',
+  'Milwaukee', 'Albuquerque', 'Tucson', 'Fresno', 'Sacramento',
+  'Mesa', 'Kansas City', 'Atlanta', 'Long Beach', 'Colorado Springs',
+  'Raleigh', 'Miami', 'Virginia Beach', 'Omaha', 'Oakland',
+  'Minneapolis', 'Tulsa', 'Arlington', 'Tampa', 'New Orleans'
+];
 
-  const apiKey = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
+export default function CitySelector({ selectedCity, onCitySelect }: CitySelectorProps) {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
-  // If no API key is configured, show a setup message
-  if (!apiKey || apiKey === 'YOUR_API_KEY') {
-    return (
-      <View style={styles.container}>
-        <View style={styles.setupMessage}>
-          <Text style={styles.setupTitle}>🗺️ Google Places Setup Required</Text>
-          <Text style={styles.setupText}>
-            To use city search, please set up Google Places API key in your .env.local file.
-            {'\n\n'}
-            See docs/GOOGLE_PLACES_SETUP.md for instructions.
-          </Text>
-        </View>
-      </View>
-    );
-  }
+  const filteredCities = popularCities.filter(city =>
+    city.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  const handleCitySelect = (city: string) => {
+    onCitySelect(city);
+    setModalVisible(false);
+    setSearchText('');
+  };
+
+  const renderCity = ({ item }: { item: string }) => (
+    <TouchableOpacity
+      style={styles.cityItem}
+      onPress={() => handleCitySelect(item)}
+    >
+      <Text style={styles.cityText}>{item}</Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={styles.container}>
+    <>
       <TouchableOpacity
-        style={styles.citySelector}
-        onPress={() => setShowSelector(!showSelector)}
+        style={styles.selector}
+        onPress={() => setModalVisible(true)}
       >
-        <Text style={[
-          styles.citySelectorText,
-          !selectedCity && styles.placeholderText
-        ]}>
-          {selectedCity || placeholder}
+        <Text style={[styles.selectorText, !selectedCity && styles.placeholder]}>
+          {selectedCity || 'Choose a city...'}
         </Text>
-        <Text style={styles.dropdownIcon}>{showSelector ? '▲' : '▼'}</Text>
+        <Text style={styles.dropdownIcon}>▼</Text>
       </TouchableOpacity>
 
-      {showSelector && (
-        <View style={styles.autocompleteContainer}>
-          <GooglePlacesAutocomplete
-            placeholder="Search for a city..."
-            onPress={(data, details = null) => {
-              const cityName = data.description.split(',')[0]; // Get city name
-              onCitySelect(cityName, data.place_id);
-              setShowSelector(false);
-            }}
-            query={{
-              key: apiKey,
-              language: 'en',
-              types: '(cities)',
-            }}
-            styles={{
-              textInputContainer: styles.textInputContainer,
-              textInput: styles.textInput,
-              listView: styles.listView,
-              row: styles.row,
-              description: styles.description,
-            }}
-            fetchDetails={true}
-            enablePoweredByContainer={false}
-            debounce={300}
-            minLength={2}
-            requestUrl={{
-              useOnPlatform: 'web', // Use CORS proxy on web
-            }}
-          />
-        </View>
-      )}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select City</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Text style={styles.closeButton}>✕</Text>
+              </TouchableOpacity>
+            </View>
 
-      {selectedCity && (
-        <View style={styles.selectedCityDisplay}>
-          <Text style={styles.selectedCityIcon}>📍</Text>
-          <Text style={styles.selectedCityText}>{selectedCity}</Text>
-          <TouchableOpacity
-            style={styles.clearButton}
-            onPress={() => onCitySelect('', '')}
-          >
-            <Text style={styles.clearButtonText}>✕</Text>
-          </TouchableOpacity>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search cities..."
+              value={searchText}
+              onChangeText={setSearchText}
+            />
+
+            <FlatList
+              data={filteredCities}
+              renderItem={renderCity}
+              keyExtractor={(item) => item}
+              style={styles.cityList}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
         </View>
-      )}
-    </View>
+      </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 15,
-  },
-  setupMessage: {
-    backgroundColor: '#FFF3CD',
-    borderColor: '#FFEAA7',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 15,
-  },
-  setupTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#856404',
-    marginBottom: 8,
-  },
-  setupText: {
-    fontSize: 14,
-    color: '#856404',
-    lineHeight: 20,
-  },
-  citySelector: {
+  selector: {
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 8,
     paddingHorizontal: 15,
-    paddingVertical: 12,
+    paddingVertical: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
   },
-  citySelectorText: {
+  selectorText: {
     fontSize: 16,
     color: '#333333',
   },
-  placeholderText: {
+  placeholder: {
     color: '#999999',
   },
   dropdownIcon: {
     fontSize: 12,
     color: '#666666',
   },
-  autocompleteContainer: {
-    position: 'absolute',
-    top: 50,
-    left: 0,
-    right: 0,
-    zIndex: 1000,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
     backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+    paddingTop: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  closeButton: {
+    fontSize: 18,
+    color: '#666666',
+  },
+  searchInput: {
     borderWidth: 1,
     borderColor: '#E0E0E0',
     borderRadius: 8,
-    maxHeight: 200,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  textInputContainer: {
-    backgroundColor: 'transparent',
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  textInput: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    marginHorizontal: 20,
+    marginBottom: 20,
     fontSize: 16,
-    height: 40,
   },
-  listView: {
-    backgroundColor: '#FFFFFF',
-    maxHeight: 150,
+  cityList: {
+    flex: 1,
   },
-  row: {
-    backgroundColor: '#FFFFFF',
-    padding: 10,
+  cityItem: {
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
   },
-  description: {
-    fontSize: 14,
-    color: '#333333',
-  },
-  selectedCityDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0F8FF',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#8000FF',
-  },
-  selectedCityIcon: {
+  cityText: {
     fontSize: 16,
-    marginRight: 8,
-  },
-  selectedCityText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#8000FF',
-    fontWeight: '500',
-  },
-  clearButton: {
-    padding: 4,
-  },
-  clearButtonText: {
-    fontSize: 12,
-    color: '#999999',
+    color: '#333333',
   },
 });

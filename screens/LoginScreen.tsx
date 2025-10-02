@@ -89,16 +89,20 @@ export default function LoginScreen() {
               disabled={isLoading}
             >
               <Text style={styles.loginButtonText}>
-                {isLoading ? 'SIGNING IN...' : 'Sign in with Kiki Auth'}
+                {isLoading ? 'SIGNING IN...' : 'Sign in with basic.id'}
               </Text>
             </TouchableOpacity>
+
+            <Text style={styles.privacyDescription}>
+              Friendo uses basic.id to keep your data secure and under your control. You can revoke access at any time.
+            </Text>
 
             <TouchableOpacity 
               style={styles.privacyButton}
               onPress={() => Linking.openURL('https://basic.tech/privacy')}
             >
               <Text style={styles.privacyButtonText}>
-                Privacy Policy
+                Click Here to Read our Privacy Policy
               </Text>
             </TouchableOpacity>
           </>
@@ -187,6 +191,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  privacyDescription: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#666666',
+    lineHeight: 20,
+    paddingHorizontal: 20,
+  },
   troubleshootingContainer: {
     backgroundColor: '#F8F9FA',
     borderRadius: 8,
@@ -233,7 +245,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   privacyButton: {
-    marginTop: 20,
+    marginTop: 10,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
