@@ -1,10 +1,6 @@
-<<<<<<< Updated upstream
-=======
 import "@expo/metro-runtime";
 import './utils/global-error-handler';
->>>>>>> Stashed changes
 import { registerRootComponent } from 'expo';
-import './utils/global-error-handler';
 
 import App from './App';
 
