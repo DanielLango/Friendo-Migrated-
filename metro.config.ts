@@ -1,1 +1,0 @@
-// This file is not used - using metro.config.js instead
