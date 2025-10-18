@@ -828,10 +828,10 @@
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.27.1"
 
-"@basictech/expo@^0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@basictech/expo/-/expo-0.0.7.tgz#3158a9291c46ea9ecd52410d736fe2d06e7003a8"
-  integrity sha512-J7gZUXUeqt9lEk+1eXWcDmW8zZdnt8txEOaNQrfY+el4OnLTg9/47wrN6c0n5BXuejF+Q98mko5tBKSa7sFS3Q==
+"@basictech/expo@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@basictech/expo/-/expo-0.0.9.tgz#f438a22736be613963fe26935fe4bc0ec4c85878"
+  integrity sha512-OOqRCe5Mcs09rbcnUj5i6WK6qSR+/ebg3CIQIWS3e2+RcnfxmZeGrXkJA5xt/dwaz7S8c/1CiLKcPU854/mhjg==
 
 "@egjs/hammerjs@^2.0.17":
   version "2.0.17"
@@ -1609,6 +1609,11 @@
   integrity sha512-V4BG07kuYSUkTCSBHG8G8TNhM+F19jXFWnQtzj+we8DrkpSBCee9Z3Ms8yiGer/dlmhe35/Xdgyo3/0rQKg7YA==
   dependencies:
     "@sinonjs/commons" "^3.0.0"
+
+"@stardazed/streams-text-encoding@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@stardazed/streams-text-encoding/-/streams-text-encoding-1.0.2.tgz#a5a303fc8dfb18144e0aeed0773e7fb132f6c4cd"
+  integrity sha512-f2Z15BId3t44a/u21yYSGXFAkCyKocmAyduoAy7swnZ4xIfbaZlOWsgly/jDNNOuj6hYQN72UaBRe3Z/tOHfqg==
 
 "@types/babel__core@^7.1.14":
   version "7.20.5"
