@@ -8,8 +8,12 @@
     "splash": {
       "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ffffff",
+      "imageUrl": "./assets/images/icon.png"
     },
+    "assetBundlePatterns": [
+      "assets/**/*"
+    ],
     "ios": {
       "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.friendo.app"
