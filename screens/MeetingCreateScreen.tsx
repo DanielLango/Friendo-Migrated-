@@ -87,12 +87,17 @@ export default function MeetingCreateScreen() {
   }
 
   const handleDateChange = (event: any, date?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
     if (date) {
       setSelectedDate(date);
     }
+    // On Android, close immediately after selection
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+  };
+
+  const handleDatePickerDone = () => {
+    setShowDatePicker(false);
   };
 
   const handleCategorySelect = (categoryId: string) => {
@@ -217,26 +222,6 @@ export default function MeetingCreateScreen() {
             </Text>
             <Text style={styles.dropdownIcon}>📅</Text>
           </TouchableOpacity>
-          
-          {showDatePicker && (
-            <View style={styles.datePickerContainer}>
-              <DateTimePicker
-                value={selectedDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleDateChange}
-                minimumDate={new Date()}
-              />
-              {Platform.OS === 'ios' && (
-                <TouchableOpacity
-                  style={styles.datePickerDone}
-                  onPress={() => setShowDatePicker(false)}
-                >
-                  <Text style={styles.datePickerDoneText}>Done</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
         </View>
 
         <View style={styles.section}>
@@ -399,6 +384,33 @@ export default function MeetingCreateScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Date Picker Modal */}
+      <Modal
+        visible={showDatePicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View style={styles.datePickerModalOverlay}>
+          <View style={styles.datePickerModalContent}>
+            <View style={styles.datePickerHeader}>
+              <Text style={styles.datePickerTitle}>Select Date</Text>
+              <TouchableOpacity onPress={handleDatePickerDone}>
+                <Text style={styles.datePickerDoneButton}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <DateTimePicker
+              value={selectedDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+              style={styles.datePicker}
+            />
+          </View>
+        </View>
+      </Modal>
 
       {/* Calendar Instructions Modal */}
       <Modal
@@ -859,5 +871,37 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  datePickerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  datePickerModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  datePickerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  datePickerDoneButton: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#8000FF',
+  },
+  datePicker: {
+    width: '100%',
   },
 });
