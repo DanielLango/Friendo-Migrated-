@@ -1,11 +1,8 @@
 import "@expo/metro-runtime";
 import './utils/global-error-handler';
-<<<<<<< Updated upstream
 import './polyfills';
-=======
->>>>>>> Stashed changes
 import { registerRootComponent } from 'expo';
-import App from './App';
+import App from './App.tsx';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
 // It also ensures that whether you load the app in Expo Go or in a native build,
