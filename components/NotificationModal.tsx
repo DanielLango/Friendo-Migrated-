@@ -28,7 +28,9 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
   const { db } = useBasic();
 
   const handleTimeChange = (event: any, selectedTime?: Date) => {
-    setShowTimePicker(Platform.OS === 'ios');
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+    }
     if (selectedTime) {
       setNotificationTime(selectedTime);
     }
@@ -176,12 +178,22 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
             </TouchableOpacity>
             
             {showTimePicker && (
-              <DateTimePicker
-                value={notificationTime}
-                mode="time"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleTimeChange}
-              />
+              <View style={styles.timePickerContainer}>
+                <DateTimePicker
+                  value={notificationTime}
+                  mode="time"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleTimeChange}
+                />
+                {Platform.OS === 'ios' && (
+                  <TouchableOpacity
+                    style={styles.timePickerDone}
+                    onPress={() => setShowTimePicker(false)}
+                  >
+                    <Text style={styles.timePickerDoneText}>Done</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
           </View>
 
@@ -313,5 +325,25 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  timePickerContainer: {
+    marginTop: 10,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  timePickerDone: {
+    backgroundColor: '#8000FF',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  timePickerDoneText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

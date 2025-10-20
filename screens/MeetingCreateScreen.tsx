@@ -87,7 +87,9 @@ export default function MeetingCreateScreen() {
   }
 
   const handleDateChange = (event: any, date?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
     if (date) {
       setSelectedDate(date);
     }
@@ -217,13 +219,23 @@ export default function MeetingCreateScreen() {
           </TouchableOpacity>
           
           {showDatePicker && (
-            <DateTimePicker
-              value={selectedDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={handleDateChange}
-              minimumDate={new Date()}
-            />
+            <View style={styles.datePickerContainer}>
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleDateChange}
+                minimumDate={new Date()}
+              />
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  style={styles.datePickerDone}
+                  onPress={() => setShowDatePicker(false)}
+                >
+                  <Text style={styles.datePickerDoneText}>Done</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           )}
         </View>
 
@@ -650,9 +662,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   activityConfirmText: {
-    color: '#666666',
     fontSize: 16,
     fontWeight: '600',
+    color: '#666666',
     textAlign: 'center',
   },
   activityConfirmTextActive: {
@@ -827,5 +839,25 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontWeight: 'bold',
     color: '#8000FF',
+  },
+  datePickerContainer: {
+    marginTop: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  datePickerDone: {
+    backgroundColor: '#8000FF',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  datePickerDoneText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
