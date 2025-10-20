@@ -65,7 +65,7 @@ export default function App() {
       <BasicProvider project_id={schema.project_id} schema={schema}>
         <NavigationContainer>
           <Stack.Navigator 
-            id="RootStack"
+            id={undefined}
             initialRouteName="Login"
             screenOptions={{
               headerShown: false,
