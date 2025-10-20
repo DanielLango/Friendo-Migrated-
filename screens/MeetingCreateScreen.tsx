@@ -428,7 +428,7 @@ export default function MeetingCreateScreen() {
               <View style={styles.instructionItem}>
                 <Text style={styles.bulletPoint}>•</Text>
                 <Text style={styles.instructionText}>
-                  After tapping 'Schedule Meetup': 1.) In case you selected the 'Add to my calendar' option, open your smartphone's default calendar app, 2.) in case you selected 'Download .ics file' navigate to the folder you downloaded it and open it.
+                  After tapping 'Schedule Meetup':{'\n'}1.) In case you selected the 'Add to my calendar' option, open your smartphone's default calendar app,{'\n'}2.) in case you selected 'Download .ics file' navigate to the folder you downloaded it and open it.
                 </Text>
               </View>
 
