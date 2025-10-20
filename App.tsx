@@ -10,7 +10,27 @@ import { LogBox } from 'react-native';
 LogBox.ignoreLogs([
   'Failed to refresh token',
   'Token refresh error',
+  'Token refresh failed',
+  'Error in fetchToken',
+  'Token expired, attempting refresh',
+  'failed_to_get_token',
 ]);
+
+// Suppress console errors for known BasicTech token refresh issues
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  const message = args.join(' ');
+  if (
+    message.includes('Token refresh failed') ||
+    message.includes('failed_to_get_token') ||
+    message.includes('Error in fetchToken') ||
+    message.includes('InternalBytecode.js')
+  ) {
+    // Silently ignore these expected errors
+    return;
+  }
+  originalConsoleError(...args);
+};
 
 // Import screens
 import LoginScreen from './screens/LoginScreen';
