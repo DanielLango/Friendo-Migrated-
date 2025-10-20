@@ -21,6 +21,7 @@ import PartnerVenueSelector from '../components/PartnerVenueSelector';
 import { getVenueCategory } from '../utils/venueTypes';
 import { notificationService } from '../utils/notificationService';
 import SimpleDatePicker from '../components/SimpleDatePicker';
+import { createMeetingEvent, createAndDownloadMeetingICS } from '../utils/calendarUtils';
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -29,7 +30,7 @@ export default function MeetingCreateScreen() {
   const [selectedVenue, setSelectedVenue] = useState<string>('');
   const [selectedCity, setSelectedCity] = useState('');
   const [cityPlaceId, setCityPlaceId] = useState('');
-  const [addToCalendar, setAddToCalendar] = useState(false);
+  const [calendarOption, setCalendarOption] = useState<'device' | 'manual' | null>(null);
   const [meetingNotes, setMeetingNotes] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [activityConfirmed, setActivityConfirmed] = useState(false);
@@ -162,9 +163,37 @@ export default function MeetingCreateScreen() {
         // Don't fail the whole operation for notification errors
       }
 
-      // Show calendar instructions if user selected calendar option
-      if (addToCalendar) {
-        setShowInstructions(true);
+      // Handle calendar options
+      if (calendarOption === 'device') {
+        // Add to device calendar
+        const success = await createMeetingEvent(
+          friend,
+          selectedDate,
+          meetingNotes,
+          selectedVenue || `${category?.name || 'Activity'} in ${selectedCity}`
+        );
+        
+        if (success) {
+          Alert.alert('Success', 'Meeting scheduled and added to your calendar!');
+        } else {
+          Alert.alert('Partial Success', 'Meeting scheduled, but could not add to calendar.');
+        }
+        navigation.goBack();
+      } else if (calendarOption === 'manual') {
+        // Download ICS file
+        const success = await createAndDownloadMeetingICS(
+          friend,
+          selectedDate,
+          meetingNotes,
+          selectedVenue || `${category?.name || 'Activity'} in ${selectedCity}`
+        );
+        
+        if (success) {
+          Alert.alert('Success', 'Meeting scheduled! Check your downloads for the calendar file.');
+        } else {
+          Alert.alert('Partial Success', 'Meeting scheduled, but could not create calendar file.');
+        }
+        navigation.goBack();
       } else {
         Alert.alert('Success', 'Meeting scheduled successfully!');
         navigation.goBack();
@@ -331,20 +360,61 @@ export default function MeetingCreateScreen() {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📅 Calendar Option</Text>
+          <Text style={styles.sectionTitle}>📅 Calendar Options</Text>
           
+          {/* Primary Option - Device Calendar */}
           <TouchableOpacity
-            style={[styles.calendarButton, addToCalendar && styles.calendarButtonActive]}
-            onPress={() => setAddToCalendar(!addToCalendar)}
+            style={[
+              styles.primaryCalendarButton,
+              calendarOption === 'device' && styles.primaryCalendarButtonActive
+            ]}
+            onPress={() => setCalendarOption(calendarOption === 'device' ? null : 'device')}
           >
-            <View style={[styles.checkbox, addToCalendar && styles.checkboxChecked]}>
-              {addToCalendar && <Text style={styles.checkmark}>✓</Text>}
+            <Text style={styles.primaryCalendarIcon}>📱</Text>
+            <View style={styles.primaryCalendarContent}>
+              <Text style={[
+                styles.primaryCalendarTitle,
+                calendarOption === 'device' && styles.primaryCalendarTitleActive
+              ]}>
+                Add to My Calendar
+              </Text>
+              <Text style={[
+                styles.primaryCalendarSubtext,
+                calendarOption === 'device' && styles.primaryCalendarSubtextActive
+              ]}>
+                Uses your phone's calendar app
+              </Text>
             </View>
-            <View style={styles.calendarContent}>
-              <Text style={styles.calendarLabel}>📱 Add to Calendar</Text>
-              <Text style={styles.calendarSubtext}>Get instructions for adding this to your phone's calendar</Text>
+            <View style={[
+              styles.radioButton,
+              calendarOption === 'device' && styles.radioButtonActive
+            ]}>
+              {calendarOption === 'device' && <View style={styles.radioButtonInner} />}
             </View>
           </TouchableOpacity>
+
+          {/* Secondary Option - Manual Import */}
+          <View style={styles.manualImportContainer}>
+            <Text style={styles.manualImportHeader}>📄 MANUAL IMPORT</Text>
+            <TouchableOpacity
+              style={[
+                styles.manualImportButton,
+                calendarOption === 'manual' && styles.manualImportButtonActive
+              ]}
+              onPress={() => setCalendarOption(calendarOption === 'manual' ? null : 'manual')}
+            >
+              <View style={[
+                styles.checkbox,
+                calendarOption === 'manual' && styles.checkboxChecked
+              ]}>
+                {calendarOption === 'manual' && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+              <View style={styles.manualImportContent}>
+                <Text style={styles.manualImportTitle}>Download .ics file</Text>
+                <Text style={styles.manualImportSubtext}>Works with any calendar app</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -703,6 +773,106 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
   },
+  // New calendar option styles
+  primaryCalendarButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#E0E0E0',
+    marginBottom: 20,
+  },
+  primaryCalendarButtonActive: {
+    backgroundColor: '#8000FF',
+    borderColor: '#8000FF',
+  },
+  primaryCalendarIcon: {
+    fontSize: 32,
+    marginRight: 16,
+  },
+  primaryCalendarContent: {
+    flex: 1,
+  },
+  primaryCalendarTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  primaryCalendarTitleActive: {
+    color: '#FFFFFF',
+  },
+  primaryCalendarSubtext: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  primaryCalendarSubtextActive: {
+    color: '#E8D5FF',
+  },
+  radioButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#8000FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  radioButtonActive: {
+    borderColor: '#FFFFFF',
+  },
+  radioButtonInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF',
+  },
+  manualImportContainer: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  manualImportHeader: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#666666',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  manualImportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  manualImportButtonActive: {
+    borderColor: '#8000FF',
+    backgroundColor: '#F8F4FF',
+  },
+  manualImportContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  manualImportTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333333',
+    marginBottom: 2,
+  },
+  manualImportSubtext: {
+    fontSize: 13,
+    color: '#666666',
+  },
   checkbox: {
     width: 20,
     height: 20,
@@ -898,5 +1068,64 @@ const styles = StyleSheet.create({
   },
   datePicker: {
     width: '100%',
+  },
+  manualImportContainer: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  manualImportHeader: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#666666',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  manualImportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  manualImportButtonActive: {
+    borderColor: '#8000FF',
+    backgroundColor: '#F8F4FF',
+  },
+  manualImportContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  manualImportTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333333',
+    marginBottom: 2,
+  },
+  manualImportSubtext: {
+    fontSize: 13,
+    color: '#666666',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#8000FF',
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#8000FF',
+  },
+  checkmark: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

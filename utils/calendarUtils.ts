@@ -61,7 +61,13 @@ export const addEventToCalendar = async (event: CalendarEvent): Promise<boolean>
   }
 };
 
-export const createMeetingEvent = async (friend: Friend, meetingDate: Date, notes?: string, duration: number = 60): Promise<boolean> => {
+export const createMeetingEvent = async (
+  friend: Friend, 
+  meetingDate: Date, 
+  notes?: string, 
+  venue?: string,
+  duration: number = 60
+): Promise<boolean> => {
   const startDate = meetingDate;
   const endDate = new Date(meetingDate.getTime() + duration * 60 * 1000); // Add duration in minutes
 
@@ -69,7 +75,7 @@ export const createMeetingEvent = async (friend: Friend, meetingDate: Date, note
     title: `Meeting with ${friend.name}`,
     startDate,
     endDate,
-    location: friend.city || '',
+    location: venue || friend.city || '',
     notes: notes ? `${notes}\n\nFriendo meeting with ${friend.name} (${friend.friendType} friend)` : `Friendo meeting with ${friend.name} (${friend.friendType} friend)`,
     allDay: false,
   };
@@ -128,12 +134,17 @@ export const downloadICSFile = async (event: CalendarEvent, filename: string = '
   }
 };
 
-export const createAndDownloadMeetingICS = async (friend: Friend, meetingDate: Date, notes?: string): Promise<boolean> => {
+export const createAndDownloadMeetingICS = async (
+  friend: Friend, 
+  meetingDate: Date, 
+  notes?: string,
+  venue?: string
+): Promise<boolean> => {
   const event: CalendarEvent = {
     title: `Meeting with ${friend.name}`,
     startDate: meetingDate,
     endDate: new Date(meetingDate.getTime() + 60 * 60 * 1000), // 1 hour duration
-    location: friend.city || '',
+    location: venue || friend.city || '',
     notes: notes ? `${notes}\n\nFriendo meeting with ${friend.name} (${friend.friendType} friend)` : `Friendo meeting with ${friend.name} (${friend.friendType} friend)`,
   };
 
