@@ -167,7 +167,7 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
             <Text style={styles.timeSectionTitle}>🕐 Notification Time</Text>
             <TouchableOpacity
               style={styles.timeSelector}
-              onPress={() => setShowTimePicker(!showTimePicker)}
+              onPress={() => setShowTimePicker(true)}
             >
               <Text style={styles.timeSelectorText}>
                 {formatTime(notificationTime)}
@@ -176,41 +176,37 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
             </TouchableOpacity>
           </View>
 
-          {showTimePicker && (
-            <Modal
-              visible={showTimePicker}
-              transparent
-              animationType="slide"
-              onRequestClose={() => setShowTimePicker(false)}
-            >
-              <View style={styles.timePickerOverlay}>
-                <View style={styles.timePickerModal}>
-                  <View style={styles.timePickerHeader}>
-                    <Text style={styles.timePickerTitle}>Select Time</Text>
-                  </View>
-                  <DateTimePicker
-                    value={notificationTime}
-                    mode="time"
-                    display="spinner"
-                    onChange={handleTimeChange}
-                    style={styles.timePicker}
-                  />
-                  <TouchableOpacity
-                    style={styles.timePickerDoneButton}
-                    onPress={() => setShowTimePicker(false)}
-                  >
-                    <Text style={styles.timePickerDoneText}>Done</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-          )}
-
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
       </View>
+
+      {showTimePicker && (
+        <Modal
+          visible={showTimePicker}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowTimePicker(false)}
+        >
+          <View style={styles.timePickerOverlay}>
+            <View style={styles.timePickerModal}>
+              <View style={styles.timePickerHeader}>
+                <Text style={styles.timePickerTitle}>Select Time</Text>
+                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                  <Text style={styles.timePickerDoneButton}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={notificationTime}
+                mode="time"
+                display="spinner"
+                onChange={handleTimeChange}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
     </Modal>
   );
 }
@@ -334,10 +330,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 30,
+    paddingTop: 20,
+    paddingBottom: 40,
   },
   timePickerHeader: {
-    padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
@@ -345,23 +346,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333333',
-    textAlign: 'center',
-  },
-  timePicker: {
-    height: 200,
   },
   timePickerDoneButton: {
-    backgroundColor: '#8000FF',
-    marginHorizontal: 20,
-    marginTop: 10,
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  timePickerDoneText: {
-    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#8000FF',
   },
   saveButton: {
     backgroundColor: '#8000FF',

@@ -385,32 +385,33 @@ export default function MeetingCreateScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Date Picker Modal */}
-      <Modal
-        visible={showDatePicker}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowDatePicker(false)}
-      >
-        <View style={styles.datePickerModalOverlay}>
-          <View style={styles.datePickerModalContent}>
-            <View style={styles.datePickerHeader}>
-              <Text style={styles.datePickerTitle}>Select Date</Text>
-              <TouchableOpacity onPress={handleDatePickerDone}>
-                <Text style={styles.datePickerDoneButton}>Done</Text>
-              </TouchableOpacity>
+      {/* Date Picker Modal - Fixed to show properly */}
+      {showDatePicker && (
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowDatePicker(false)}
+        >
+          <View style={styles.datePickerModalOverlay}>
+            <View style={styles.datePickerModalContent}>
+              <View style={styles.datePickerHeader}>
+                <Text style={styles.datePickerTitle}>Select Date</Text>
+                <TouchableOpacity onPress={handleDatePickerDone}>
+                  <Text style={styles.datePickerDoneButton}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                minimumDate={new Date()}
+              />
             </View>
-            <DateTimePicker
-              value={selectedDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={handleDateChange}
-              minimumDate={new Date()}
-              style={styles.datePicker}
-            />
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
 
       {/* Calendar Instructions Modal */}
       <Modal
@@ -875,21 +876,23 @@ const styles = StyleSheet.create({
   datePickerModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   datePickerModalContent: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    width: '90%',
-    maxWidth: 400,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
   },
   datePickerHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
   datePickerTitle: {
     fontSize: 18,
