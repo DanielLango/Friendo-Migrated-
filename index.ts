@@ -1,6 +1,9 @@
 import "@expo/metro-runtime";
 import './utils/global-error-handler';
+<<<<<<< Updated upstream
 import './polyfills';
+=======
+>>>>>>> Stashed changes
 import { registerRootComponent } from 'expo';
 import App from './App.tsx';
 
