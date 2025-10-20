@@ -425,19 +425,13 @@ export default function MeetingCreateScreen() {
             </Text>
             
             <View style={styles.instructionsList}>
-              <View style={styles.instructionItem}>
-                <Text style={styles.bulletPoint}>•</Text>
-                <Text style={styles.instructionText}>
-                  After tapping 'Schedule Meetup':{'\n'}1.) In case you selected the 'Add to my calendar' option, open your smartphone's default calendar app,{'\n'}2.) in case you selected 'Download .ics file' navigate to the folder you downloaded it and open it.
-                </Text>
-              </View>
+              <Text style={styles.instructionText}>
+                After tapping 'Schedule Meetup':{'\n'}1.) In case you selected the Add to my calendar option, open your smartphone's default calendar app, and navigate to the day you selected for the meetup.{'\n'}2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.
+              </Text>
 
-              <View style={styles.instructionItem}>
-                <Text style={styles.bulletPoint}>•</Text>
-                <Text style={styles.instructionText}>
-                  Once the meeting invite is in front of you in your calendar, navigate to the day you selected for the meetup.
-                </Text>
-              </View>
+              <Text style={styles.instructionsSubheading}>
+                Once the meeting invite is in front of you in your calendar:
+              </Text>
 
               <View style={styles.instructionItem}>
                 <Text style={styles.bulletPoint}>•</Text>
@@ -844,6 +838,13 @@ const styles = StyleSheet.create({
     color: '#666666',
     fontStyle: 'italic',
     marginBottom: 12,
+  },
+  instructionsSubheading: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333333',
+    marginTop: 8,
+    marginBottom: 8,
   },
   instructionsList: {
     gap: 12,
