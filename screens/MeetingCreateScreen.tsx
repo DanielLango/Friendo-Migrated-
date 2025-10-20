@@ -34,7 +34,6 @@ export default function MeetingCreateScreen() {
   const [meetingNotes, setMeetingNotes] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [activityConfirmed, setActivityConfirmed] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
   
   const navigation = useNavigation();
   const route = useRoute();
@@ -415,6 +414,53 @@ export default function MeetingCreateScreen() {
               </View>
             </TouchableOpacity>
           </View>
+
+          {/* What to do now instructions */}
+          <View style={styles.instructionsBox}>
+            <Text style={styles.instructionsTitle}>
+              What to do now?
+            </Text>
+            <Text style={styles.instructionsSubtitle}>
+              (In case you selected a calendar option)
+            </Text>
+            
+            <View style={styles.instructionsList}>
+              <View style={styles.instructionItem}>
+                <Text style={styles.bulletPoint}>•</Text>
+                <Text style={styles.instructionText}>
+                  After tapping 'Schedule Meetup': 1.) In case you selected the 'Add to my calendar' option, open your smartphone's default calendar app, 2.) in case you selected 'Download .ics file' navigate to the folder you downloaded it and open it.
+                </Text>
+              </View>
+
+              <View style={styles.instructionItem}>
+                <Text style={styles.bulletPoint}>•</Text>
+                <Text style={styles.instructionText}>
+                  Once the meeting invite is in front of you in your calendar, navigate to the day you selected for the meetup.
+                </Text>
+              </View>
+
+              <View style={styles.instructionItem}>
+                <Text style={styles.bulletPoint}>•</Text>
+                <Text style={styles.instructionText}>
+                  Edit the event time in the calendar as needed.
+                </Text>
+              </View>
+
+              <View style={styles.instructionItem}>
+                <Text style={styles.bulletPoint}>•</Text>
+                <Text style={styles.instructionText}>
+                  Under Invitee, you can add an email if you want. Your default calendar app will then send the invitation to that email.
+                </Text>
+              </View>
+
+              <View style={styles.instructionItem}>
+                <Text style={styles.bulletPoint}>•</Text>
+                <Text style={styles.instructionText}>
+                  Feel free to change any other details about your meeting.
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -474,88 +520,6 @@ export default function MeetingCreateScreen() {
           </View>
         </Modal>
       )}
-
-      {/* Calendar Instructions Modal */}
-      <Modal
-        visible={showInstructions}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => {
-          setShowInstructions(false);
-          navigation.goBack();
-        }}
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>What to do now?</Text>
-            <TouchableOpacity 
-              onPress={() => {
-                setShowInstructions(false);
-                navigation.goBack();
-              }}
-              style={styles.modalCloseButton}
-            >
-              <Text style={styles.modalCloseText}>Done</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={styles.modalContent}>
-            <View style={styles.instructionSection}>
-              <Text style={styles.instructionTitle}>📱 Calendar Instructions</Text>
-              <Text style={styles.instructionSubtitle}>
-                (In case you selected a calendar option)
-              </Text>
-            </View>
-
-            <View style={styles.instructionStep}>
-              <Text style={styles.stepNumber}>1.</Text>
-              <Text style={styles.stepText}>
-                After you clicked on 'Schedule Meetup', go into your smartphone's default calendar app and navigate to the day you have chosen for the meet-up.
-              </Text>
-            </View>
-
-            <View style={styles.instructionStep}>
-              <Text style={styles.stepNumber}>2.</Text>
-              <Text style={styles.stepText}>
-                Edit the time of the event in the calendar as you wish
-              </Text>
-            </View>
-
-            <View style={styles.instructionStep}>
-              <Text style={styles.stepNumber}>3.</Text>
-              <Text style={styles.stepText}>
-                Under invitee you can add an email, if you want. Your default calendar app will send the invitation to this email.
-              </Text>
-            </View>
-
-            <View style={styles.meetingDetails}>
-              <Text style={styles.detailsTitle}>📋 Meeting Details</Text>
-              <Text style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Friend:</Text> {friend.name}
-              </Text>
-              <Text style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Date:</Text> {selectedDate.toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  month: 'long', 
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </Text>
-              <Text style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Activity:</Text> {getVenueCategory(selectedCategory)?.name || selectedCategory}
-              </Text>
-              <Text style={styles.detailItem}>
-                <Text style={styles.detailLabel}>City:</Text> {selectedCity}
-              </Text>
-              {meetingNotes && (
-                <Text style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Notes:</Text> {meetingNotes}
-                </Text>
-              )}
-            </View>
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -745,35 +709,6 @@ const styles = StyleSheet.create({
   activityConfirmTextActive: {
     color: '#FFFFFF',
   },
-  calendarButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-  },
-  calendarButtonActive: {
-    backgroundColor: '#F8F9FA',
-    borderColor: '#8000FF',
-  },
-  calendarContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  calendarLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 4,
-  },
-  calendarSubtext: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  // New calendar option styles
   primaryCalendarButton: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -890,6 +825,46 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
+  instructionsBox: {
+    backgroundColor: '#F0F4FF',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#D0DCFF',
+  },
+  instructionsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  instructionsSubtitle: {
+    fontSize: 13,
+    color: '#666666',
+    fontStyle: 'italic',
+    marginBottom: 12,
+  },
+  instructionsList: {
+    gap: 12,
+  },
+  instructionItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  bulletPoint: {
+    fontSize: 16,
+    color: '#8000FF',
+    marginRight: 8,
+    marginTop: 2,
+    fontWeight: 'bold',
+  },
+  instructionText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333333',
+    lineHeight: 20,
+  },
   notesInput: {
     borderWidth: 1,
     borderColor: '#E0E0E0',
@@ -924,117 +899,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  // Modal styles
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-  },
-  modalCloseButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#8000FF',
-    borderRadius: 6,
-  },
-  modalCloseText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalContent: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  instructionSection: {
-    marginTop: 20,
-    marginBottom: 30,
-    alignItems: 'center',
-  },
-  instructionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 8,
-  },
-  instructionSubtitle: {
-    fontSize: 14,
-    color: '#666666',
-    fontStyle: 'italic',
-  },
-  instructionStep: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  stepNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#8000FF',
-    marginRight: 12,
-    marginTop: 2,
-  },
-  stepText: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333333',
-    lineHeight: 22,
-  },
-  meetingDetails: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 20,
-    marginTop: 20,
-    marginBottom: 30,
-  },
-  detailsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 15,
-  },
-  detailItem: {
-    fontSize: 16,
-    color: '#333333',
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  detailLabel: {
-    fontWeight: 'bold',
-    color: '#8000FF',
-  },
-  datePickerContainer: {
-    marginTop: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  datePickerDone: {
-    backgroundColor: '#8000FF',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  datePickerDoneText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
   datePickerModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -1065,67 +929,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#8000FF',
-  },
-  datePicker: {
-    width: '100%',
-  },
-  manualImportContainer: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  manualImportHeader: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#666666',
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  manualImportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  manualImportButtonActive: {
-    borderColor: '#8000FF',
-    backgroundColor: '#F8F4FF',
-  },
-  manualImportContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  manualImportTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 2,
-  },
-  manualImportSubtext: {
-    fontSize: 13,
-    color: '#666666',
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
-    borderColor: '#8000FF',
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#8000FF',
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
 });
