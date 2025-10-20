@@ -1,5 +1,7 @@
 import * as Calendar from 'expo-calendar';
-import { Alert } from 'react-native';
+import { Paths, File } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { Alert, Platform } from 'react-native';
 import { Friend } from '../types';
 
 export interface CalendarEvent {
@@ -111,25 +113,48 @@ export const downloadICSFile = async (event: CalendarEvent, filename: string = '
   try {
     const icsContent = generateICSFile(event);
     
-    // Show the ICS content to the user
-    Alert.alert(
-      'Calendar File Ready',
-      `Calendar file content generated for: ${filename}\n\nYou can copy this content to create an .ics file and import it into your calendar app.`,
-      [
-        { text: 'OK', style: 'default' },
-        { 
-          text: 'View Content', 
-          onPress: () => {
-            Alert.alert('ICS File Content', icsContent);
-          }
-        }
-      ]
-    );
-    
-    return true;
+    if (Platform.OS === 'web') {
+      // For web, create a download link
+      const blob = new Blob([icsContent], { type: 'text/calendar' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      Alert.alert('Success', 'Calendar file downloaded! Check your downloads folder.');
+      return true;
+    } else {
+      // For mobile, save to file system and share
+      const file = new File(Paths.cache, filename);
+      
+      await file.write(icsContent);
+      
+      // Check if sharing is available
+      const isAvailable = await Sharing.isAvailableAsync();
+      
+      if (isAvailable) {
+        await Sharing.shareAsync(file.uri, {
+          mimeType: 'text/calendar',
+          dialogTitle: 'Save Calendar Event',
+          UTI: 'public.calendar-event',
+        });
+        
+        return true;
+      } else {
+        Alert.alert(
+          'File Created',
+          `Calendar file created. Please use a file manager to open this .ics file with your calendar app.`
+        );
+        return true;
+      }
+    }
   } catch (error) {
     console.error('Error creating ICS file:', error);
-    Alert.alert('Error', 'Failed to create calendar file.');
+    Alert.alert('Error', 'Failed to create calendar file. Please try again.');
     return false;
   }
 };
