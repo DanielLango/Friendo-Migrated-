@@ -4,36 +4,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
-<<<<<<< Updated upstream
-import { LogBox } from 'react-native';
-
-// Suppress specific warnings that are expected during development
-LogBox.ignoreLogs([
-  'Failed to refresh token',
-  'Token refresh error',
-  'Token refresh failed',
-  'Error in fetchToken',
-  'Token expired, attempting refresh',
-  'failed_to_get_token',
-]);
-
-// Suppress console errors for known BasicTech token refresh issues
-const originalConsoleError = console.error;
-console.error = (...args) => {
-  const message = args.join(' ');
-  if (
-    message.includes('Token refresh failed') ||
-    message.includes('failed_to_get_token') ||
-    message.includes('Error in fetchToken') ||
-    message.includes('InternalBytecode.js')
-  ) {
-    // Silently ignore these expected errors
-    return;
-  }
-  originalConsoleError(...args);
-};
-=======
->>>>>>> Stashed changes
 
 // Import screens
 import LoginScreen from './screens/LoginScreen';
@@ -68,11 +38,7 @@ export default function App() {
       <BasicProvider project_id={schema.project_id} schema={schema}>
         <NavigationContainer>
           <Stack.Navigator 
-<<<<<<< Updated upstream
-            id={undefined}
-=======
             id="RootStack"
->>>>>>> Stashed changes
             initialRouteName="Login"
             screenOptions={{
               headerShown: false,
