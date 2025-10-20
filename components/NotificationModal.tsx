@@ -9,10 +9,10 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useBasic } from '@basictech/expo';
 import { Friend } from '../types';
 import { notificationService } from '../utils/notificationService';
+import SimpleTimePicker from './SimpleTimePicker';
 
 interface NotificationModalProps {
   visible: boolean;
@@ -27,11 +27,8 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
   const [showTimePicker, setShowTimePicker] = useState(false);
   const { db } = useBasic();
 
-  const handleTimeChange = (event: any, selectedTime?: Date) => {
-    setShowTimePicker(false);
-    if (selectedTime) {
-      setNotificationTime(selectedTime);
-    }
+  const handleTimeChange = (selectedTime: Date) => {
+    setNotificationTime(selectedTime);
   };
 
   const formatTime = (date: Date) => {
@@ -197,10 +194,8 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
                   <Text style={styles.timePickerDoneButton}>Done</Text>
                 </TouchableOpacity>
               </View>
-              <DateTimePicker
+              <SimpleTimePicker
                 value={notificationTime}
-                mode="time"
-                display="spinner"
                 onChange={handleTimeChange}
               />
             </View>

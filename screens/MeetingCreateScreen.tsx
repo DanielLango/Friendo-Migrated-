@@ -14,13 +14,13 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Friend } from '../types';
 import SimpleCitySelector from '../components/SimpleCitySelector';
 import VenueCategorySelector from '../components/VenueCategorySelector';
 import PartnerVenueSelector from '../components/PartnerVenueSelector';
 import { getVenueCategory } from '../utils/venueTypes';
 import { notificationService } from '../utils/notificationService';
+import SimpleDatePicker from '../components/SimpleDatePicker';
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -86,14 +86,8 @@ export default function MeetingCreateScreen() {
     );
   }
 
-  const handleDateChange = (event: any, date?: Date) => {
-    if (date) {
-      setSelectedDate(date);
-    }
-    // On Android, close immediately after selection
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date);
   };
 
   const handleDatePickerDone = () => {
@@ -385,7 +379,7 @@ export default function MeetingCreateScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Date Picker Modal - Fixed to show properly */}
+      {/* Date Picker Modal - Using custom picker */}
       {showDatePicker && (
         <Modal
           visible={showDatePicker}
@@ -401,10 +395,8 @@ export default function MeetingCreateScreen() {
                   <Text style={styles.datePickerDoneButton}>Done</Text>
                 </TouchableOpacity>
               </View>
-              <DateTimePicker
+              <SimpleDatePicker
                 value={selectedDate}
-                mode="date"
-                display="spinner"
                 onChange={handleDateChange}
                 minimumDate={new Date()}
               />
