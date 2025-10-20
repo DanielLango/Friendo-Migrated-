@@ -28,9 +28,7 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
   const { db } = useBasic();
 
   const handleTimeChange = (event: any, selectedTime?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowTimePicker(false);
-    }
+    setShowTimePicker(false);
     if (selectedTime) {
       setNotificationTime(selectedTime);
     }
@@ -169,33 +167,44 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
             <Text style={styles.timeSectionTitle}>🕐 Notification Time</Text>
             <TouchableOpacity
               style={styles.timeSelector}
-              onPress={() => setShowTimePicker(true)}
+              onPress={() => setShowTimePicker(!showTimePicker)}
             >
               <Text style={styles.timeSelectorText}>
                 {formatTime(notificationTime)}
               </Text>
-              <Text style={styles.dropdownIcon}>🕐</Text>
+              <Text style={styles.dropdownIcon}>▼</Text>
             </TouchableOpacity>
-            
-            {showTimePicker && (
-              <View style={styles.timePickerContainer}>
-                <DateTimePicker
-                  value={notificationTime}
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleTimeChange}
-                />
-                {Platform.OS === 'ios' && (
+          </View>
+
+          {showTimePicker && (
+            <Modal
+              visible={showTimePicker}
+              transparent
+              animationType="slide"
+              onRequestClose={() => setShowTimePicker(false)}
+            >
+              <View style={styles.timePickerOverlay}>
+                <View style={styles.timePickerModal}>
+                  <View style={styles.timePickerHeader}>
+                    <Text style={styles.timePickerTitle}>Select Time</Text>
+                  </View>
+                  <DateTimePicker
+                    value={notificationTime}
+                    mode="time"
+                    display="spinner"
+                    onChange={handleTimeChange}
+                    style={styles.timePicker}
+                  />
                   <TouchableOpacity
-                    style={styles.timePickerDone}
+                    style={styles.timePickerDoneButton}
                     onPress={() => setShowTimePicker(false)}
                   >
                     <Text style={styles.timePickerDoneText}>Done</Text>
                   </TouchableOpacity>
-                )}
+                </View>
               </View>
-            )}
-          </View>
+            </Modal>
+          )}
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Save</Text>
@@ -217,8 +226,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 20,
-    width: '80%',
-    maxWidth: 300,
+    width: '85%',
+    maxWidth: 320,
   },
   header: {
     flexDirection: 'row',
@@ -274,34 +283,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  timeSection: {
-    marginBottom: 20,
-  },
-  timeSectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 10,
-  },
-  timeSelector: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  timeSelectorText: {
-    fontSize: 16,
-    color: '#333333',
-  },
-  dropdownIcon: {
-    fontSize: 12,
-    color: '#666666',
-  },
   weeklyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -315,6 +296,73 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginHorizontal: 5,
   },
+  timeSection: {
+    marginBottom: 20,
+  },
+  timeSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666666',
+    marginBottom: 10,
+  },
+  timeSelector: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+  },
+  timeSelectorText: {
+    fontSize: 16,
+    color: '#333333',
+    fontWeight: '500',
+  },
+  dropdownIcon: {
+    fontSize: 10,
+    color: '#666666',
+  },
+  timePickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  timePickerModal: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 30,
+  },
+  timePickerHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  timePickerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+    textAlign: 'center',
+  },
+  timePicker: {
+    height: 200,
+  },
+  timePickerDoneButton: {
+    backgroundColor: '#8000FF',
+    marginHorizontal: 20,
+    marginTop: 10,
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  timePickerDoneText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   saveButton: {
     backgroundColor: '#8000FF',
     borderRadius: 8,
@@ -325,25 +373,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  timePickerContainer: {
-    marginTop: 10,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  timePickerDone: {
-    backgroundColor: '#8000FF',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  timePickerDoneText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

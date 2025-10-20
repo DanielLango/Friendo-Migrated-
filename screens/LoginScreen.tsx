@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Alert,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { useBasic } from '@basictech/expo';
 import { useNavigation } from '@react-navigation/native';
@@ -18,38 +19,54 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
-  const { login, isLoading, isSignedIn } = useBasic();
+  const { login, isLoading, isSignedIn, user } = useBasic();
   const navigation = useNavigation<LoginScreenNavigationProp>();
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
 
   React.useEffect(() => {
-    const checkSkipReflection = async () => {
-      if (isSignedIn) {
-        try {
+    const checkAuthAndNavigate = async () => {
+      try {
+        // Wait a moment for BasicProvider to initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (isSignedIn && user) {
           const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
           if (skipReflection === 'true') {
             navigation.navigate('AddFriends');
           } else {
             navigation.navigate('ReflectOnFriends');
           }
-        } catch (error) {
-          console.error('Error checking reflection preference:', error);
-          navigation.navigate('ReflectOnFriends');
         }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        // Silently fail - user can still login manually
+      } finally {
+        setIsCheckingAuth(false);
       }
     };
 
-    checkSkipReflection();
-  }, [isSignedIn, navigation]);
+    checkAuthAndNavigate();
+  }, [isSignedIn, user, navigation]);
 
   const handleBasicTechLogin = async () => {
     try {
       await login();
-      // Navigation will happen via useEffect when isSignedIn changes
     } catch (error) {
       console.error('Login error:', error);
       Alert.alert('Login Error', 'Failed to sign in. Please try again.');
     }
   };
+
+  if (isCheckingAuth) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#EC4899" />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -95,6 +112,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666666',
   },
   content: {
     flex: 1,

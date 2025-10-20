@@ -4,6 +4,13 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
+import { LogBox } from 'react-native';
+
+// Suppress specific warnings that are expected during development
+LogBox.ignoreLogs([
+  'Failed to refresh token',
+  'Token refresh error',
+]);
 
 // Import screens
 import LoginScreen from './screens/LoginScreen';
@@ -38,7 +45,6 @@ export default function App() {
       <BasicProvider project_id={schema.project_id} schema={schema}>
         <NavigationContainer>
           <Stack.Navigator 
-            id="RootStack"
             initialRouteName="Login"
             screenOptions={{
               headerShown: false,
