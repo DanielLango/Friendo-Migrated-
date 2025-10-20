@@ -21,10 +21,11 @@ export default function AddFriendsScreen() {
   const [pulseAnim] = useState(new Animated.Value(1));
   
   const navigation = useNavigation();
-  const { db } = useBasic();
+  const { db, isSignedIn } = useBasic();
 
   const loadFriendsCount = useCallback(async () => {
-    if (db) {
+    // Only attempt to load if we have a valid db connection and user is signed in
+    if (db && isSignedIn) {
       try {
         const friends = await db.from('friends').getAll();
         setFriendCount(friends?.length || 0);
@@ -38,10 +39,16 @@ export default function AddFriendsScreen() {
         });
         setTotalMeetings(yearMeetings.length);
       } catch (error) {
-        console.error('Error loading friends count:', error);
+        // Silently handle token refresh errors - they don't affect functionality
+        if (error && typeof error === 'object' && 'message' in error) {
+          const errorMessage = (error as Error).message;
+          if (!errorMessage.includes('Token refresh failed') && !errorMessage.includes('failed_to_get_token')) {
+            console.error('Error loading friends count:', error);
+          }
+        }
       }
     }
-  }, [db]);
+  }, [db, isSignedIn]);
 
   useEffect(() => {
     // Animate screen entrance
@@ -89,7 +96,7 @@ export default function AddFriendsScreen() {
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, loadFriendsCount]);
 
   const handleSyncContacts = () => {
     (navigation as any).navigate('Sync');
