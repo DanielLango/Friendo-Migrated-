@@ -127,7 +127,7 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
           <View style={styles.optionsContainer}>
             <TouchableOpacity
               style={styles.optionRow}
-              onPress={() => handleFrequencyChange('days')}
+              onPress={() => setSelectedFrequency('days')}
             >
               <View style={[styles.radio, selectedFrequency === 'days' && styles.radioSelected]} />
               <Text style={styles.optionText}>days</Text>
@@ -148,7 +148,7 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
 
             <TouchableOpacity
               style={styles.optionRow}
-              onPress={() => handleFrequencyChange('weekly')}
+              onPress={() => setSelectedFrequency('weekly')}
             >
               <View style={[styles.radio, selectedFrequency === 'weekly' && styles.radioSelected]} />
               <Text style={styles.optionText}>weekly</Text>
@@ -169,7 +169,7 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
 
             <TouchableOpacity
               style={styles.optionRow}
-              onPress={() => handleFrequencyChange('monthly')}
+              onPress={() => setSelectedFrequency('monthly')}
             >
               <View style={[styles.radio, selectedFrequency === 'monthly' && styles.radioSelected]} />
               <Text style={styles.optionText}>monthly</Text>
