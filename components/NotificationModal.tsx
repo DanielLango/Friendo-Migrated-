@@ -22,10 +22,39 @@ interface NotificationModalProps {
 
 export default function NotificationModal({ visible, friend, onClose }: NotificationModalProps) {
   const [selectedFrequency, setSelectedFrequency] = useState<'days' | 'weekly' | 'monthly'>(friend.notificationFrequency || 'days');
-  const [customDays, setCustomDays] = useState((friend.notificationDays || 7).toString());
+  
+  // Set default values based on frequency
+  const getDefaultValue = () => {
+    if (friend.notificationDays) {
+      // If friend already has a value, calculate it based on frequency
+      if (selectedFrequency === 'weekly') {
+        return Math.round(friend.notificationDays / 7).toString();
+      } else if (selectedFrequency === 'monthly') {
+        return Math.round(friend.notificationDays / 30).toString();
+      }
+      return friend.notificationDays.toString();
+    }
+    // Default values for new settings
+    if (selectedFrequency === 'weekly') return '3';
+    if (selectedFrequency === 'monthly') return '1';
+    return '7';
+  };
+  
+  const [customDays, setCustomDays] = useState(getDefaultValue());
   const [notificationTime, setNotificationTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
   const { db } = useBasic();
+
+  // Update customDays when frequency changes
+  React.useEffect(() => {
+    if (selectedFrequency === 'days') {
+      setCustomDays('7');
+    } else if (selectedFrequency === 'weekly') {
+      setCustomDays('3');
+    } else if (selectedFrequency === 'monthly') {
+      setCustomDays('1');
+    }
+  }, [selectedFrequency]);
 
   const handleTimeChange = (selectedTime: Date) => {
     setNotificationTime(selectedTime);
@@ -98,7 +127,7 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
           <View style={styles.optionsContainer}>
             <TouchableOpacity
               style={styles.optionRow}
-              onPress={() => setSelectedFrequency('days')}
+              onPress={() => handleFrequencyChange('days')}
             >
               <View style={[styles.radio, selectedFrequency === 'days' && styles.radioSelected]} />
               <Text style={styles.optionText}>days</Text>
@@ -119,7 +148,7 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
 
             <TouchableOpacity
               style={styles.optionRow}
-              onPress={() => setSelectedFrequency('weekly')}
+              onPress={() => handleFrequencyChange('weekly')}
             >
               <View style={[styles.radio, selectedFrequency === 'weekly' && styles.radioSelected]} />
               <Text style={styles.optionText}>weekly</Text>
@@ -131,7 +160,7 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
                     value={customDays}
                     onChangeText={setCustomDays}
                     keyboardType="numeric"
-                    placeholder="1"
+                    placeholder="3"
                   />
                   <Text style={styles.everyText}>weeks</Text>
                 </View>
@@ -140,7 +169,7 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
 
             <TouchableOpacity
               style={styles.optionRow}
-              onPress={() => setSelectedFrequency('monthly')}
+              onPress={() => handleFrequencyChange('monthly')}
             >
               <View style={[styles.radio, selectedFrequency === 'monthly' && styles.radioSelected]} />
               <Text style={styles.optionText}>monthly</Text>

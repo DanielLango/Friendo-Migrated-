@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
-<<<<<<< Updated upstream
 import { LogBox } from 'react-native';
 
 // Suppress specific warnings that are expected during development
@@ -32,8 +32,6 @@ console.error = (...args) => {
   }
   originalConsoleError(...args);
 };
-=======
->>>>>>> Stashed changes
 
 // Import screens
 import LoginScreen from './screens/LoginScreen';
@@ -68,10 +66,7 @@ export default function App() {
       <BasicProvider project_id={schema.project_id} schema={schema}>
         <NavigationContainer>
           <Stack.Navigator 
-<<<<<<< Updated upstream
-=======
             id="RootStack"
->>>>>>> Stashed changes
             initialRouteName="Login"
             screenOptions={{
               headerShown: false,
