@@ -105,7 +105,7 @@ export default function FriendRow({
                 Alert.alert('Success', 'Meeting erased completely.');
               } catch (error) {
                 console.error('Error deleting meeting:', error);
-                Alert.alert('Error', 'Failed to delete meeting. Please check your connection and try again.');
+                Alert.alert('Error', `Failed to delete meeting: ${error}`);
               }
             }
           }
@@ -128,13 +128,23 @@ export default function FriendRow({
                   return;
                 }
                 
-                await db.from('meetings').update(String(meeting.id), {
+                // Update with all existing fields plus the new status
+                const updatedMeeting = {
+                  date: meeting.date,
+                  notes: meeting.notes || '',
+                  venue: meeting.venue || '',
+                  activity: meeting.activity || '',
+                  friendId: String(meeting.friendId),
+                  createdAt: meeting.createdAt || Date.now(),
+                  city: meeting.city || '',
                   status: 'cancelled'
-                });
+                };
+                
+                await db.from('meetings').replace(String(meeting.id), updatedMeeting);
                 Alert.alert('Success', 'Meeting marked as cancelled.');
               } catch (error) {
                 console.error('Error updating meeting:', error);
-                Alert.alert('Error', 'Failed to update meeting. Please check your connection and try again.');
+                Alert.alert('Error', `Failed to update meeting: ${error}`);
               }
             }
           }
