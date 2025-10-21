@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   FlatList,
   Switch,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
@@ -16,6 +17,7 @@ import { SyncedContact } from '../types';
 export default function ContactSelectScreen() {
   const [contacts, setContacts] = useState<SyncedContact[]>([]);
   const [selectedCount, setSelectedCount] = useState(0);
+  const [currentFriendCount, setCurrentFriendCount] = useState(0);
   const navigation = useNavigation();
   const route = useRoute();
   const { db } = useBasic();
@@ -28,11 +30,37 @@ export default function ContactSelectScreen() {
     setContacts(sourceContacts);
   }, [source]);
 
+  useEffect(() => {
+    // Get current friend count
+    const fetchFriendCount = async () => {
+      if (db) {
+        try {
+          const friends = await db.from('friends').getAll();
+          setCurrentFriendCount(friends?.length || 0);
+        } catch (error) {
+          console.error('Error fetching friend count:', error);
+        }
+      }
+    };
+    fetchFriendCount();
+  }, [db]);
+
   const toggleContact = (contactId: string) => {
     setContacts(prevContacts => 
       prevContacts.map(contact => {
         if (contact.id === contactId) {
           const newSelected = !contact.selected;
+          
+          // Check if adding this contact would exceed the limit
+          if (newSelected && (currentFriendCount + selectedCount + 1) > 50) {
+            Alert.alert(
+              'Friend Limit Reached',
+              'You can only add up to 50 friends. Please deselect some contacts or remove existing friends first.',
+              [{ text: 'OK' }]
+            );
+            return contact;
+          }
+          
           setSelectedCount(prev => newSelected ? prev + 1 : prev - 1);
           return { ...contact, selected: newSelected };
         }
@@ -46,6 +74,19 @@ export default function ContactSelectScreen() {
     
     if (db) {
       try {
+        // Double-check the limit before saving
+        const friends = await db.from('friends').getAll();
+        const totalCount = (friends?.length || 0) + selectedContacts.length;
+        
+        if (totalCount > 50) {
+          Alert.alert(
+            'Friend Limit Exceeded',
+            `You can only have up to 50 friends. You currently have ${friends?.length || 0} friends and are trying to add ${selectedContacts.length} more.`,
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+        
         // Save selected friends to database
         for (const contact of selectedContacts) {
           await db.from('friends').add({

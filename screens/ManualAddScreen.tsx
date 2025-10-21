@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,9 +15,25 @@ export default function ManualAddScreen() {
   const [fullName, setFullName] = useState('');
   const [isOnline, setIsOnline] = useState(false);
   const [isLocal, setIsLocal] = useState(false);
+  const [currentFriendCount, setCurrentFriendCount] = useState(0);
   
   const navigation = useNavigation();
   const { db, isSignedIn } = useBasic();
+
+  useEffect(() => {
+    // Get current friend count
+    const fetchFriendCount = async () => {
+      if (db) {
+        try {
+          const friends = await db.from('friends').getAll();
+          setCurrentFriendCount(friends?.length || 0);
+        } catch (error) {
+          console.error('Error fetching friend count:', error);
+        }
+      }
+    };
+    fetchFriendCount();
+  }, [db]);
 
   const handleAdd = async () => {
     if (!fullName.trim()) {
@@ -39,6 +55,17 @@ export default function ManualAddScreen() {
 
     if (db) {
       try {
+        // Check friend limit
+        const friends = await db.from('friends').getAll();
+        if ((friends?.length || 0) >= 50) {
+          Alert.alert(
+            'Friend Limit Reached',
+            'You can only add up to 50 friends. Please remove some friends before adding new ones.',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+        
         await db.from('friends').add({
           name: fullName.trim(),
           email: '',
