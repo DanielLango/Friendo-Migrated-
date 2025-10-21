@@ -17,6 +17,7 @@ export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [deleteMode, setDeleteMode] = useState(false);
+  const [sortMode, setSortMode] = useState<'default' | 'name' | 'tokens'>('default');
   const navigation = useNavigation();
   const { db, signout } = useBasic();
 
@@ -134,6 +135,50 @@ export default function MainScreen() {
     return meetings.filter(meeting => String(meeting.friendId) === friendId);
   };
 
+  const getSortedFriends = () => {
+    const friendsWithMeetings = friends.map(friend => ({
+      ...friend,
+      meetingCount: getFriendMeetings(String(friend.id)).length
+    }));
+
+    if (sortMode === 'name') {
+      return [...friendsWithMeetings].sort((a, b) => 
+        a.name.localeCompare(b.name)
+      );
+    } else if (sortMode === 'tokens') {
+      return [...friendsWithMeetings].sort((a, b) => 
+        b.meetingCount - a.meetingCount
+      );
+    }
+    
+    // Default: order added (by createdAt)
+    return [...friendsWithMeetings].sort((a, b) => 
+      (a.createdAt || 0) - (b.createdAt || 0)
+    );
+  };
+
+  const cycleSortMode = () => {
+    if (sortMode === 'default') {
+      setSortMode('name');
+    } else if (sortMode === 'name') {
+      setSortMode('tokens');
+    } else {
+      setSortMode('default');
+    }
+  };
+
+  const getSortIcon = () => {
+    if (sortMode === 'name') return '🔤';
+    if (sortMode === 'tokens') return '🏆';
+    return '📋';
+  };
+
+  const getSortLabel = () => {
+    if (sortMode === 'name') return 'A-Z';
+    if (sortMode === 'tokens') return 'Tokens';
+    return 'Default';
+  };
+
   const renderFriend = ({ item }: { item: Friend }) => (
     <FriendRow
       friend={item}
@@ -149,6 +194,13 @@ export default function MainScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Friendo</Text>
         <Text style={styles.subtitle}>Your Friends ({friends.length})</Text>
+        <TouchableOpacity 
+          style={styles.sortButton}
+          onPress={cycleSortMode}
+        >
+          <Text style={styles.sortButtonIcon}>{getSortIcon()}</Text>
+          <Text style={styles.sortButtonLabel}>{getSortLabel()}</Text>
+        </TouchableOpacity>
         <TouchableOpacity 
           style={styles.deleteButton}
           onPress={() => setDeleteMode(!deleteMode)}
@@ -167,7 +219,7 @@ export default function MainScreen() {
       )}
 
       <FlatList
-        data={friends}
+        data={getSortedFriends()}
         renderItem={renderFriend}
         keyExtractor={(item) => String(item.id)}
         style={styles.friendsList}
@@ -214,6 +266,27 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
+    color: '#666666',
+  },
+  sortButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    padding: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  sortButtonIcon: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  sortButtonLabel: {
+    fontSize: 12,
+    fontWeight: '600',
     color: '#666666',
   },
   deleteButton: {
