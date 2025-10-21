@@ -41,6 +41,10 @@ export default function App() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+            id="RootStack"
+>>>>>>> Stashed changes
 =======
             id="RootStack"
 >>>>>>> Stashed changes
