@@ -35,7 +35,8 @@ export default function AddFriendsScreen() {
         const currentYear = new Date().getFullYear();
         const yearMeetings = (meetings || []).filter((meeting: any) => {
           const meetingDate = typeof meeting.date === 'string' ? meeting.date : String(meeting.date);
-          return new Date(meetingDate).getFullYear() === currentYear;
+          const isCancelled = meeting.notes && meeting.notes.startsWith('[CANCELLED]');
+          return new Date(meetingDate).getFullYear() === currentYear && !isCancelled;
         });
         setTotalMeetings(yearMeetings.length);
       } catch (error) {
