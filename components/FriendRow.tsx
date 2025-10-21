@@ -70,7 +70,7 @@ export default function FriendRow({
     setPressingMeetingId(meetingId);
     longPressTimer.current = setTimeout(() => {
       handleLongPressComplete(meetingId);
-    }, 8000); // 8 seconds
+    }, 3000); // 3 seconds
   };
 
   const handleLongPressEnd = () => {
