@@ -12,12 +12,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import { Friend, Meeting } from '../types';
 import FriendRow from '../components/FriendRow';
+import PremiumSupportModal from '../components/PremiumSupportModal';
 
 export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [deleteMode, setDeleteMode] = useState(false);
   const [sortMode, setSortMode] = useState<'default' | 'name' | 'tokens'>('default');
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const navigation = useNavigation();
   const { db, signout } = useBasic();
 
@@ -25,6 +27,9 @@ export default function MainScreen() {
     loadFriends();
     loadMeetings();
     scheduleAnnualReset();
+    
+    // Show premium modal every time the screen loads
+    setShowPremiumModal(true);
   }, [db]);
 
   const loadFriends = async () => {
@@ -57,7 +62,6 @@ export default function MainScreen() {
     if (timeUntilReset > 0) {
       setTimeout(async () => {
         await performAnnualReset();
-        // Schedule next year's reset
         scheduleAnnualReset();
       }, timeUntilReset);
     }
@@ -70,8 +74,6 @@ export default function MainScreen() {
       const currentYear = new Date().getFullYear();
       const allMeetings = await db.from('meetings').getAll();
       
-      // Delete all Met and Cancelled meetings from current year
-      // Keep Scheduled meetings for next year
       for (const meeting of (allMeetings || []) as unknown as Meeting[]) {
         const meetingYear = new Date(meeting.date).getFullYear();
         const status = meeting.status || 'met';
@@ -81,7 +83,6 @@ export default function MainScreen() {
         }
       }
       
-      // Reload meetings after reset
       await loadMeetings();
     } catch (error) {
       console.error('Error performing annual reset:', error);
@@ -100,13 +101,11 @@ export default function MainScreen() {
           onPress: async () => {
             try {
               if (db) {
-                // Delete all meetings for this friend
                 const friendMeetings = meetings.filter(meeting => String(meeting.friendId) === String(friend.id));
                 for (const meeting of friendMeetings) {
                   await db.from('meetings').delete(String(meeting.id));
                 }
                 
-                // Delete all friendship memos for this friend
                 try {
                   const friendshipMemos = await db.from('friendshipMemos').getAll();
                   const friendMemos = (friendshipMemos || []).filter((memo: any) => String(memo.friendId) === String(friend.id));
@@ -117,10 +116,8 @@ export default function MainScreen() {
                   console.log('No friendship memos to delete or error:', error);
                 }
                 
-                // Delete the friend
                 await db.from('friends').delete(String(friend.id));
                 
-                // Reload data
                 await loadFriends();
                 await loadMeetings();
                 
@@ -183,10 +180,18 @@ export default function MainScreen() {
     );
   };
 
+  const handleUpgradeToPremium = () => {
+    setShowPremiumModal(false);
+    Alert.alert(
+      '💜 Premium Upgrade',
+      'Premium features coming soon! We\'re setting up payment processing. Thank you for your interest in supporting Friendo!',
+      [{ text: 'OK' }]
+    );
+  };
+
   const getFriendMeetings = (friendId: string) => {
     const currentYear = new Date().getFullYear();
     
-    // Return ALL meetings for this friend in current year (including cancelled)
     return meetings.filter(meeting => {
       if (String(meeting.friendId) !== friendId) return false;
       
@@ -196,7 +201,6 @@ export default function MainScreen() {
   };
 
   const getFriendMeetingCount = (friendId: string) => {
-    // Count only non-cancelled meetings
     return getFriendMeetings(friendId).filter(meeting => {
       const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
       return !isCancelled;
@@ -219,7 +223,6 @@ export default function MainScreen() {
       );
     }
     
-    // Default: order added (by createdAt)
     return [...friendsWithMeetings].sort((a, b) => 
       (a.createdAt || 0) - (b.createdAt || 0)
     );
@@ -233,12 +236,6 @@ export default function MainScreen() {
     } else {
       setSortMode('default');
     }
-  };
-
-  const getSortIcon = () => {
-    if (sortMode === 'name') return '🔤';
-    if (sortMode === 'tokens') return '🏆';
-    return '📋';
   };
 
   const getSortLabel = () => {
@@ -259,6 +256,12 @@ export default function MainScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <PremiumSupportModal
+        visible={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onUpgrade={handleUpgradeToPremium}
+      />
+      
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.sortContainer}>
