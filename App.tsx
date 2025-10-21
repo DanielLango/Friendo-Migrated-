@@ -38,10 +38,6 @@ export default function App() {
       <BasicProvider project_id={schema.project_id} schema={schema}>
         <NavigationContainer>
           <Stack.Navigator 
-<<<<<<< Updated upstream
-=======
-            id="RootStack"
->>>>>>> Stashed changes
             initialRouteName="Login"
             screenOptions={{
               headerShown: false,
