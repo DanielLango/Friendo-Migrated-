@@ -19,6 +19,7 @@ export default function ReflectOnFriendsScreen() {
   const [slideAnim] = useState(new Animated.Value(30));
   const [backgroundAnim] = useState(new Animated.Value(0));
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   const navigation = useNavigation();
 
@@ -74,6 +75,11 @@ export default function ReflectOnFriendsScreen() {
             source={require('../assets/images/ezgif.com-optimize.gif')}
             style={styles.backgroundImage}
             resizeMode="cover"
+            onLoad={() => setImageLoaded(true)}
+            onError={(error) => {
+              console.error('Error loading background image:', error);
+              setImageLoaded(true); // Still show content even if image fails
+            }}
           />
           {/* Purple overlay to create the deep purple effect */}
           <View style={styles.purpleOverlay} />
