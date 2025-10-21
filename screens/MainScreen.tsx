@@ -175,7 +175,7 @@ export default function MainScreen() {
 
   const getSortLabel = () => {
     if (sortMode === 'name') return 'A-Z';
-    if (sortMode === 'tokens') return 'Tokens';
+    if (sortMode === 'tokens') return 'Met Tokens';
     return 'Default';
   };
 
@@ -192,21 +192,32 @@ export default function MainScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Friendo</Text>
-        <Text style={styles.subtitle}>Your Friends ({friends.length})</Text>
-        <TouchableOpacity 
-          style={styles.sortButton}
-          onPress={cycleSortMode}
-        >
-          <Text style={styles.sortButtonIcon}>{getSortIcon()}</Text>
-          <Text style={styles.sortButtonLabel}>{getSortLabel()}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.deleteButton}
-          onPress={() => setDeleteMode(!deleteMode)}
-        >
-          <Text style={styles.deleteButtonText}>🗑️</Text>
-        </TouchableOpacity>
+        <View style={styles.headerTop}>
+          <View style={styles.sortContainer}>
+            <Text style={styles.sortLabel}>Sorting</Text>
+            <TouchableOpacity 
+              style={styles.sortButton}
+              onPress={cycleSortMode}
+            >
+              <Text style={styles.sortButtonText}>{getSortLabel()}</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.centerContent}>
+            <Text style={styles.title}>Friendo</Text>
+            <Text style={styles.subtitle}>Your Friends ({friends.length})</Text>
+          </View>
+          
+          <View style={styles.deleteContainer}>
+            <Text style={styles.deleteLabel}>Delete</Text>
+            <TouchableOpacity 
+              style={styles.deleteButton}
+              onPress={() => setDeleteMode(!deleteMode)}
+            >
+              <Text style={styles.deleteButtonText}>🗑️</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       {deleteMode && (
@@ -255,8 +266,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  centerContent: {
+    flex: 1,
     alignItems: 'center',
-    position: 'relative',
+    paddingHorizontal: 10,
   },
   title: {
     fontSize: 28,
@@ -268,32 +287,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666666',
   },
-  sortButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    padding: 8,
-    flexDirection: 'row',
+  sortContainer: {
     alignItems: 'center',
+  },
+  sortLabel: {
+    fontSize: 10,
+    color: '#666666',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  sortButton: {
     backgroundColor: '#F0F0F0',
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
+    minWidth: 80,
+    alignItems: 'center',
   },
-  sortButtonIcon: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  sortButtonLabel: {
+  sortButtonText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#666666',
   },
+  deleteContainer: {
+    alignItems: 'center',
+  },
+  deleteLabel: {
+    fontSize: 10,
+    color: '#666666',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
   deleteButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
     padding: 8,
+    minWidth: 40,
+    alignItems: 'center',
   },
   deleteButtonText: {
     fontSize: 20,
