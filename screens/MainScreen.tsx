@@ -12,14 +12,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useBasic } from '@basictech/expo';
 import { Friend, Meeting } from '../types';
 import FriendRow from '../components/FriendRow';
-import PremiumSupportModal from '../components/PremiumSupportModal';
 
 export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [deleteMode, setDeleteMode] = useState(false);
   const [sortMode, setSortMode] = useState<'default' | 'name' | 'tokens'>('default');
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const navigation = useNavigation();
   const { db, signout } = useBasic();
 
@@ -27,9 +25,6 @@ export default function MainScreen() {
     loadFriends();
     loadMeetings();
     scheduleAnnualReset();
-    
-    // Show premium modal every time the screen loads
-    setShowPremiumModal(true);
   }, [db]);
 
   const loadFriends = async () => {
@@ -180,15 +175,6 @@ export default function MainScreen() {
     );
   };
 
-  const handleUpgradeToPremium = () => {
-    setShowPremiumModal(false);
-    Alert.alert(
-      '💜 Premium Upgrade',
-      'Premium features coming soon! We\'re setting up payment processing. Thank you for your interest in supporting Friendo!',
-      [{ text: 'OK' }]
-    );
-  };
-
   const getFriendMeetings = (friendId: string) => {
     const currentYear = new Date().getFullYear();
     
@@ -256,12 +242,6 @@ export default function MainScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <PremiumSupportModal
-        visible={showPremiumModal}
-        onClose={() => setShowPremiumModal(false)}
-        onUpgrade={handleUpgradeToPremium}
-      />
-      
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.sortContainer}>
