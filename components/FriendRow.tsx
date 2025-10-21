@@ -46,9 +46,12 @@ export default function FriendRow({
       const endOfMeetingDay = new Date(meetingDate);
       endOfMeetingDay.setHours(23, 59, 59, 999);
       
+      // Check if cancelled by looking at notes
+      const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
+      
       // If meeting is cancelled, keep it cancelled
-      if (meeting.status === 'cancelled') {
-        return meeting;
+      if (isCancelled) {
+        return { ...meeting, status: 'cancelled' as const };
       }
       
       // If meeting date has passed (after 23:59), mark as met
@@ -84,7 +87,10 @@ export default function FriendRow({
 
     handleLongPressEnd();
 
-    if (meeting.status === 'cancelled') {
+    // Check if meeting is cancelled by looking at the notes field
+    const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
+
+    if (isCancelled) {
       // If already cancelled, offer to erase completely
       Alert.alert(
         'Erase Meeting?',
@@ -128,16 +134,15 @@ export default function FriendRow({
                   return;
                 }
                 
-                // Update with all existing fields plus the new status
+                // Mark as cancelled by prepending [CANCELLED] to notes
                 const updatedMeeting = {
                   date: meeting.date,
-                  notes: meeting.notes || '',
+                  notes: `[CANCELLED] ${meeting.notes || ''}`,
                   venue: meeting.venue || '',
                   activity: meeting.activity || '',
                   friendId: String(meeting.friendId),
                   createdAt: meeting.createdAt || Date.now(),
-                  city: meeting.city || '',
-                  status: 'cancelled'
+                  city: meeting.city || ''
                 };
                 
                 await db.from('meetings').replace(String(meeting.id), updatedMeeting);
