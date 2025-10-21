@@ -455,6 +455,14 @@ export default function MeetingCreateScreen() {
               </View>
             </View>
           </View>
+
+          {/* Pro Tip */}
+          <View style={styles.proTipBox}>
+            <Text style={styles.proTipIcon}>💡</Text>
+            <Text style={styles.proTipText}>
+              <Text style={styles.proTipBold}>Pro Tip:</Text> You can also log past meetings or ones initiated by your friends, so your history — and the "Met/Will Meet" tokens — stay accurate.
+            </Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -930,5 +938,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#8000FF',
+  },
+  proTipBox: {
+    backgroundColor: '#FFF9E6',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#FFE082',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  proTipIcon: {
+    fontSize: 20,
+    marginRight: 12,
+    marginTop: 2,
+  },
+  proTipText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333333',
+    lineHeight: 20,
+  },
+  proTipBold: {
+    fontWeight: 'bold',
+    color: '#F57C00',
   },
 });
