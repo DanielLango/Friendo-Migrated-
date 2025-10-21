@@ -1,9 +1,1 @@
-import { View, Text } from 'react-native';
-
-export default function App() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Web-specific App</Text>
-    </View>
-  );
-}
+// This file has been removed - using App.tsx for all platforms
