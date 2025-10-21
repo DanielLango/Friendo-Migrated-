@@ -67,9 +67,12 @@ export default function StatsScreen() {
         const friends = await db.from('friends').getAll();
         const meetings = await db.from('meetings').getAll();
         
+        // Filter for current year AND exclude cancelled meetings
         const yearMeetings = (meetings || []).filter((meeting: any) => {
           const meetingDate = typeof meeting.date === 'string' ? meeting.date : String(meeting.date);
-          return new Date(meetingDate).getFullYear() === currentYear;
+          const isCurrentYear = new Date(meetingDate).getFullYear() === currentYear;
+          const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
+          return isCurrentYear && !isCancelled;
         });
 
         setTotalMeetings(yearMeetings.length);
