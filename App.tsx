@@ -40,6 +40,10 @@ export default function App() {
           <Stack.Navigator 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+            id="RootStack"
+>>>>>>> Stashed changes
 =======
             id="RootStack"
 >>>>>>> Stashed changes
