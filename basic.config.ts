@@ -1,6 +1,6 @@
 export const schema = {
   project_id: "fe8af65a-bcdf-49c1-9e22-3624e0506558",
-  version: 2,
+  version: 3,
   tables: {
     friends: {
       type: "collection",
