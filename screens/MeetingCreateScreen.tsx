@@ -460,7 +460,7 @@ export default function MeetingCreateScreen() {
           <View style={styles.proTipBox}>
             <Text style={styles.proTipIcon}>💡</Text>
             <Text style={styles.proTipText}>
-              <Text style={styles.proTipBold}>Pro Tip:</Text> You can also log past meetings or ones initiated by your friends, so your history — and the "Met/Will Meet" tokens — stay accurate.
+              <Text style={styles.proTipBold}>Pro Tip:</Text> You can also log past meetings or ones initiated by your friends, so your history — and the \"Met/Scheduled\" tokens — stay accurate.
             </Text>
           </View>
         </View>
