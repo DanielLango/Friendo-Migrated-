@@ -24,6 +24,7 @@ export default function MainScreen() {
   useEffect(() => {
     loadFriends();
     loadMeetings();
+    scheduleAnnualReset();
   }, [db]);
 
   const loadFriends = async () => {
@@ -45,6 +46,45 @@ export default function MainScreen() {
       } catch (error) {
         console.error('Error loading meetings:', error);
       }
+    }
+  };
+
+  const scheduleAnnualReset = () => {
+    const now = new Date();
+    const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+    const timeUntilReset = endOfYear.getTime() - now.getTime();
+
+    if (timeUntilReset > 0) {
+      setTimeout(async () => {
+        await performAnnualReset();
+        // Schedule next year's reset
+        scheduleAnnualReset();
+      }, timeUntilReset);
+    }
+  };
+
+  const performAnnualReset = async () => {
+    if (!db) return;
+
+    try {
+      const currentYear = new Date().getFullYear();
+      const allMeetings = await db.from('meetings').getAll();
+      
+      // Delete all Met and Cancelled meetings from current year
+      // Keep Scheduled meetings for next year
+      for (const meeting of (allMeetings || []) as unknown as Meeting[]) {
+        const meetingYear = new Date(meeting.date).getFullYear();
+        const status = meeting.status || 'met';
+        
+        if (meetingYear === currentYear && (status === 'met' || status === 'cancelled')) {
+          await db.from('meetings').delete(String(meeting.id));
+        }
+      }
+      
+      // Reload meetings after reset
+      await loadMeetings();
+    } catch (error) {
+      console.error('Error performing annual reset:', error);
     }
   };
 
@@ -108,7 +148,19 @@ export default function MainScreen() {
   const handleMeetingPress = (meeting: Meeting) => {
     if (!deleteMode) {
       const meetingDate = new Date(meeting.date).toLocaleDateString();
-      Alert.alert('Meeting Details', `Met on ${meetingDate}`);
+      const status = meeting.status || 'met';
+      
+      if (status === 'cancelled') {
+        Alert.alert(
+          'Meeting Details',
+          `This was scheduled for ${meetingDate}, but got cancelled.`
+        );
+      } else if (status === 'scheduled') {
+        const instructions = `Scheduled for ${meetingDate}\n\n\nWhat to do now?\n(In case you selected a calendar option)\n\nAfter tapping 'Schedule Meetup':\n1.) In case you selected the Add to my calendar option, open your smartphone's default calendar app, and navigate to the day you selected for the meetup.\n2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.\n\nOnce the meeting invite is in front of you in your calendar:\n• Edit the event time in the calendar as needed.\n• Under Invitee, you can add an email if you want. Your default calendar app will then send the invitation to that email.\n• Feel free to change any other details about your meeting.`;
+        Alert.alert('Meeting Details', instructions);
+      } else {
+        Alert.alert('Meeting Details', `Met on ${meetingDate}`);
+      }
     }
   };
 
@@ -132,7 +184,18 @@ export default function MainScreen() {
   };
 
   const getFriendMeetings = (friendId: string) => {
-    return meetings.filter(meeting => String(meeting.friendId) === friendId);
+    const currentYear = new Date().getFullYear();
+    
+    return meetings.filter(meeting => {
+      if (String(meeting.friendId) !== friendId) return false;
+      
+      const meetingYear = new Date(meeting.date).getFullYear();
+      if (meetingYear !== currentYear) return false;
+      
+      // Exclude cancelled meetings from count
+      const status = meeting.status || 'met';
+      return status !== 'cancelled';
+    });
   };
 
   const getSortedFriends = () => {

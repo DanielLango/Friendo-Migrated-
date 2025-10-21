@@ -127,6 +127,13 @@ export default function MeetingCreateScreen() {
 
       const category = getVenueCategory(selectedCategory);
       
+      // Determine initial status based on date
+      const now = new Date();
+      const endOfSelectedDay = new Date(selectedDate);
+      endOfSelectedDay.setHours(23, 59, 59, 999);
+      
+      const initialStatus = now > endOfSelectedDay ? 'met' : 'scheduled';
+      
       const meetingData = {
         friendId: friend.id,
         date: selectedDate.toISOString(),
@@ -135,6 +142,7 @@ export default function MeetingCreateScreen() {
         city: selectedCity,
         notes: meetingNotes || '',
         createdAt: Date.now(),
+        status: initialStatus,
       };
       
       console.log('Creating meeting with data:', meetingData);

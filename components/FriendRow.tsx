@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
+  Alert,
+  Pressable,
 } from 'react-native';
 import { Friend, Meeting } from '../types';
 import NotificationModal from './NotificationModal';
+import { useBasic } from '@basictech/expo';
 
 interface FriendRowProps {
   friend: Friend;
@@ -25,14 +28,155 @@ export default function FriendRow({
 }: FriendRowProps) {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showAllMeetings, setShowAllMeetings] = useState(false);
+  const { db } = useBasic();
+  
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const [pressingMeetingId, setPressingMeetingId] = useState<string | null>(null);
 
   const currentYear = new Date().getFullYear();
-  const yearMeetings = meetings.filter(meeting => 
-    new Date(meeting.date).getFullYear() === currentYear
-  );
+  
+  // Filter meetings for current year and update status based on date
+  const yearMeetings = meetings
+    .filter(meeting => new Date(meeting.date).getFullYear() === currentYear)
+    .map(meeting => {
+      const meetingDate = new Date(meeting.date);
+      const now = new Date();
+      
+      // Set time to end of day for comparison
+      const endOfMeetingDay = new Date(meetingDate);
+      endOfMeetingDay.setHours(23, 59, 59, 999);
+      
+      // If meeting is cancelled, keep it cancelled
+      if (meeting.status === 'cancelled') {
+        return meeting;
+      }
+      
+      // If meeting date has passed (after 23:59), mark as met
+      if (now > endOfMeetingDay) {
+        return { ...meeting, status: 'met' as const };
+      }
+      
+      // Otherwise, it's scheduled
+      return { ...meeting, status: 'scheduled' as const };
+    });
 
   const displayMeetings = showAllMeetings ? yearMeetings : yearMeetings.slice(0, 5);
   const hasMoreMeetings = yearMeetings.length > 5;
+
+  const handleLongPressStart = (meetingId: string) => {
+    setPressingMeetingId(meetingId);
+    longPressTimer.current = setTimeout(() => {
+      handleLongPressComplete(meetingId);
+    }, 8000); // 8 seconds
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    setPressingMeetingId(null);
+  };
+
+  const handleLongPressComplete = async (meetingId: string) => {
+    const meeting = meetings.find(m => m.id === meetingId);
+    if (!meeting) return;
+
+    handleLongPressEnd();
+
+    if (meeting.status === 'cancelled') {
+      // If already cancelled, offer to erase completely
+      Alert.alert(
+        'Erase Meeting?',
+        'This will permanently delete this meeting from your history. This action cannot be undone.',
+        [
+          { text: 'No', style: 'cancel' },
+          {
+            text: 'Yes, Erase',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                if (db) {
+                  await db.from('meetings').delete(String(meeting.id));
+                  Alert.alert('Success', 'Meeting erased completely.');
+                }
+              } catch (error) {
+                console.error('Error deleting meeting:', error);
+                Alert.alert('Error', 'Failed to delete meeting.');
+              }
+            }
+          }
+        ]
+      );
+    } else {
+      // If not cancelled, offer to cancel
+      Alert.alert(
+        'Mark Meeting as Cancelled?',
+        'This will mark the meeting as cancelled. The token will turn red and won\'t count toward your meeting total.',
+        [
+          { text: 'No', style: 'cancel' },
+          {
+            text: 'Yes, Cancel Meeting',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                if (db) {
+                  await db.from('meetings').update(String(meeting.id), {
+                    status: 'cancelled'
+                  });
+                  Alert.alert('Success', 'Meeting marked as cancelled.');
+                }
+              } catch (error) {
+                console.error('Error updating meeting:', error);
+                Alert.alert('Error', 'Failed to update meeting.');
+              }
+            }
+          }
+        ]
+      );
+    }
+  };
+
+  const handleTokenPress = (meeting: Meeting) => {
+    if (deleteMode) return;
+    
+    const meetingDate = new Date(meeting.date).toLocaleDateString();
+    const status = meeting.status || 'met';
+    
+    if (status === 'cancelled') {
+      Alert.alert(
+        'Meeting Details',
+        `This was scheduled for ${meetingDate}, but got cancelled.`
+      );
+    } else if (status === 'scheduled') {
+      const instructions = `Scheduled for ${meetingDate}\n\n\nWhat to do now?\n(In case you selected a calendar option)\n\nAfter tapping 'Schedule Meetup':\n1.) In case you selected the Add to my calendar option, open your smartphone's default calendar app, and navigate to the day you selected for the meetup.\n2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.\n\nOnce the meeting invite is in front of you in your calendar:\n• Edit the event time in the calendar as needed.\n• Under Invitee, you can add an email if you want. Your default calendar app will then send the invitation to that email.\n• Feel free to change any other details about your meeting.`;
+      Alert.alert('Meeting Details', instructions);
+    } else {
+      Alert.alert('Meeting Details', `Met on ${meetingDate}`);
+    }
+  };
+
+  const getTokenStyle = (meeting: Meeting) => {
+    const status = meeting.status || 'met';
+    
+    if (status === 'cancelled') {
+      return styles.cancelledToken;
+    } else if (status === 'scheduled') {
+      return styles.scheduledToken;
+    }
+    return styles.metToken;
+  };
+
+  const getTokenText = (meeting: Meeting) => {
+    const status = meeting.status || 'met';
+    
+    if (status === 'cancelled') {
+      return 'Cancelled';
+    } else if (status === 'scheduled') {
+      return 'Scheduled';
+    }
+    return 'Met';
+  };
 
   return (
     <TouchableOpacity 
@@ -82,14 +226,19 @@ export default function FriendRow({
       <View style={styles.meetingsSection}>
         <View style={styles.meetingsContainer}>
           {displayMeetings.map((meeting, index) => (
-            <TouchableOpacity
+            <Pressable
               key={meeting.id}
-              style={styles.metToken}
-              onPress={() => onMeetingPress(meeting)}
+              style={[
+                getTokenStyle(meeting),
+                pressingMeetingId === meeting.id && styles.tokenPressing
+              ]}
+              onPress={() => handleTokenPress(meeting)}
+              onPressIn={() => handleLongPressStart(meeting.id)}
+              onPressOut={handleLongPressEnd}
               disabled={deleteMode}
             >
-              <Text style={styles.metText}>met</Text>
-            </TouchableOpacity>
+              <Text style={styles.tokenText}>{getTokenText(meeting)}</Text>
+            </Pressable>
           ))}
           {hasMoreMeetings && !showAllMeetings && (
             <TouchableOpacity
@@ -149,11 +298,6 @@ const styles = StyleSheet.create({
   deleteIcon: {
     fontSize: 20,
   },
-  deleteText: {
-    fontSize: 10,
-    color: '#FF4444',
-    fontWeight: '600',
-  },
   friendInfo: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -192,16 +336,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  scheduleButtonDisabled: {
-    borderColor: '#FF4444',
-  },
   scheduleText: {
     color: '#4CAF50',
     fontSize: 12,
     fontWeight: 'bold',
-  },
-  scheduleTextDisabled: {
-    color: '#FF4444',
   },
   typeIndicator: {
     flexDirection: 'row',
@@ -231,7 +369,27 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 4,
   },
-  metText: {
+  scheduledToken: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 4,
+  },
+  cancelledToken: {
+    backgroundColor: '#FF4444',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 4,
+  },
+  tokenPressing: {
+    opacity: 0.6,
+    transform: [{ scale: 0.95 }],
+  },
+  tokenText: {
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 'bold',

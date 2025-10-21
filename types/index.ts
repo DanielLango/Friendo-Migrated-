@@ -22,6 +22,7 @@ export interface Meeting {
   city?: string;
   notes: string;
   createdAt: number;
+  status?: 'scheduled' | 'met' | 'cancelled'; // New field for meeting status
 }
 
 export interface FriendshipMemo {
