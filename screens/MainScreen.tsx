@@ -192,9 +192,9 @@ export default function MainScreen() {
       const meetingYear = new Date(meeting.date).getFullYear();
       if (meetingYear !== currentYear) return false;
       
-      // Exclude cancelled meetings from count
-      const status = meeting.status || 'met';
-      return status !== 'cancelled';
+      // Exclude cancelled meetings from count (check notes for [CANCELLED] prefix)
+      const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
+      return !isCancelled;
     });
   };
 
