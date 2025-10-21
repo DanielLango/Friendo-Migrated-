@@ -96,13 +96,16 @@ export default function FriendRow({
             style: 'destructive',
             onPress: async () => {
               try {
-                if (db) {
-                  await db.from('meetings').delete(String(meeting.id));
-                  Alert.alert('Success', 'Meeting erased completely.');
+                if (!db) {
+                  Alert.alert('Error', 'Database not available. Please try again.');
+                  return;
                 }
+                
+                await db.from('meetings').delete(String(meeting.id));
+                Alert.alert('Success', 'Meeting erased completely.');
               } catch (error) {
                 console.error('Error deleting meeting:', error);
-                Alert.alert('Error', 'Failed to delete meeting.');
+                Alert.alert('Error', 'Failed to delete meeting. Please check your connection and try again.');
               }
             }
           }
@@ -120,15 +123,18 @@ export default function FriendRow({
             style: 'destructive',
             onPress: async () => {
               try {
-                if (db) {
-                  await db.from('meetings').update(String(meeting.id), {
-                    status: 'cancelled'
-                  });
-                  Alert.alert('Success', 'Meeting marked as cancelled.');
+                if (!db) {
+                  Alert.alert('Error', 'Database not available. Please try again.');
+                  return;
                 }
+                
+                await db.from('meetings').update(String(meeting.id), {
+                  status: 'cancelled'
+                });
+                Alert.alert('Success', 'Meeting marked as cancelled.');
               } catch (error) {
                 console.error('Error updating meeting:', error);
-                Alert.alert('Error', 'Failed to update meeting.');
+                Alert.alert('Error', 'Failed to update meeting. Please check your connection and try again.');
               }
             }
           }
