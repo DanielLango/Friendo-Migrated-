@@ -278,6 +278,7 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     zIndex: 0,
+    pointerEvents: 'none',
   },
   title: {
     fontSize: 28,
