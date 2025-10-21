@@ -273,9 +273,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   centerContent: {
-    flex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    paddingHorizontal: 10,
+    zIndex: -1,
   },
   title: {
     fontSize: 28,
