@@ -9,7 +9,10 @@ import './utils/global-error-handler';
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import './polyfills';
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
