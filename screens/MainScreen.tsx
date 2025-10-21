@@ -186,22 +186,27 @@ export default function MainScreen() {
   const getFriendMeetings = (friendId: string) => {
     const currentYear = new Date().getFullYear();
     
+    // Return ALL meetings for this friend in current year (including cancelled)
     return meetings.filter(meeting => {
       if (String(meeting.friendId) !== friendId) return false;
       
       const meetingYear = new Date(meeting.date).getFullYear();
-      if (meetingYear !== currentYear) return false;
-      
-      // Exclude cancelled meetings from count (check notes for [CANCELLED] prefix)
+      return meetingYear === currentYear;
+    });
+  };
+
+  const getFriendMeetingCount = (friendId: string) => {
+    // Count only non-cancelled meetings
+    return getFriendMeetings(friendId).filter(meeting => {
       const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
       return !isCancelled;
-    });
+    }).length;
   };
 
   const getSortedFriends = () => {
     const friendsWithMeetings = friends.map(friend => ({
       ...friend,
-      meetingCount: getFriendMeetings(String(friend.id)).length
+      meetingCount: getFriendMeetingCount(String(friend.id))
     }));
 
     if (sortMode === 'name') {
