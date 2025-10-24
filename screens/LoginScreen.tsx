@@ -8,14 +8,13 @@ import {
   SafeAreaView,
   Alert,
   Linking,
-  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import FriendoLogo from '../components/FriendoLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { saveUser, isLoggedIn } from '../utils/storage';
+import { saveUser } from '../utils/storage';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -24,37 +23,6 @@ export default function LoginScreen() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
-
-  React.useEffect(() => {
-    const checkAuthAndNavigate = async () => {
-      try {
-        console.log('LoginScreen: Starting auth check...');
-        const loggedIn = await isLoggedIn();
-        console.log('LoginScreen: Auth check result:', loggedIn);
-        
-        if (loggedIn) {
-          const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
-          if (skipReflection === 'true') {
-            console.log('LoginScreen: Navigating to AddFriends');
-            navigation.navigate('AddFriends');
-          } else {
-            console.log('LoginScreen: Navigating to ReflectOnFriends');
-            navigation.navigate('ReflectOnFriends');
-          }
-        } else {
-          console.log('LoginScreen: User not logged in, showing login screen');
-        }
-      } catch (error) {
-        console.error('LoginScreen: Error checking auth:', error);
-      } finally {
-        console.log('LoginScreen: Setting isCheckingAuth to false');
-        setIsCheckingAuth(false);
-      }
-    };
-
-    checkAuthAndNavigate();
-  }, [navigation]);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -83,17 +51,6 @@ export default function LoginScreen() {
       setIsLoading(false);
     }
   };
-
-  if (isCheckingAuth) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#EC4899" />
-          <Text style={styles.loadingText}>Loading...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -138,7 +95,7 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <Text style={styles.footerText}>
-          Your data is stored locally on your device and is completely private.
+          Your data is stored securely in the cloud and synced across your devices.
         </Text>
 
         <TouchableOpacity 
@@ -158,16 +115,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666666',
   },
   content: {
     flex: 1,
