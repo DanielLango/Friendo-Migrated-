@@ -13,6 +13,8 @@ const KEYS = {
 // User operations
 export const saveUser = async (email: string, password: string) => {
   try {
+    console.log('Attempting to sign in with Supabase...');
+    
     // Sign in with Supabase
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -20,6 +22,7 @@ export const saveUser = async (email: string, password: string) => {
     });
 
     if (error) {
+      console.log('Sign in failed, attempting sign up...', error.message);
       // If user doesn't exist, sign them up
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -31,10 +34,12 @@ export const saveUser = async (email: string, password: string) => {
         return false;
       }
 
+      console.log('Sign up successful');
       await AsyncStorage.setItem(KEYS.LOGGED_IN, 'true');
       return true;
     }
 
+    console.log('Sign in successful');
     await AsyncStorage.setItem(KEYS.LOGGED_IN, 'true');
     return true;
   } catch (error) {
@@ -45,7 +50,11 @@ export const saveUser = async (email: string, password: string) => {
 
 export const getUser = async () => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
     return user;
   } catch (error) {
     console.error('Error getting user:', error);
@@ -55,7 +64,13 @@ export const getUser = async () => {
 
 export const isLoggedIn = async () => {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    console.log('Checking login status...');
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('Error checking session:', error);
+      return false;
+    }
+    console.log('Session check complete:', !!session);
     return !!session;
   } catch (error) {
     console.error('Error checking login status:', error);

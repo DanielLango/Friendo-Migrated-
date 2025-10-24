@@ -29,18 +29,26 @@ export default function LoginScreen() {
   React.useEffect(() => {
     const checkAuthAndNavigate = async () => {
       try {
+        console.log('LoginScreen: Starting auth check...');
         const loggedIn = await isLoggedIn();
+        console.log('LoginScreen: Auth check result:', loggedIn);
+        
         if (loggedIn) {
           const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
           if (skipReflection === 'true') {
+            console.log('LoginScreen: Navigating to AddFriends');
             navigation.navigate('AddFriends');
           } else {
+            console.log('LoginScreen: Navigating to ReflectOnFriends');
             navigation.navigate('ReflectOnFriends');
           }
+        } else {
+          console.log('LoginScreen: User not logged in, showing login screen');
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        console.error('LoginScreen: Error checking auth:', error);
       } finally {
+        console.log('LoginScreen: Setting isCheckingAuth to false');
         setIsCheckingAuth(false);
       }
     };
