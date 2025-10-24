@@ -7,6 +7,9 @@ import React from 'react';
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -53,6 +56,7 @@ const Stack = createStackNavigator<RootStackParamList>();
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 function AppNavigator() {
   return (
@@ -78,6 +82,8 @@ function AppNavigator() {
     </NavigationContainer>
   );
 }
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -125,8 +131,11 @@ export default function App() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <AppNavigator />
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -159,6 +168,9 @@ export default function App() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -172,6 +184,7 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -206,6 +219,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
