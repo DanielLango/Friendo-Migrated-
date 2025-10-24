@@ -34,6 +34,11 @@ export default function FriendRow({
 
   const currentYear = new Date().getFullYear();
   
+  console.log(`FriendRow for ${friend.name}: received ${meetings.length} meetings`);
+  meetings.forEach(m => {
+    console.log(`  - Meeting ${m.id}: date=${m.date}, notes=${m.notes?.substring(0, 50)}`);
+  });
+  
   // Filter meetings for current year and update status based on date
   const yearMeetings = meetings
     .filter(meeting => {
@@ -55,19 +60,23 @@ export default function FriendRow({
       
       // If meeting is cancelled, keep it cancelled
       if (isCancelled) {
+        console.log(`Meeting ${meeting.id} is CANCELLED`);
         return { ...meeting, status: 'cancelled' as const };
       }
       
       // If meeting date has passed (after 23:59), mark as met
       if (now > endOfMeetingDay) {
+        console.log(`Meeting ${meeting.id} is MET (date passed)`);
         return { ...meeting, status: 'met' as const };
       }
       
       // Otherwise, it's scheduled
+      console.log(`Meeting ${meeting.id} is SCHEDULED (future date)`);
       return { ...meeting, status: 'scheduled' as const };
     });
 
-  console.log(`Friend ${friend.name} has ${yearMeetings.length} meetings this year`);
+  console.log(`Friend ${friend.name} has ${yearMeetings.length} meetings this year to display`);
+  console.log(`Display meetings:`, displayMeetings.map(m => ({ id: m.id, status: m.status })));
 
   const displayMeetings = showAllMeetings ? yearMeetings : yearMeetings.slice(0, 5);
   const hasMoreMeetings = yearMeetings.length > 5;
