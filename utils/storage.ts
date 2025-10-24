@@ -22,21 +22,31 @@ export const saveUser = async (email: string, password: string) => {
     });
 
     if (error) {
-      console.log('Sign in failed, attempting sign up...', error.message);
-      // If user doesn't exist, sign them up
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      // Only attempt sign up if the error is about user not existing
+      if (error.message.includes('Invalid login credentials') || error.message.includes('User not found')) {
+        console.log('User not found, attempting sign up...');
+        
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: undefined,
+          }
+        });
 
-      if (signUpError) {
-        console.error('Error signing up:', signUpError);
-        return false;
+        if (signUpError) {
+          console.error('Error signing up:', signUpError);
+          return false;
+        }
+
+        console.log('Sign up successful');
+        await AsyncStorage.setItem(KEYS.LOGGED_IN, 'true');
+        return true;
       }
-
-      console.log('Sign up successful');
-      await AsyncStorage.setItem(KEYS.LOGGED_IN, 'true');
-      return true;
+      
+      // For other errors, log and return false
+      console.error('Sign in error:', error.message);
+      return false;
     }
 
     console.log('Sign in successful');

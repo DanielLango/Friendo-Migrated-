@@ -5,6 +5,8 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables');
+  console.error('URL:', supabaseUrl ? 'Set' : 'Missing');
+  console.error('Key:', supabaseAnonKey ? 'Set' : 'Missing');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -12,5 +14,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: false,
+  },
+  global: {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  },
+  db: {
+    schema: 'public',
   },
 });
