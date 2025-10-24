@@ -7,15 +7,19 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
+  Modal,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getFriends, addFriend } from '../utils/storage';
+import Paywall from '../components/Paywall';
+import { shouldShowPaywall, markPaywallShown } from '../utils/paywallUtils';
 
 export default function ManualAddScreen() {
   const [fullName, setFullName] = useState('');
   const [isOnline, setIsOnline] = useState(false);
   const [isLocal, setIsLocal] = useState(false);
   const [currentFriendCount, setCurrentFriendCount] = useState(0);
+  const [showPaywall, setShowPaywall] = useState(false);
   
   const navigation = useNavigation();
 
@@ -68,6 +72,14 @@ export default function ManualAddScreen() {
         notificationDays: 30,
       });
 
+      // Check if we should show the paywall
+      const shouldShow = await shouldShowPaywall();
+      if (shouldShow) {
+        await markPaywallShown();
+        setShowPaywall(true);
+        return; // Don't show success alert yet
+      }
+
       Alert.alert('Success', 'Friend added successfully!', [
         { 
           text: 'Add Another', 
@@ -90,9 +102,38 @@ export default function ManualAddScreen() {
     }
   };
 
+  const handlePaywallClose = () => {
+    setShowPaywall(false);
+    Alert.alert('Success', 'Friend added successfully!', [
+      { 
+        text: 'Add Another', 
+        style: 'default',
+        onPress: () => {
+          setFullName('');
+          setIsOnline(false);
+          setIsLocal(false);
+        }
+      },
+      { 
+        text: 'Done', 
+        style: 'default',
+        onPress: () => (navigation as any).navigate('AddFriends') 
+      }
+    ]);
+  };
+
   const handleCancel = () => {
     navigation.goBack();
   };
+
+  // Show paywall modal if needed
+  if (showPaywall) {
+    return (
+      <Modal visible={true} animationType="slide" presentationStyle="fullScreen">
+        <Paywall onClose={handlePaywallClose} onSuccess={handlePaywallClose} />
+      </Modal>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

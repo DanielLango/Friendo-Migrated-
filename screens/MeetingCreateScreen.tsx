@@ -21,6 +21,8 @@ import { notificationService } from '../utils/notificationService';
 import SimpleDatePicker from '../components/SimpleDatePicker';
 import { createMeetingEvent, createAndDownloadMeetingICS } from '../utils/calendarUtils';
 import { addMeeting } from '../utils/storage';
+import Paywall from '../components/Paywall';
+import { shouldShowPaywall, markPaywallShown } from '../utils/paywallUtils';
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -33,6 +35,7 @@ export default function MeetingCreateScreen() {
   const [meetingNotes, setMeetingNotes] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [activityConfirmed, setActivityConfirmed] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   
   const navigation = useNavigation();
   const route = useRoute();
@@ -124,6 +127,14 @@ export default function MeetingCreateScreen() {
         // Don't fail the whole operation for notification errors
       }
 
+      // Check if we should show the paywall
+      const shouldShow = await shouldShowPaywall();
+      if (shouldShow) {
+        await markPaywallShown();
+        setShowPaywall(true);
+        return; // Don't navigate back yet, wait for paywall to close
+      }
+
       // Handle calendar options
       if (calendarOption === 'device') {
         // Add to device calendar
@@ -167,7 +178,21 @@ export default function MeetingCreateScreen() {
     }
   };
 
+  const handlePaywallClose = () => {
+    setShowPaywall(false);
+    navigation.goBack();
+  };
+
   const selectedCategoryData = getVenueCategory(selectedCategory);
+
+  // Show paywall modal if needed
+  if (showPaywall) {
+    return (
+      <Modal visible={true} animationType="slide" presentationStyle="fullScreen">
+        <Paywall onClose={handlePaywallClose} onSuccess={handlePaywallClose} />
+      </Modal>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
