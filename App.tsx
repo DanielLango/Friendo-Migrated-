@@ -4,6 +4,9 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 =======
 import React from 'react';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -41,6 +44,7 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 function AppNavigator() {
   return (
@@ -66,6 +70,8 @@ function AppNavigator() {
     </NavigationContainer>
   );
 }
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -104,8 +110,11 @@ export default function App() {
       <BasicProvider project_id={schema.project_id} schema={schema}>
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <AppNavigator />
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         <NavigationContainer>
@@ -129,6 +138,9 @@ export default function App() {
           </Stack.Navigator>
         </NavigationContainer>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -136,6 +148,7 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 
@@ -167,6 +180,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
