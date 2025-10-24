@@ -3,6 +3,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+import { BasicProvider } from '@basictech/expo';
+import { schema } from './basic.config';
+>>>>>>> Stashed changes
 =======
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
@@ -39,6 +44,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       <NavigationContainer>
         <Stack.Navigator 
           initialRouteName="Login"
@@ -59,6 +65,8 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
 =======
+=======
+>>>>>>> Stashed changes
       <BasicProvider project_id={schema.project_id} schema={schema}>
         <NavigationContainer>
           <Stack.Navigator 
@@ -81,6 +89,9 @@ export default function App() {
           </Stack.Navigator>
         </NavigationContainer>
       </BasicProvider>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     </SafeAreaProvider>
   );
