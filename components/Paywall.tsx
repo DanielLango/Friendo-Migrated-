@@ -48,8 +48,16 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
       android: 'goog_live_public_sdk_key',
     }) as string;
 
-    Purchases.setLogLevel(LOG_LEVEL.INFO);
-    Purchases.configure({ apiKey });
+    try {
+      Purchases.setLogLevel(LOG_LEVEL.INFO);
+      Purchases.configure({ apiKey });
+    } catch (error: any) {
+      console.log('RevenueCat not available in Expo Go:', error.message);
+      // Show mock packages for testing in Expo Go
+      setPackages([]);
+      setLoading(false);
+      return;
+    }
 
     const sub = Purchases.addCustomerInfoUpdateListener(() => {
       // keep UI in sync
@@ -68,7 +76,12 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
         // Default select yearly if present
         setSelectedId(pkgs[0]?.identifier ?? null);
       } catch (e: any) {
-        Alert.alert('Error', e?.message ?? 'Failed to load plans.');
+        console.log('Could not load offerings:', e?.message);
+        // In Expo Go, show a message instead of crashing
+        Alert.alert(
+          'Preview Mode', 
+          'RevenueCat requires a development build. This is a preview of the paywall design.'
+        );
       } finally {
         setLoading(false);
       }
@@ -216,7 +229,7 @@ function Bullet({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <View style={{ flexDirection: 'row', gap: 10 }}>
       <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#F3EDFF', alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name="ios-star" size={16} color={PURPLE} />
+        <Ionicons name="star" size={16} color={PURPLE} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ color: DARK, fontWeight: '700' }}>{title}</Text>
