@@ -104,6 +104,7 @@ export default function MeetingCreateScreen() {
         venue: selectedVenue || `Generic ${category?.name || 'Activity'}`,
         city: selectedCity,
         notes: meetingNotes || '',
+        status: 'scheduled' as const,
         createdAt: Date.now(),
       };
       

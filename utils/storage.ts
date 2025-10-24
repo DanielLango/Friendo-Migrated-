@@ -276,7 +276,7 @@ export const saveMeetings = async (meetings: Meeting[]) => {
       venue: meeting.venue,
       city: meeting.city,
       notes: meeting.notes,
-      status: meeting.status,
+      status: meeting.status || 'scheduled',
       created_at: typeof meeting.createdAt === 'number' ? meeting.createdAt : Date.now(),
     }));
 
@@ -339,7 +339,7 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
       venue: meeting.venue,
       city: meeting.city,
       notes: meeting.notes,
-      status: meeting.status,
+      status: meeting.status || 'scheduled',
       created_at: typeof meeting.createdAt === 'number' ? meeting.createdAt : Date.now(),
     };
 
