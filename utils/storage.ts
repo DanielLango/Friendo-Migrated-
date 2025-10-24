@@ -138,7 +138,7 @@ export const saveFriends = async (friends: Friend[]) => {
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
-      createdat: friend.createdAt || Date.now(),
+      created_at: friend.createdAt || Date.now(),
     }));
 
     const { error } = await supabase
@@ -162,7 +162,7 @@ export const getFriends = async (): Promise<Friend[]> => {
       .from('friends')
       .select('*')
       .eq('user_id', user.id)
-      .order('createdat', { ascending: true });
+      .order('created_at', { ascending: true });
 
     if (error) throw error;
     
@@ -179,7 +179,7 @@ export const getFriends = async (): Promise<Friend[]> => {
       source: friend.source,
       notificationFrequency: friend.notificationfrequency || friend.notificationFrequency || 'monthly',
       notificationDays: friend.notificationdays ?? friend.notificationDays ?? 30,
-      createdAt: friend.createdat || friend.createdAt,
+      createdAt: friend.created_at || friend.createdAt,
     }));
     
     console.log(`Loaded ${friends.length} friends from Supabase`);
@@ -207,7 +207,7 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
-      createdat: Date.now(),
+      created_at: Date.now(),
     };
 
     const { data, error } = await supabase
@@ -231,7 +231,7 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       source: data.source,
       notificationFrequency: data.notificationfrequency,
       notificationDays: data.notificationdays,
-      createdAt: data.createdat,
+      createdAt: data.created_at,
     };
   } catch (error) {
     console.error('Error adding friend:', error);
