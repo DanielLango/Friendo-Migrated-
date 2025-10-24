@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 =======
 import React from 'react';
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -37,6 +40,7 @@ export type RootStackParamList = {
 
 const Stack = createStackNavigator<RootStackParamList>();
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 function AppNavigator() {
   return (
@@ -62,6 +66,8 @@ function AppNavigator() {
     </NavigationContainer>
   );
 }
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 
@@ -97,8 +103,11 @@ export default function App() {
     <SafeAreaProvider>
       <BasicProvider project_id={schema.project_id} schema={schema}>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <AppNavigator />
 =======
+=======
+>>>>>>> Stashed changes
         <NavigationContainer>
           <Stack.Navigator 
             id="RootStack"
@@ -119,11 +128,15 @@ export default function App() {
             <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
           </Stack.Navigator>
         </NavigationContainer>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       </BasicProvider>
     </SafeAreaProvider>
   );
 }
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 
 const styles = StyleSheet.create({
@@ -154,5 +167,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
