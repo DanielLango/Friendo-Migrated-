@@ -1,3 +1,7 @@
+<<<<<<< Updated upstream
+=======
+import React from 'react';
+>>>>>>> Stashed changes
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
