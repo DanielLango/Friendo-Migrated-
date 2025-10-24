@@ -151,7 +151,7 @@ export const getFriends = async (): Promise<Friend[]> => {
       .from('friends')
       .select('*')
       .eq('user_id', user.id)
-      .order('createdAt', { ascending: true });
+      .order('createdat', { ascending: true });
 
     if (error) throw error;
     return data || [];
