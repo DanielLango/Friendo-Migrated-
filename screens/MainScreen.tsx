@@ -45,11 +45,12 @@ export default function MainScreen() {
     const premium = await isPremiumUser();
     setIsPremium(premium);
 
-    // Only show paywall if not premium
+    // Only show paywall if not premium AND it hasn't been shown before
     if (!premium) {
       const shouldShow = await shouldShowPaywall();
       if (shouldShow) {
         setShowPaywall(true);
+        // Mark as shown immediately to prevent showing again
         await markPaywallShown();
       }
     }

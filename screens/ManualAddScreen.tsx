@@ -72,14 +72,6 @@ export default function ManualAddScreen() {
         notificationDays: 30,
       });
 
-      // Check if we should show the paywall
-      const shouldShow = await shouldShowPaywall();
-      if (shouldShow) {
-        await markPaywallShown();
-        setShowPaywall(true);
-        return; // Don't show success alert yet
-      }
-
       Alert.alert('Success', 'Friend added successfully!', [
         { 
           text: 'Add Another', 

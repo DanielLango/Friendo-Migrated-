@@ -128,14 +128,6 @@ export default function MeetingCreateScreen() {
         // Don't fail the whole operation for notification errors
       }
 
-      // Check if we should show the paywall
-      const shouldShow = await shouldShowPaywall();
-      if (shouldShow) {
-        await markPaywallShown();
-        setShowPaywall(true);
-        return; // Don't navigate back yet, wait for paywall to close
-      }
-
       // Handle calendar options
       if (calendarOption === 'device') {
         // Add to device calendar
