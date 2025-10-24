@@ -28,6 +28,24 @@ export default function SimpleTimePicker({ value, onChange }: SimpleTimePickerPr
   const minutes = Array.from({ length: 60 }, (_, i) => i);
   const periods = ['AM', 'PM'];
 
+  // Scroll to initial positions on mount
+  useEffect(() => {
+    setTimeout(() => {
+      hourScrollRef.current?.scrollTo({
+        y: (selectedHour - 1) * ITEM_HEIGHT,
+        animated: false
+      });
+      minuteScrollRef.current?.scrollTo({
+        y: selectedMinute * ITEM_HEIGHT,
+        animated: false
+      });
+      periodScrollRef.current?.scrollTo({
+        y: (selectedPeriod === 'PM' ? 1 : 0) * ITEM_HEIGHT,
+        animated: false
+      });
+    }, 100);
+  }, []);
+
   useEffect(() => {
     // Update parent when selection changes
     const newDate = new Date(value);

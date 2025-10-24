@@ -43,6 +43,24 @@ export default function SimpleDatePicker({ value, onChange, minimumDate }: Simpl
   const daysInMonth = getDaysInMonth(selectedMonth, selectedYear);
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
+  // Scroll to initial positions on mount
+  useEffect(() => {
+    setTimeout(() => {
+      monthScrollRef.current?.scrollTo({
+        y: selectedMonth * ITEM_HEIGHT,
+        animated: false
+      });
+      dayScrollRef.current?.scrollTo({
+        y: (selectedDay - 1) * ITEM_HEIGHT,
+        animated: false
+      });
+      yearScrollRef.current?.scrollTo({
+        y: years.indexOf(selectedYear) * ITEM_HEIGHT,
+        animated: false
+      });
+    }, 100);
+  }, []);
+
   useEffect(() => {
     // Update parent when selection changes
     const newDate = new Date(selectedYear, selectedMonth, selectedDay);
