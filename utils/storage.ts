@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from './supabase';
 import { Friend, Meeting } from '../types';
 
-// Storage keys
+// Storage keys for local fallback
 const KEYS = {
   FRIENDS: '@friendo_friends',
   MEETINGS: '@friendo_meetings',
@@ -12,7 +13,28 @@ const KEYS = {
 // User operations
 export const saveUser = async (email: string, password: string) => {
   try {
-    await AsyncStorage.setItem(KEYS.USER, JSON.stringify({ email, password }));
+    // Sign in with Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      // If user doesn't exist, sign them up
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (signUpError) {
+        console.error('Error signing up:', signUpError);
+        return false;
+      }
+
+      await AsyncStorage.setItem(KEYS.LOGGED_IN, 'true');
+      return true;
+    }
+
     await AsyncStorage.setItem(KEYS.LOGGED_IN, 'true');
     return true;
   } catch (error) {
@@ -23,8 +45,8 @@ export const saveUser = async (email: string, password: string) => {
 
 export const getUser = async () => {
   try {
-    const userData = await AsyncStorage.getItem(KEYS.USER);
-    return userData ? JSON.parse(userData) : null;
+    const { data: { user } } = await supabase.auth.getUser();
+    return user;
   } catch (error) {
     console.error('Error getting user:', error);
     return null;
@@ -33,8 +55,8 @@ export const getUser = async () => {
 
 export const isLoggedIn = async () => {
   try {
-    const loggedIn = await AsyncStorage.getItem(KEYS.LOGGED_IN);
-    return loggedIn === 'true';
+    const { data: { session } } = await supabase.auth.getSession();
+    return !!session;
   } catch (error) {
     console.error('Error checking login status:', error);
     return false;
@@ -43,6 +65,7 @@ export const isLoggedIn = async () => {
 
 export const logout = async () => {
   try {
+    await supabase.auth.signOut();
     await AsyncStorage.removeItem(KEYS.LOGGED_IN);
     return true;
   } catch (error) {
@@ -54,7 +77,26 @@ export const logout = async () => {
 // Friend operations
 export const saveFriends = async (friends: Friend[]) => {
   try {
-    await AsyncStorage.setItem(KEYS.FRIENDS, JSON.stringify(friends));
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No user logged in');
+
+    // Delete existing friends for this user
+    await supabase
+      .from('friends')
+      .delete()
+      .eq('user_id', user.id);
+
+    // Insert new friends
+    const friendsWithUserId = friends.map(friend => ({
+      ...friend,
+      user_id: user.id,
+    }));
+
+    const { error } = await supabase
+      .from('friends')
+      .insert(friendsWithUserId);
+
+    if (error) throw error;
     return true;
   } catch (error) {
     console.error('Error saving friends:', error);
@@ -64,8 +106,17 @@ export const saveFriends = async (friends: Friend[]) => {
 
 export const getFriends = async (): Promise<Friend[]> => {
   try {
-    const friendsData = await AsyncStorage.getItem(KEYS.FRIENDS);
-    return friendsData ? JSON.parse(friendsData) : [];
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('friends')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('createdAt', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
     console.error('Error getting friends:', error);
     return [];
@@ -74,15 +125,23 @@ export const getFriends = async (): Promise<Friend[]> => {
 
 export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
   try {
-    const friends = await getFriends();
-    const newFriend: Friend = {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No user logged in');
+
+    const newFriend = {
       ...friend,
-      id: Date.now().toString(),
+      user_id: user.id,
       createdAt: Date.now(),
     };
-    friends.push(newFriend);
-    await saveFriends(friends);
-    return newFriend;
+
+    const { data, error } = await supabase
+      .from('friends')
+      .insert([newFriend])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Error adding friend:', error);
     return null;
@@ -91,9 +150,12 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
 
 export const deleteFriend = async (friendId: string) => {
   try {
-    const friends = await getFriends();
-    const updatedFriends = friends.filter(f => f.id !== friendId);
-    await saveFriends(updatedFriends);
+    const { error } = await supabase
+      .from('friends')
+      .delete()
+      .eq('id', friendId);
+
+    if (error) throw error;
     return true;
   } catch (error) {
     console.error('Error deleting friend:', error);
@@ -104,7 +166,26 @@ export const deleteFriend = async (friendId: string) => {
 // Meeting operations
 export const saveMeetings = async (meetings: Meeting[]) => {
   try {
-    await AsyncStorage.setItem(KEYS.MEETINGS, JSON.stringify(meetings));
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No user logged in');
+
+    // Delete existing meetings for this user
+    await supabase
+      .from('meetings')
+      .delete()
+      .eq('user_id', user.id);
+
+    // Insert new meetings
+    const meetingsWithUserId = meetings.map(meeting => ({
+      ...meeting,
+      user_id: user.id,
+    }));
+
+    const { error } = await supabase
+      .from('meetings')
+      .insert(meetingsWithUserId);
+
+    if (error) throw error;
     return true;
   } catch (error) {
     console.error('Error saving meetings:', error);
@@ -114,8 +195,17 @@ export const saveMeetings = async (meetings: Meeting[]) => {
 
 export const getMeetings = async (): Promise<Meeting[]> => {
   try {
-    const meetingsData = await AsyncStorage.getItem(KEYS.MEETINGS);
-    return meetingsData ? JSON.parse(meetingsData) : [];
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('meetings')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   } catch (error) {
     console.error('Error getting meetings:', error);
     return [];
@@ -124,14 +214,22 @@ export const getMeetings = async (): Promise<Meeting[]> => {
 
 export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
   try {
-    const meetings = await getMeetings();
-    const newMeeting: Meeting = {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No user logged in');
+
+    const newMeeting = {
       ...meeting,
-      id: Date.now().toString(),
+      user_id: user.id,
     };
-    meetings.push(newMeeting);
-    await saveMeetings(meetings);
-    return newMeeting;
+
+    const { data, error } = await supabase
+      .from('meetings')
+      .insert([newMeeting])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   } catch (error) {
     console.error('Error adding meeting:', error);
     return null;
@@ -140,9 +238,12 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
 
 export const deleteMeeting = async (meetingId: string) => {
   try {
-    const meetings = await getMeetings();
-    const updatedMeetings = meetings.filter(m => m.id !== meetingId);
-    await saveMeetings(updatedMeetings);
+    const { error } = await supabase
+      .from('meetings')
+      .delete()
+      .eq('id', meetingId);
+
+    if (error) throw error;
     return true;
   } catch (error) {
     console.error('Error deleting meeting:', error);
@@ -152,9 +253,12 @@ export const deleteMeeting = async (meetingId: string) => {
 
 export const deleteMeetingsByFriendId = async (friendId: string) => {
   try {
-    const meetings = await getMeetings();
-    const updatedMeetings = meetings.filter(m => m.friendId !== friendId);
-    await saveMeetings(updatedMeetings);
+    const { error } = await supabase
+      .from('meetings')
+      .delete()
+      .eq('friendId', friendId);
+
+    if (error) throw error;
     return true;
   } catch (error) {
     console.error('Error deleting meetings by friend:', error);
