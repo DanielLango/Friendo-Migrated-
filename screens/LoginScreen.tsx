@@ -15,7 +15,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import FriendoLogo from '../components/FriendoLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { saveUser, isLoggedIn } from '../utils/storage';
+import { saveUser, isLoggedIn, getRememberMeCredentials } from '../utils/storage';
+import { Ionicons } from '@expo/vector-icons';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -23,6 +24,7 @@ export default function LoginScreen() {
   const navigation = useNavigation<LoginScreenNavigationProp>();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [rememberMe, setRememberMe] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
 
@@ -33,6 +35,7 @@ export default function LoginScreen() {
 
   const checkExistingAuth = async () => {
     try {
+      // First check if user has an active session
       const loggedIn = await isLoggedIn();
       if (loggedIn) {
         // User is already logged in, navigate to appropriate screen
@@ -41,6 +44,30 @@ export default function LoginScreen() {
           navigation.replace('AddFriends');
         } else {
           navigation.replace('ReflectOnFriends');
+        }
+        return;
+      }
+
+      // If not logged in, check for saved credentials
+      const credentials = await getRememberMeCredentials();
+      if (credentials) {
+        setEmail(credentials.email);
+        setPassword(credentials.password);
+        setRememberMe(true);
+        
+        // Auto-login with saved credentials
+        setIsLoading(true);
+        const success = await saveUser(credentials.email, credentials.password, true);
+        if (success) {
+          const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
+          if (skipReflection === 'true') {
+            navigation.replace('AddFriends');
+          } else {
+            navigation.replace('ReflectOnFriends');
+          }
+        } else {
+          // If auto-login fails, just show the login form with pre-filled credentials
+          setIsLoading(false);
         }
       }
     } catch (error) {
@@ -58,7 +85,7 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      const success = await saveUser(email, password);
+      const success = await saveUser(email, password, rememberMe);
       if (success) {
         const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
         if (skipReflection === 'true') {
@@ -122,6 +149,18 @@ export default function LoginScreen() {
           secureTextEntry
           editable={!isLoading}
         />
+
+        {/* Remember Me Checkbox */}
+        <TouchableOpacity 
+          style={styles.rememberMeContainer}
+          onPress={() => setRememberMe(!rememberMe)}
+          disabled={isLoading}
+        >
+          <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+            {rememberMe && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+          </View>
+          <Text style={styles.rememberMeText}>Remember me</Text>
+        </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.loginButton}
@@ -133,9 +172,13 @@ export default function LoginScreen() {
           </Text>
         </TouchableOpacity>
 
-        <Text style={styles.footerText}>
-          Your data is stored securely in the cloud and synced across your devices.
-        </Text>
+        {/* Supabase Security Message */}
+        <View style={styles.securityBadge}>
+          <Ionicons name="shield-checkmark" size={20} color="#10B981" />
+          <Text style={styles.securityText}>
+            Secured by Supabase - Your data is protected with enterprise-grade encryption and GDPR compliance
+          </Text>
+        </View>
 
         <TouchableOpacity 
           style={styles.privacyButton}
@@ -188,29 +231,64 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
+  rememberMeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    marginTop: 5,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    backgroundColor: '#FFFFFF',
+  },
+  checkboxChecked: {
+    backgroundColor: '#EC4899',
+    borderColor: '#EC4899',
+  },
+  rememberMeText: {
+    fontSize: 15,
+    color: '#333333',
+    fontWeight: '500',
+  },
   loginButton: {
     backgroundColor: '#EC4899',
     borderRadius: 8,
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 30,
-    marginTop: 10,
+    marginBottom: 20,
   },
   loginButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  footerText: {
-    fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 20,
+  securityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+  },
+  securityText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#065F46',
+    lineHeight: 18,
+    marginLeft: 10,
+    fontWeight: '500',
   },
   privacyButton: {
-    marginTop: 20,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,

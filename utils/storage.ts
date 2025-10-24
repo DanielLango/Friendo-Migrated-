@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { supabase } from './supabase';
 import { Friend, Meeting } from '../types';
 
@@ -8,10 +9,60 @@ const KEYS = {
   MEETINGS: '@friendo_meetings',
   USER: '@friendo_user',
   LOGGED_IN: '@friendo_logged_in',
+  REMEMBER_ME: '@friendo_remember_me',
+};
+
+// Secure storage keys
+const SECURE_KEYS = {
+  EMAIL: 'friendo_secure_email',
+  PASSWORD: 'friendo_secure_password',
+};
+
+// Remember Me operations
+export const saveRememberMeCredentials = async (email: string, password: string) => {
+  try {
+    await SecureStore.setItemAsync(SECURE_KEYS.EMAIL, email);
+    await SecureStore.setItemAsync(SECURE_KEYS.PASSWORD, password);
+    await AsyncStorage.setItem(KEYS.REMEMBER_ME, 'true');
+    return true;
+  } catch (error) {
+    console.error('Error saving remember me credentials:', error);
+    return false;
+  }
+};
+
+export const getRememberMeCredentials = async (): Promise<{ email: string; password: string } | null> => {
+  try {
+    const rememberMe = await AsyncStorage.getItem(KEYS.REMEMBER_ME);
+    if (rememberMe !== 'true') return null;
+
+    const email = await SecureStore.getItemAsync(SECURE_KEYS.EMAIL);
+    const password = await SecureStore.getItemAsync(SECURE_KEYS.PASSWORD);
+
+    if (email && password) {
+      return { email, password };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting remember me credentials:', error);
+    return null;
+  }
+};
+
+export const clearRememberMeCredentials = async () => {
+  try {
+    await SecureStore.deleteItemAsync(SECURE_KEYS.EMAIL);
+    await SecureStore.deleteItemAsync(SECURE_KEYS.PASSWORD);
+    await AsyncStorage.removeItem(KEYS.REMEMBER_ME);
+    return true;
+  } catch (error) {
+    console.error('Error clearing remember me credentials:', error);
+    return false;
+  }
 };
 
 // User operations
-export const saveUser = async (email: string, password: string) => {
+export const saveUser = async (email: string, password: string, rememberMe: boolean = false) => {
   try {
     console.log('Attempting to sign in with Supabase...');
     
@@ -41,6 +92,12 @@ export const saveUser = async (email: string, password: string) => {
 
         console.log('Sign up successful');
         await AsyncStorage.setItem(KEYS.LOGGED_IN, 'true');
+        
+        // Save credentials if remember me is checked
+        if (rememberMe) {
+          await saveRememberMeCredentials(email, password);
+        }
+        
         return true;
       }
       
@@ -51,6 +108,15 @@ export const saveUser = async (email: string, password: string) => {
 
     console.log('Sign in successful');
     await AsyncStorage.setItem(KEYS.LOGGED_IN, 'true');
+    
+    // Save credentials if remember me is checked
+    if (rememberMe) {
+      await saveRememberMeCredentials(email, password);
+    } else {
+      // Clear credentials if remember me is not checked
+      await clearRememberMeCredentials();
+    }
+    
     return true;
   } catch (error) {
     console.error('Error saving user:', error);
