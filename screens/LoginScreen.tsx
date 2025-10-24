@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -20,33 +20,33 @@ import { saveUser, isLoggedIn } from '../utils/storage';
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const navigation = useNavigation<LoginScreenNavigationProp>();
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
 
-  useEffect(() => {
-    checkAuthAndNavigate();
-  }, []);
-
-  const checkAuthAndNavigate = async () => {
-    try {
-      const loggedIn = await isLoggedIn();
-      if (loggedIn) {
-        const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
-        if (skipReflection === 'true') {
-          navigation.navigate('AddFriends');
-        } else {
-          navigation.navigate('ReflectOnFriends');
+  React.useEffect(() => {
+    const checkAuthAndNavigate = async () => {
+      try {
+        const loggedIn = await isLoggedIn();
+        if (loggedIn) {
+          const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
+          if (skipReflection === 'true') {
+            navigation.navigate('AddFriends');
+          } else {
+            navigation.navigate('ReflectOnFriends');
+          }
         }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+      } finally {
+        setIsCheckingAuth(false);
       }
-    } catch (error) {
-      console.error('Error checking auth:', error);
-    } finally {
-      setIsCheckingAuth(false);
-    }
-  };
+    };
+
+    checkAuthAndNavigate();
+  }, [navigation]);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -56,14 +56,17 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      // Simple validation - just save the credentials
-      await saveUser(email, password);
-      
-      const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
-      if (skipReflection === 'true') {
-        navigation.navigate('AddFriends');
+      // Simple login - just save credentials
+      const success = await saveUser(email, password);
+      if (success) {
+        const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
+        if (skipReflection === 'true') {
+          navigation.navigate('AddFriends');
+        } else {
+          navigation.navigate('ReflectOnFriends');
+        }
       } else {
-        navigation.navigate('ReflectOnFriends');
+        Alert.alert('Error', 'Failed to save login. Please try again.');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -104,16 +107,16 @@ export default function LoginScreen() {
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
-          autoComplete="email"
+          editable={!isLoading}
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
-          autoComplete="password"
+          editable={!isLoading}
         />
         
         <TouchableOpacity 
@@ -127,7 +130,7 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <Text style={styles.footerText}>
-          Your data is stored locally on your device.
+          Your data is stored locally on your device and is completely private.
         </Text>
 
         <TouchableOpacity 

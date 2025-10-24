@@ -43,7 +43,6 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
   const [customDays, setCustomDays] = useState(getDefaultValue());
   const [notificationTime, setNotificationTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const { db } = useBasic();
 
   // Update customDays when frequency changes
   React.useEffect(() => {

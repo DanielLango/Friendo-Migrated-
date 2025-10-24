@@ -93,7 +93,7 @@ export default function ContactSelectScreen() {
           isLocal: true,
           profilePicture: contact.profilePicture,
           city: contact.city,
-          source: contact.source,
+          source: source as 'facebook' | 'instagram' | 'snapchat' | 'whatsapp' | 'linkedin' | 'telegram' | 'viber' | 'signal' | 'tiktok' | 'pinterest' | 'messenger' | 'apple' | 'google' | 'manual' | 'phone-contacts',
           notificationFrequency: 'weekly',
           notificationDays: 7,
         });

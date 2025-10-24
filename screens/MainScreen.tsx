@@ -25,6 +25,13 @@ export default function MainScreen() {
     scheduleAnnualReset();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadData();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   const loadData = async () => {
     const friendsData = await getFriends();
     const meetingsData = await getMeetings();
@@ -50,12 +57,15 @@ export default function MainScreen() {
       const currentYear = new Date().getFullYear();
       const allMeetings = await getMeetings();
       
-      const updatedMeetings = allMeetings.filter(meeting => {
+      const updatedMeetings = allMeetings.filter((meeting) => {
         const meetingYear = new Date(meeting.date).getFullYear();
         const status = meeting.status || 'met';
         return !(meetingYear === currentYear && (status === 'met' || status === 'cancelled'));
       });
       
+      // Save updated meetings
+      const { saveMeetings } = await import('../utils/storage');
+      await saveMeetings(updatedMeetings);
       await loadData();
     } catch (error) {
       console.error('Error performing annual reset:', error);
@@ -107,7 +117,7 @@ export default function MainScreen() {
           `This was scheduled for ${meetingDate}, but got cancelled.`
         );
       } else if (status === 'scheduled') {
-        const instructions = `Scheduled for ${meetingDate}\n\n\nWhat to do now?\n(In case you selected a calendar option)\n\nAfter tapping 'Schedule Meetup':\n1.) In case you selected the Add to my calendar option, open your smartphone\'s default calendar app, and navigate to the day you selected for the meetup.\n2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.\n\nOnce the meeting invite is in front of you in your calendar:\n• Edit the event time in the calendar as needed.\n• Under Invitee, you can add an email if you want. Your default calendar app will then send the invitation to that email.\n• Feel free to change any other details about your meeting.`;
+        const instructions = `Scheduled for ${meetingDate}\n\n\nWhat to do now?\n(In case you selected a calendar option)\n\nAfter tapping 'Schedule Meetup':\n1.) In case you selected the Add to my calendar option, open your smartphone's default calendar app, and navigate to the day you selected for the meetup.\n2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.\n\nOnce the meeting invite is in front of you in your calendar:\n• Edit the event time in the calendar as needed.\n• Under Invitee, you can add an email if you want. Your default calendar app will then send the invitation to that email.\n• Feel free to change any other details about your meeting.`;
         Alert.alert('Meeting Details', instructions);
       } else {
         Alert.alert('Meeting Details', `Met on ${meetingDate}`);
@@ -123,10 +133,10 @@ export default function MainScreen() {
     (navigation as any).navigate('ManualAdd');
   };
 
-  const handleProfile = async () => {
+  const handleProfile = () => {
     Alert.alert(
       'Profile',
-      'Profile settings coming soon!',
+      'Profile settings',
       [
         { text: 'Cancel', style: 'cancel' },
         { 

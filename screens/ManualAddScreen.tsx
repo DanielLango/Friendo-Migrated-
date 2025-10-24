@@ -20,13 +20,17 @@ export default function ManualAddScreen() {
   const navigation = useNavigation();
 
   useEffect(() => {
-    loadFriendCount();
+    // Get current friend count
+    const fetchFriendCount = async () => {
+      try {
+        const friends = await getFriends();
+        setCurrentFriendCount(friends.length);
+      } catch (error) {
+        console.error('Error fetching friend count:', error);
+      }
+    };
+    fetchFriendCount();
   }, []);
-
-  const loadFriendCount = async () => {
-    const friends = await getFriends();
-    setCurrentFriendCount(friends.length);
-  };
 
   const handleAdd = async () => {
     if (!fullName.trim()) {
@@ -60,6 +64,8 @@ export default function ManualAddScreen() {
         profilePicture: '👤',
         city: '',
         source: 'manual',
+        notificationFrequency: 'monthly',
+        notificationDays: 30,
       });
 
       Alert.alert('Success', 'Friend added successfully!', [
@@ -70,7 +76,6 @@ export default function ManualAddScreen() {
             setFullName('');
             setIsOnline(false);
             setIsLocal(false);
-            loadFriendCount();
           }
         },
         { 
