@@ -35,6 +35,29 @@ export default function MainScreen() {
   const loadData = async () => {
     const friendsData = await getFriends();
     const meetingsData = await getMeetings();
+    
+    console.log('=== LOADED DATA ===');
+    console.log(`Total friends: ${friendsData.length}`);
+    console.log(`Total meetings: ${meetingsData.length}`);
+    
+    if (meetingsData.length > 0) {
+      console.log('All meetings:');
+      meetingsData.forEach(m => {
+        console.log(`  Meeting ${m.id}:`);
+        console.log(`    friendId: ${m.friendId}`);
+        console.log(`    date: ${m.date}`);
+        console.log(`    activity: ${m.activity}`);
+        console.log(`    notes: ${m.notes?.substring(0, 50)}`);
+      });
+    }
+    
+    if (friendsData.length > 0) {
+      console.log('All friends:');
+      friendsData.forEach(f => {
+        console.log(`  Friend ${f.id}: ${f.name}`);
+      });
+    }
+    
     setFriends(friendsData);
     setMeetings(meetingsData);
   };

@@ -75,11 +75,11 @@ export default function FriendRow({
       return { ...meeting, status: 'scheduled' as const };
     });
 
-  console.log(`Friend ${friend.name} has ${yearMeetings.length} meetings this year to display`);
-  console.log(`Display meetings:`, displayMeetings.map(m => ({ id: m.id, status: m.status })));
-
   const displayMeetings = showAllMeetings ? yearMeetings : yearMeetings.slice(0, 5);
   const hasMoreMeetings = yearMeetings.length > 5;
+
+  console.log(`Friend ${friend.name} has ${yearMeetings.length} meetings this year to display`);
+  console.log(`Display meetings:`, displayMeetings.map(m => ({ id: m.id, status: m.status })));
 
   const handleLongPressStart = (meetingId: string) => {
     setPressingMeetingId(meetingId);
