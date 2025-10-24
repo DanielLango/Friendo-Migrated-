@@ -176,7 +176,7 @@ export default function LoginScreen() {
         <View style={styles.securityBadge}>
           <Ionicons name="shield-checkmark" size={20} color="#10B981" />
           <Text style={styles.securityText}>
-            Secured by Supabase - Your data is protected with enterprise-grade encryption and GDPR compliance
+            The app uses Supabase that protects your data securely and compliantly.
           </Text>
         </View>
 
