@@ -1,5 +1,9 @@
+<<<<<<< Updated upstream
 import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+=======
+import React from 'react';
+>>>>>>> Stashed changes
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -32,6 +36,7 @@ export type RootStackParamList = {
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
+<<<<<<< Updated upstream
 
 function AppNavigator() {
   return (
@@ -57,6 +62,8 @@ function AppNavigator() {
     </NavigationContainer>
   );
 }
+=======
+>>>>>>> Stashed changes
 
 export default function App() {
   const [isTimeout, setIsTimeout] = useState(false);
@@ -89,11 +96,35 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <BasicProvider project_id={schema.project_id} schema={schema}>
+<<<<<<< Updated upstream
         <AppNavigator />
+=======
+        <NavigationContainer>
+          <Stack.Navigator 
+            id="RootStack"
+            initialRouteName="Login"
+            screenOptions={{
+              headerShown: false,
+            }}
+          >
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="ReflectOnFriends" component={ReflectOnFriendsScreen} />
+            <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
+            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            <Stack.Screen name="Sync" component={SyncScreen} />
+            <Stack.Screen name="ContactSelect" component={ContactSelectScreen} />
+            <Stack.Screen name="ManualAdd" component={ManualAddScreen} />
+            <Stack.Screen name="Main" component={MainScreen} />
+            <Stack.Screen name="Stats" component={StatsScreen} />
+            <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+>>>>>>> Stashed changes
       </BasicProvider>
     </SafeAreaProvider>
   );
 }
+<<<<<<< Updated upstream
 
 const styles = StyleSheet.create({
   errorContainer: {
@@ -123,3 +154,5 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
+=======
+>>>>>>> Stashed changes
