@@ -8,13 +8,14 @@ import {
   SafeAreaView,
   Alert,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import FriendoLogo from '../components/FriendoLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { saveUser } from '../utils/storage';
+import { saveUser, isLoggedIn } from '../utils/storage';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -23,6 +24,31 @@ export default function LoginScreen() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
+
+  // Check if user is already logged in on mount
+  React.useEffect(() => {
+    checkExistingAuth();
+  }, []);
+
+  const checkExistingAuth = async () => {
+    try {
+      const loggedIn = await isLoggedIn();
+      if (loggedIn) {
+        // User is already logged in, navigate to appropriate screen
+        const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
+        if (skipReflection === 'true') {
+          navigation.replace('AddFriends');
+        } else {
+          navigation.replace('ReflectOnFriends');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -32,17 +58,16 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      // Simple login - just save credentials
       const success = await saveUser(email, password);
       if (success) {
         const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
         if (skipReflection === 'true') {
-          navigation.navigate('AddFriends');
+          navigation.replace('AddFriends');
         } else {
-          navigation.navigate('ReflectOnFriends');
+          navigation.replace('ReflectOnFriends');
         }
       } else {
-        Alert.alert('Error', 'Failed to save login. Please try again.');
+        Alert.alert('Error', 'Failed to sign in. Please check your credentials.');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -51,6 +76,18 @@ export default function LoginScreen() {
       setIsLoading(false);
     }
   };
+
+  // Show loading screen while checking auth
+  if (isCheckingAuth) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
+          <FriendoLogo />
+          <ActivityIndicator size="large" color="#EC4899" style={{ marginTop: 20 }} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -68,6 +105,7 @@ export default function LoginScreen() {
         <TextInput
           style={styles.input}
           placeholder="Email"
+          placeholderTextColor="#999999"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -78,6 +116,7 @@ export default function LoginScreen() {
         <TextInput
           style={styles.input}
           placeholder="Password"
+          placeholderTextColor="#999999"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
