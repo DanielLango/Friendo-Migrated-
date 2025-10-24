@@ -34,6 +34,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
+        {/* @ts-ignore - React Navigation type issue */}
         <Stack.Navigator 
           initialRouteName="Login"
           screenOptions={{
