@@ -1,57 +1,39 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-
-// Import screens
-import LoginScreen from './screens/LoginScreen';
-import ReflectOnFriendsScreen from './screens/ReflectOnFriendsScreen';
-import AddFriendsScreen from './screens/AddFriendsScreen';
-import OnboardingScreen from './screens/OnboardingScreen';
-import SyncScreen from './screens/SyncScreen';
-import ContactSelectScreen from './screens/ContactSelectScreen';
-import ManualAddScreen from './screens/ManualAddScreen';
-import MainScreen from './screens/MainScreen';
-import StatsScreen from './screens/StatsScreen';
-import MeetingCreateScreen from './screens/MeetingCreateScreen';
-
-export type RootStackParamList = {
-  Login: undefined;
-  ReflectOnFriends: undefined;
-  AddFriends: undefined;
-  Onboarding: undefined;
-  Sync: undefined;
-  ContactSelect: undefined;
-  ManualAdd: undefined;
-  Main: undefined;
-  Stats: undefined;
-  MeetingCreate: undefined;
-};
-
-const Stack = createStackNavigator<RootStackParamList>();
+import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import FriendoLogo from './components/FriendoLogo';
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator 
-          initialRouteName="Login"
-          screenOptions={{
-            headerShown: false,
-          }}
-        >
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="ReflectOnFriends" component={ReflectOnFriendsScreen} />
-          <Stack.Screen name="AddFriends" component={AddFriendsScreen} />
-          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-          <Stack.Screen name="Sync" component={SyncScreen} />
-          <Stack.Screen name="ContactSelect" component={ContactSelectScreen} />
-          <Stack.Screen name="ManualAdd" component={ManualAddScreen} />
-          <Stack.Screen name="Main" component={MainScreen} />
-          <Stack.Screen name="Stats" component={StatsScreen} />
-          <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <FriendoLogo />
+        <Text style={styles.title}>Friendo App</Text>
+        <Text style={styles.subtitle}>App is loading successfully!</Text>
+      </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
+    color: '#333333',
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#666666',
+  },
+});
