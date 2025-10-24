@@ -138,7 +138,7 @@ export const saveFriends = async (friends: Friend[]) => {
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
-      createdat: friend.createdAt ? new Date(friend.createdAt).toISOString() : new Date().toISOString(),
+      createdat: friend.createdAt || Date.now(),
     }));
 
     const { error } = await supabase
@@ -207,7 +207,7 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
-      createdat: new Date().toISOString(),
+      createdat: Date.now(),
     };
 
     const { data, error } = await supabase
@@ -277,7 +277,7 @@ export const saveMeetings = async (meetings: Meeting[]) => {
       city: meeting.city,
       notes: meeting.notes,
       status: meeting.status,
-      created_at: meeting.createdAt || new Date().toISOString(),
+      created_at: typeof meeting.createdAt === 'number' ? meeting.createdAt : Date.now(),
     }));
 
     const { error } = await supabase
@@ -340,7 +340,7 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
       city: meeting.city,
       notes: meeting.notes,
       status: meeting.status,
-      created_at: meeting.createdAt || new Date().toISOString(),
+      created_at: typeof meeting.createdAt === 'number' ? meeting.createdAt : Date.now(),
     };
 
     const { data, error } = await supabase
