@@ -138,7 +138,7 @@ export const saveFriends = async (friends: Friend[]) => {
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
-      createdat: friend.createdAt || Date.now(),
+      createdat: friend.createdAt ? new Date(friend.createdAt).toISOString() : new Date().toISOString(),
     }));
 
     const { error } = await supabase
@@ -207,7 +207,7 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
-      createdat: Date.now(),
+      createdat: new Date().toISOString(),
     };
 
     const { data, error } = await supabase
