@@ -124,10 +124,21 @@ export const saveFriends = async (friends: Friend[]) => {
       .delete()
       .eq('user_id', user.id);
 
-    // Insert new friends
+    // Insert new friends with snake_case column names
     const friendsWithUserId = friends.map(friend => ({
-      ...friend,
+      id: friend.id,
       user_id: user.id,
+      name: friend.name,
+      email: friend.email,
+      friendtype: friend.friendType,
+      isonline: friend.isOnline,
+      islocal: friend.isLocal,
+      profilepicture: friend.profilePicture,
+      city: friend.city,
+      source: friend.source,
+      notificationfrequency: friend.notificationFrequency,
+      notificationdays: friend.notificationDays,
+      createdat: friend.createdAt || Date.now(),
     }));
 
     const { error } = await supabase
@@ -154,7 +165,25 @@ export const getFriends = async (): Promise<Friend[]> => {
       .order('createdat', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    
+    // Transform snake_case to camelCase
+    const friends = (data || []).map(friend => ({
+      id: friend.id,
+      name: friend.name,
+      email: friend.email,
+      friendType: friend.friendtype || friend.friendType,
+      isOnline: friend.isonline ?? friend.isOnline ?? false,
+      isLocal: friend.islocal ?? friend.isLocal ?? false,
+      profilePicture: friend.profilepicture || friend.profilePicture,
+      city: friend.city,
+      source: friend.source,
+      notificationFrequency: friend.notificationfrequency || friend.notificationFrequency || 'monthly',
+      notificationDays: friend.notificationdays ?? friend.notificationDays ?? 30,
+      createdAt: friend.createdat || friend.createdAt,
+    }));
+    
+    console.log(`Loaded ${friends.length} friends from Supabase`);
+    return friends;
   } catch (error) {
     console.error('Error getting friends:', error);
     return [];
@@ -167,9 +196,18 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
     if (!user) throw new Error('No user logged in');
 
     const newFriend = {
-      ...friend,
       user_id: user.id,
-      createdAt: Date.now(),
+      name: friend.name,
+      email: friend.email,
+      friendtype: friend.friendType,
+      isonline: friend.isOnline,
+      islocal: friend.isLocal,
+      profilepicture: friend.profilePicture,
+      city: friend.city,
+      source: friend.source,
+      notificationfrequency: friend.notificationFrequency,
+      notificationdays: friend.notificationDays,
+      createdat: Date.now(),
     };
 
     const { data, error } = await supabase
@@ -179,7 +217,22 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Transform response back to camelCase
+    return {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      friendType: data.friendtype,
+      isOnline: data.isonline,
+      isLocal: data.islocal,
+      profilePicture: data.profilepicture,
+      city: data.city,
+      source: data.source,
+      notificationFrequency: data.notificationfrequency,
+      notificationDays: data.notificationdays,
+      createdAt: data.createdat,
+    };
   } catch (error) {
     console.error('Error adding friend:', error);
     return null;
@@ -213,10 +266,18 @@ export const saveMeetings = async (meetings: Meeting[]) => {
       .delete()
       .eq('user_id', user.id);
 
-    // Insert new meetings
+    // Insert new meetings with snake_case column names
     const meetingsWithUserId = meetings.map(meeting => ({
-      ...meeting,
+      id: meeting.id,
       user_id: user.id,
+      friend_id: meeting.friendId,
+      date: meeting.date,
+      activity: meeting.activity,
+      venue: meeting.venue,
+      city: meeting.city,
+      notes: meeting.notes,
+      status: meeting.status,
+      created_at: meeting.createdAt || new Date().toISOString(),
     }));
 
     const { error } = await supabase
@@ -243,7 +304,22 @@ export const getMeetings = async (): Promise<Meeting[]> => {
       .order('date', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Transform snake_case to camelCase
+    const meetings = (data || []).map(meeting => ({
+      id: meeting.id,
+      friendId: meeting.friend_id,
+      date: meeting.date,
+      activity: meeting.activity,
+      venue: meeting.venue,
+      city: meeting.city,
+      notes: meeting.notes,
+      status: meeting.status,
+      createdAt: meeting.created_at,
+    }));
+    
+    console.log(`Loaded ${meetings.length} meetings from Supabase`);
+    return meetings;
   } catch (error) {
     console.error('Error getting meetings:', error);
     return [];
@@ -256,8 +332,15 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
     if (!user) throw new Error('No user logged in');
 
     const newMeeting = {
-      ...meeting,
       user_id: user.id,
+      friend_id: meeting.friendId,
+      date: meeting.date,
+      activity: meeting.activity,
+      venue: meeting.venue,
+      city: meeting.city,
+      notes: meeting.notes,
+      status: meeting.status,
+      created_at: meeting.createdAt || new Date().toISOString(),
     };
 
     const { data, error } = await supabase
@@ -267,7 +350,19 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Transform response back to camelCase
+    return {
+      id: data.id,
+      friendId: data.friend_id,
+      date: data.date,
+      activity: data.activity,
+      venue: data.venue,
+      city: data.city,
+      notes: data.notes,
+      status: data.status,
+      createdAt: data.created_at,
+    };
   } catch (error) {
     console.error('Error adding meeting:', error);
     return null;
@@ -294,7 +389,7 @@ export const deleteMeetingsByFriendId = async (friendId: string) => {
     const { error } = await supabase
       .from('meetings')
       .delete()
-      .eq('friendId', friendId);
+      .eq('friend_id', friendId);
 
     if (error) throw error;
     return true;
