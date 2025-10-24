@@ -6,6 +6,8 @@ import {
   StyleSheet,
   SafeAreaView,
   Animated,
+  Image,
+  ImageBackground,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -45,11 +47,15 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Animated gradient background */}
-      <View style={styles.backgroundContainer}>
-        <View style={styles.gradientLayer1} />
-        <View style={styles.gradientLayer2} />
-      </View>
+      {/* Animated GIF background */}
+      <ImageBackground
+        source={require('../assets/images/ezgif.com-optimize.gif')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        {/* Dark overlay for better text readability */}
+        <View style={styles.overlay} />
+      </ImageBackground>
       
       {/* Content */}
       <SafeAreaView style={styles.safeArea}>
@@ -114,29 +120,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#2D0A4E',
   },
-  backgroundContainer: {
+  backgroundImage: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
+    width: '100%',
+    height: '100%',
   },
-  gradientLayer1: {
+  overlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#2D0A4E',
-  },
-  gradientLayer2: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#4A1A6E',
-    opacity: 0.3,
+    backgroundColor: 'rgba(45, 10, 78, 0.6)',
   },
   safeArea: {
     flex: 1,
