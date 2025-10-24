@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { initializeRevenueCat } from './utils/revenueCatConfig';
 
 // Import screens
 import LoginScreen from './screens/LoginScreen';
@@ -32,6 +33,13 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
   console.log('App component rendering...');
+  
+  useEffect(() => {
+    // Initialize RevenueCat when app starts
+    initializeRevenueCat().catch(err => {
+      console.log('RevenueCat initialization skipped:', err.message);
+    });
+  }, []);
   
   return (
     <SafeAreaProvider>

@@ -7,30 +7,53 @@ import {
   SafeAreaView,
   FlatList,
   Alert,
+  Modal,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Friend, Meeting } from '../types';
 import FriendRow from '../components/FriendRow';
+import Paywall from '../components/Paywall';
 import { getFriends, getMeetings, deleteFriend, deleteMeetingsByFriendId, logout } from '../utils/storage';
+import { shouldShowPaywall, markPaywallShown } from '../utils/paywallUtils';
+import { isPremiumUser } from '../utils/premiumFeatures';
 
 export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [deleteMode, setDeleteMode] = useState(false);
   const [sortMode, setSortMode] = useState<'default' | 'name' | 'tokens'>('default');
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
     loadData();
     scheduleAnnualReset();
+    checkPaywallStatus();
   }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       loadData();
+      checkPaywallStatus();
     });
     return unsubscribe;
   }, [navigation]);
+
+  const checkPaywallStatus = async () => {
+    // Check if user is premium
+    const premium = await isPremiumUser();
+    setIsPremium(premium);
+
+    // Only show paywall if not premium
+    if (!premium) {
+      const shouldShow = await shouldShowPaywall();
+      if (shouldShow) {
+        setShowPaywall(true);
+        await markPaywallShown();
+      }
+    }
+  };
 
   const loadData = async () => {
     const friendsData = await getFriends();
@@ -60,6 +83,20 @@ export default function MainScreen() {
     
     setFriends(friendsData);
     setMeetings(meetingsData);
+  };
+
+  const handlePaywallSuccess = async () => {
+    setShowPaywall(false);
+    setIsPremium(true);
+    Alert.alert(
+      'Welcome to Premium! 🎉',
+      'Thank you for supporting Friendo! You now have access to all premium features.',
+      [{ text: 'Awesome!', style: 'default' }]
+    );
+  };
+
+  const handlePaywallClose = () => {
+    setShowPaywall(false);
   };
 
   const scheduleAnnualReset = () => {
@@ -252,6 +289,19 @@ export default function MainScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Paywall Modal */}
+      <Modal
+        visible={showPaywall}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handlePaywallClose}
+      >
+        <Paywall 
+          onSuccess={handlePaywallSuccess}
+          onClose={handlePaywallClose}
+        />
+      </Modal>
+
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.sortContainer}>

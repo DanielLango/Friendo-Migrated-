@@ -1,22 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Linking, Image, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
-import Purchases, { CUSTOMER_INFO_UPDATED, LOG_LEVEL, PurchasesPackage, CustomerInfo } from 'react-native-purchases';
+import { View, Text, TouchableOpacity, Linking, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import Purchases, { PurchasesPackage, CustomerInfo } from 'react-native-purchases';
 import { Ionicons } from '@expo/vector-icons';
+import { getSubscriptionPackages } from '../utils/revenueCatConfig';
+import { clearPremiumCache } from '../utils/premiumFeatures';
 
 /**
  * Friendo Paywall
  * - White & purple theme
  * - Emotional copy (mission-driven)
  * - Two plans: $0.99/mo, $9.99/yr
- * - RevenueCat integration (RN/Expo)
- * - Works with your Navigation: pass onSuccess() to close paywall and unlock features
- *
- * Requirements in stores:
- * - iOS: 2 auto-renewable subscriptions (same group)
- *   - fr_monthly_099
- *   - fr_yearly_999
- * - Android: matching products
- * Map both to entitlement "pro" in RevenueCat, offering "default" with current packages monthly/yearly.
+ * - RevenueCat integration
  */
 
 // ---- THEME ----
@@ -25,13 +19,11 @@ const DARK = '#0F1222';
 const MUTED = '#606276';
 const GREEN = '#1DB954';
 
-// Optional: replace with your own header graphic (the screenshot inspired layout has food items)
 const HEADER_URI = 'https://images.unsplash.com/photo-1514846326716-43f660c31c2a?q=80&w=1200&auto=format&fit=crop';
 
 export type PaywallProps = {
   onSuccess?: (info: CustomerInfo) => void;
   onClose?: () => void;
-  // if you already fetched offerings elsewhere, you can pass them in
 };
 
 export default function Paywall({ onSuccess, onClose }: PaywallProps) {
@@ -40,57 +32,29 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState(false);
 
-  // -------- RevenueCat basic init --------
   useEffect(() => {
-    // IMPORTANT: Replace with your live public SDK keys
-    const apiKey = Platform.select({
-      ios: 'appl_live_public_sdk_key',
-      android: 'goog_live_public_sdk_key',
-    }) as string;
-
-    try {
-      Purchases.setLogLevel(LOG_LEVEL.INFO);
-      Purchases.configure({ apiKey });
-    } catch (error: any) {
-      console.log('RevenueCat not available in Expo Go:', error.message);
-      // Show mock packages for testing in Expo Go
-      setPackages([]);
-      setLoading(false);
-      return;
-    }
-
-    const sub = Purchases.addCustomerInfoUpdateListener(() => {
-      // keep UI in sync
-    });
-
-    (async () => {
-      try {
-        const offerings = await Purchases.getOfferings();
-        const current = offerings.current;
-        const pkgs = current?.availablePackages ?? [];
-
-        // We prefer to order: YEARLY then MONTHLY, like the mock
-        pkgs.sort((a, b) => (a.packageType === 'ANNUAL' ? -1 : 1));
-        setPackages(pkgs);
-
-        // Default select yearly if present
-        setSelectedId(pkgs[0]?.identifier ?? null);
-      } catch (e: any) {
-        console.log('Could not load offerings:', e?.message);
-        // In Expo Go, show a message instead of crashing
-        Alert.alert(
-          'Preview Mode', 
-          'RevenueCat requires a development build. This is a preview of the paywall design.'
-        );
-      } finally {
-        setLoading(false);
-      }
-    })();
-
-    return () => {
-      sub?.remove();
-    };
+    loadPackages();
   }, []);
+
+  const loadPackages = async () => {
+    try {
+      const pkgs = await getSubscriptionPackages();
+      setPackages(pkgs);
+      
+      // Default select yearly if present
+      if (pkgs.length > 0) {
+        setSelectedId(pkgs[0]?.identifier ?? null);
+      }
+    } catch (e: any) {
+      console.log('Could not load offerings:', e?.message);
+      Alert.alert(
+        'Preview Mode', 
+        'RevenueCat requires a development build. This is a preview of the paywall design.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const selectedPkg = useMemo(() => packages.find(p => p.identifier === selectedId) || null, [packages, selectedId]);
 
@@ -99,14 +63,16 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
     try {
       setPurchasing(true);
       const { customerInfo } = await Purchases.purchasePackage(selectedPkg);
+      await clearPremiumCache();
+      
       const active = customerInfo.entitlements.active['pro'];
       if (active) {
+        Alert.alert('Welcome to Premium! 🎉', 'Thank you for supporting Friendo!');
         onSuccess?.(customerInfo);
       } else {
         Alert.alert('Purchase', 'Thanks! Your subscription will activate shortly.');
       }
     } catch (e: any) {
-      // user cancel or error
       if (e?.userCancelled) return;
       Alert.alert('Purchase failed', e?.message ?? 'Please try again.');
     } finally {
@@ -117,9 +83,12 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
   async function onRestore() {
     try {
       setPurchasing(true);
-      const { customerInfo } = await Purchases.restorePurchases();
+      const customerInfo = await Purchases.restorePurchases();
+      await clearPremiumCache();
+      
       const active = customerInfo.entitlements.active['pro'];
       if (active) {
+        Alert.alert('Restored! 🎉', 'Your premium subscription has been restored.');
         onSuccess?.(customerInfo);
       } else {
         Alert.alert('Nothing to restore', 'No active Friendo Premium found.');
@@ -136,18 +105,20 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
       {/* Header image + close button */}
       <View style={{ height: 180, overflow: 'hidden', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
         <Image source={{ uri: HEADER_URI }} style={{ width: '100%', height: '100%' }} />
-        <TouchableOpacity
-          onPress={onClose}
-          style={{ position: 'absolute', right: 16, top: 16, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 24, padding: 8 }}>
-          <Ionicons name="close" size={20} color={DARK} />
-        </TouchableOpacity>
+        {onClose && (
+          <TouchableOpacity
+            onPress={onClose}
+            style={{ position: 'absolute', right: 16, top: 16, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 24, padding: 8 }}>
+            <Ionicons name="close" size={20} color={DARK} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 28 }}>
         {/* Mission copy */}
         <Text style={{ fontSize: 28, fontWeight: '800', color: DARK, lineHeight: 32 }}>Say hello to your best self.</Text>
         <Text style={{ marginTop: 6, color: MUTED }}>
-          Friendo brings friends together. I'm a one‑person studio building this with love. If you believe in the mission, your support keeps the lights on and helps more friends connect.
+          Friendo brings friends together. I\'m a one‑person studio building this with love. If you believe in the mission, your support keeps the lights on and helps more friends connect.
         </Text>
 
         {/* Value bullets */}
@@ -169,7 +140,6 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
               <PlanCard
                 key={pkg.identifier}
                 title={pkg.packageType === 'ANNUAL' ? 'YEARLY' : 'MONTHLY'}
-                // Prefer store localized price if available
                 priceLine={pkg.product.priceString || (pkg.packageType === 'ANNUAL' ? '$9.99/yr' : '$0.99/mo')}
                 subline={pkg.packageType === 'ANNUAL' ? 'Best value' : 'Flexibility'}
                 selected={selectedId === pkg.identifier}
