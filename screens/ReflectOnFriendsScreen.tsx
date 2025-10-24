@@ -6,7 +6,6 @@ import {
   StyleSheet,
   SafeAreaView,
   Animated,
-  Image,
   ImageBackground,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -47,14 +46,14 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Animated GIF background */}
+      {/* Animated GIF background with purple overlay */}
       <ImageBackground
         source={require('../assets/images/ezgif.com-optimize.gif')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        {/* Dark overlay for better text readability */}
-        <View style={styles.overlay} />
+        {/* Purple tint overlay */}
+        <View style={styles.purpleOverlay} />
       </ImageBackground>
       
       {/* Content */}
@@ -129,13 +128,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  overlay: {
+  purpleOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(45, 10, 78, 0.6)',
+    backgroundColor: '#4A1A6E',
+    opacity: 0.75,
   },
   safeArea: {
     flex: 1,
