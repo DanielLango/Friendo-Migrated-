@@ -65,7 +65,19 @@ export const getUser = async () => {
 export const isLoggedIn = async () => {
   try {
     console.log('Checking login status...');
-    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    // Add a timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout')), 5000)
+    );
+    
+    const sessionPromise = supabase.auth.getSession();
+
+    const { data: { session }, error } = await Promise.race([
+      sessionPromise,
+      timeoutPromise
+    ]) as any;
+
     if (error) {
       console.error('Error checking session:', error);
       return false;
@@ -74,6 +86,7 @@ export const isLoggedIn = async () => {
     return !!session;
   } catch (error) {
     console.error('Error checking login status:', error);
+    // If there's an error or timeout, just return false
     return false;
   }
 };
