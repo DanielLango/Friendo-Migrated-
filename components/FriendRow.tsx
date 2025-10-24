@@ -36,7 +36,12 @@ export default function FriendRow({
   
   // Filter meetings for current year and update status based on date
   const yearMeetings = meetings
-    .filter(meeting => new Date(meeting.date).getFullYear() === currentYear)
+    .filter(meeting => {
+      const meetingDate = new Date(meeting.date);
+      const meetingYear = meetingDate.getFullYear();
+      console.log(`Meeting ${meeting.id} date: ${meeting.date}, year: ${meetingYear}, current year: ${currentYear}`);
+      return meetingYear === currentYear;
+    })
     .map(meeting => {
       const meetingDate = new Date(meeting.date);
       const now = new Date();
@@ -61,6 +66,8 @@ export default function FriendRow({
       // Otherwise, it's scheduled
       return { ...meeting, status: 'scheduled' as const };
     });
+
+  console.log(`Friend ${friend.name} has ${yearMeetings.length} meetings this year`);
 
   const displayMeetings = showAllMeetings ? yearMeetings : yearMeetings.slice(0, 5);
   const hasMoreMeetings = yearMeetings.length > 5;

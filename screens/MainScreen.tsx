@@ -154,19 +154,30 @@ export default function MainScreen() {
   const getFriendMeetings = (friendId: string) => {
     const currentYear = new Date().getFullYear();
     
-    return meetings.filter(meeting => {
+    const friendMeetings = meetings.filter(meeting => {
       if (meeting.friendId !== friendId) return false;
       
       const meetingYear = new Date(meeting.date).getFullYear();
-      return meetingYear === currentYear;
+      const isCurrentYear = meetingYear === currentYear;
+      
+      console.log(`Meeting ${meeting.id} for friend ${friendId}: date=${meeting.date}, year=${meetingYear}, isCurrentYear=${isCurrentYear}`);
+      
+      return isCurrentYear;
     });
+    
+    console.log(`Friend ${friendId} has ${friendMeetings.length} meetings in ${currentYear}`);
+    return friendMeetings;
   };
 
   const getFriendMeetingCount = (friendId: string) => {
-    return getFriendMeetings(friendId).filter(meeting => {
+    const friendMeetings = getFriendMeetings(friendId);
+    const nonCancelledCount = friendMeetings.filter(meeting => {
       const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
       return !isCancelled;
     }).length;
+    
+    console.log(`Friend ${friendId} has ${nonCancelledCount} non-cancelled meetings`);
+    return nonCancelledCount;
   };
 
   const getSortedFriends = () => {
