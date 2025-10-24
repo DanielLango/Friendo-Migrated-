@@ -841,11 +841,6 @@
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.27.1"
 
-"@basictech/expo@^0.0.9":
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/@basictech/expo/-/expo-0.0.9.tgz#f438a22736be613963fe26935fe4bc0ec4c85878"
-  integrity sha512-OOqRCe5Mcs09rbcnUj5i6WK6qSR+/ebg3CIQIWS3e2+RcnfxmZeGrXkJA5xt/dwaz7S8c/1CiLKcPU854/mhjg==
-
 "@egjs/hammerjs@^2.0.17":
   version "2.0.17"
   resolved "https://registry.yarnpkg.com/@egjs/hammerjs/-/hammerjs-2.0.17.tgz#5dc02af75a6a06e4c2db0202cae38c9263895124"

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -9,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useBasic } from '@basictech/expo';
+import { getFriends, getMeetings } from '../utils/storage';
 
 const { width } = Dimensions.get('window');
 
@@ -21,35 +22,24 @@ export default function AddFriendsScreen() {
   const [pulseAnim] = useState(new Animated.Value(1));
   
   const navigation = useNavigation();
-  const { db, isSignedIn } = useBasic();
 
   const loadFriendsCount = useCallback(async () => {
-    // Only attempt to load if we have a valid db connection and user is signed in
-    if (db && isSignedIn) {
-      try {
-        const friends = await db.from('friends').getAll();
-        setFriendCount(friends?.length || 0);
+    try {
+      const friends = await getFriends();
+      setFriendCount(friends.length);
 
-        // Calculate meetings this year
-        const meetings = await db.from('meetings').getAll();
-        const currentYear = new Date().getFullYear();
-        const yearMeetings = (meetings || []).filter((meeting: any) => {
-          const meetingDate = typeof meeting.date === 'string' ? meeting.date : String(meeting.date);
-          const isCancelled = meeting.notes && meeting.notes.startsWith('[CANCELLED]');
-          return new Date(meetingDate).getFullYear() === currentYear && !isCancelled;
-        });
-        setTotalMeetings(yearMeetings.length);
-      } catch (error) {
-        // Silently handle token refresh errors - they don't affect functionality
-        if (error && typeof error === 'object' && 'message' in error) {
-          const errorMessage = (error as Error).message;
-          if (!errorMessage.includes('Token refresh failed') && !errorMessage.includes('failed_to_get_token')) {
-            console.error('Error loading friends count:', error);
-          }
-        }
-      }
+      // Calculate meetings this year
+      const meetings = await getMeetings();
+      const currentYear = new Date().getFullYear();
+      const yearMeetings = meetings.filter((meeting) => {
+        const isCancelled = meeting.notes && meeting.notes.startsWith('[CANCELLED]');
+        return new Date(meeting.date).getFullYear() === currentYear && !isCancelled;
+      });
+      setTotalMeetings(yearMeetings.length);
+    } catch (error) {
+      console.error('Error loading friends count:', error);
     }
-  }, [db, isSignedIn]);
+  }, []);
 
   useEffect(() => {
     // Animate screen entrance
@@ -99,10 +89,6 @@ export default function AddFriendsScreen() {
     return unsubscribe;
   }, [navigation, loadFriendsCount]);
 
-  const handleSyncContacts = () => {
-    (navigation as any).navigate('Sync');
-  };
-
   const handleManualAdd = () => {
     (navigation as any).navigate('ManualAdd');
   };
@@ -111,10 +97,6 @@ export default function AddFriendsScreen() {
     if (friendCount >= 3) {
       (navigation as any).navigate('Main');
     }
-  };
-
-  const handleAddMore = () => {
-    (navigation as any).navigate('ManualAdd');
   };
 
   return (
@@ -332,13 +314,6 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
-  secondaryButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: '#E0D4FF',
-  },
   buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -359,16 +334,6 @@ const styles = StyleSheet.create({
   buttonSubtitle: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
-  },
-  buttonTitleSecondary: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#8000FF',
-    marginBottom: 4,
-  },
-  buttonSubtitleSecondary: {
-    fontSize: 14,
-    color: '#666666',
   },
   progressSection: {
     marginBottom: 20,

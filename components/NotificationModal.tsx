@@ -9,10 +9,10 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { useBasic } from '@basictech/expo';
 import { Friend } from '../types';
 import { notificationService } from '../utils/notificationService';
 import SimpleTimePicker from './SimpleTimePicker';
+import { getFriends, saveFriends } from '../utils/storage';
 
 interface NotificationModalProps {
   visible: boolean;
@@ -69,42 +69,48 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
   };
 
   const handleSave = async () => {
-    if (db) {
-      try {
-        let days = parseInt(customDays) || 1;
-        if (selectedFrequency === 'weekly') {
-          days = days * 7;
-        } else if (selectedFrequency === 'monthly') {
-          days = days * 30;
-        }
-
-        // Update database
-        await db.from('friends').update(friend.id, {
-          notificationFrequency: selectedFrequency,
-          notificationDays: days,
-        });
-
-        // Schedule the actual notification (only works on mobile)
-        await notificationService.scheduleNotification(
-          friend.id,
-          friend.name,
-          days
-        );
-
-        if (Platform.OS === 'web') {
-          Alert.alert(
-            'Settings Saved', 
-            `Notification preferences saved! Note: Push notifications only work on mobile devices. When you use this app on your phone, you'll receive reminders to reconnect with ${friend.name} every ${days} day${days === 1 ? '' : 's'}.`
-          );
-        } else {
-          Alert.alert('Success', `Notification set! You'll be reminded to reconnect with ${friend.name} in ${days} day${days === 1 ? '' : 's'}.`);
-        }
-        
-        onClose();
-      } catch (error) {
-        console.error('Error updating notification settings:', error);
-        Alert.alert('Error', 'Failed to update settings. Please try again.');
+    try {
+      let days = parseInt(customDays) || 1;
+      if (selectedFrequency === 'weekly') {
+        days = days * 7;
+      } else if (selectedFrequency === 'monthly') {
+        days = days * 30;
       }
+
+      // Update storage
+      const friends = await getFriends();
+      const updatedFriends = friends.map(f => {
+        if (f.id === friend.id) {
+          return {
+            ...f,
+            notificationFrequency: selectedFrequency,
+            notificationDays: days,
+          };
+        }
+        return f;
+      });
+      await saveFriends(updatedFriends);
+
+      // Schedule the actual notification (only works on mobile)
+      await notificationService.scheduleNotification(
+        friend.id,
+        friend.name,
+        days
+      );
+
+      if (Platform.OS === 'web') {
+        Alert.alert(
+          'Settings Saved', 
+          `Notification preferences saved! Note: Push notifications only work on mobile devices. When you use this app on your phone, you'll receive reminders to reconnect with ${friend.name} every ${days} day${days === 1 ? '' : 's'}.`
+        );
+      } else {
+        Alert.alert('Success', `Notification set! You'll be reminded to reconnect with ${friend.name} in ${days} day${days === 1 ? '' : 's'}.`);
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('Error updating notification settings:', error);
+      Alert.alert('Error', 'Failed to update settings. Please try again.');
     }
   };
 

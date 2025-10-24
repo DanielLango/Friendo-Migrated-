@@ -10,9 +10,9 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useBasic } from '@basictech/expo';
 import { mockSyncedContacts } from '../utils/mockData';
 import { SyncedContact } from '../types';
+import { getFriends, addFriend } from '../utils/storage';
 
 export default function ContactSelectScreen() {
   const [contacts, setContacts] = useState<SyncedContact[]>([]);
@@ -20,7 +20,6 @@ export default function ContactSelectScreen() {
   const [currentFriendCount, setCurrentFriendCount] = useState(0);
   const navigation = useNavigation();
   const route = useRoute();
-  const { db } = useBasic();
   
   const source = (route.params as any)?.source || 'facebook';
 
@@ -33,17 +32,15 @@ export default function ContactSelectScreen() {
   useEffect(() => {
     // Get current friend count
     const fetchFriendCount = async () => {
-      if (db) {
-        try {
-          const friends = await db.from('friends').getAll();
-          setCurrentFriendCount(friends?.length || 0);
-        } catch (error) {
-          console.error('Error fetching friend count:', error);
-        }
+      try {
+        const friends = await getFriends();
+        setCurrentFriendCount(friends.length);
+      } catch (error) {
+        console.error('Error fetching friend count:', error);
       }
     };
     fetchFriendCount();
-  }, [db]);
+  }, []);
 
   const toggleContact = (contactId: string) => {
     setContacts(prevContacts => 
@@ -72,41 +69,38 @@ export default function ContactSelectScreen() {
   const handleContinue = async () => {
     const selectedContacts = contacts.filter(contact => contact.selected);
     
-    if (db) {
-      try {
-        // Double-check the limit before saving
-        const friends = await db.from('friends').getAll();
-        const totalCount = (friends?.length || 0) + selectedContacts.length;
-        
-        if (totalCount > 50) {
-          Alert.alert(
-            'Friend Limit Exceeded',
-            `You can only have up to 50 friends. You currently have ${friends?.length || 0} friends and are trying to add ${selectedContacts.length} more.`,
-            [{ text: 'OK' }]
-          );
-          return;
-        }
-        
-        // Save selected friends to database
-        for (const contact of selectedContacts) {
-          await db.from('friends').add({
-            name: contact.name,
-            email: '',
-            friendType: 'both',
-            isOnline: true,
-            isLocal: true,
-            profilePicture: contact.profilePicture,
-            city: contact.city,
-            source: contact.source,
-            notificationFrequency: 'weekly',
-            notificationDays: 7,
-            createdAt: Date.now(),
-          });
-        }
-        navigation.navigate('AddFriends' as never);
-      } catch (error) {
-        console.error('Error saving friends:', error);
+    try {
+      // Double-check the limit before saving
+      const friends = await getFriends();
+      const totalCount = friends.length + selectedContacts.length;
+      
+      if (totalCount > 50) {
+        Alert.alert(
+          'Friend Limit Exceeded',
+          `You can only have up to 50 friends. You currently have ${friends.length} friends and are trying to add ${selectedContacts.length} more.`,
+          [{ text: 'OK' }]
+        );
+        return;
       }
+      
+      // Save selected friends to storage
+      for (const contact of selectedContacts) {
+        await addFriend({
+          name: contact.name,
+          email: '',
+          friendType: 'both',
+          isOnline: true,
+          isLocal: true,
+          profilePicture: contact.profilePicture,
+          city: contact.city,
+          source: contact.source,
+          notificationFrequency: 'weekly',
+          notificationDays: 7,
+        });
+      }
+      navigation.navigate('AddFriends' as never);
+    } catch (error) {
+      console.error('Error saving friends:', error);
     }
   };
 

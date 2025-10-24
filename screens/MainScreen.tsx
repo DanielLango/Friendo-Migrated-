@@ -9,9 +9,9 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useBasic } from '@basictech/expo';
 import { Friend, Meeting } from '../types';
 import FriendRow from '../components/FriendRow';
+import { getFriends, getMeetings, deleteFriend, deleteMeetingsByFriendId, logout } from '../utils/storage';
 
 export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -19,34 +19,17 @@ export default function MainScreen() {
   const [deleteMode, setDeleteMode] = useState(false);
   const [sortMode, setSortMode] = useState<'default' | 'name' | 'tokens'>('default');
   const navigation = useNavigation();
-  const { db, signout } = useBasic();
 
   useEffect(() => {
-    loadFriends();
-    loadMeetings();
+    loadData();
     scheduleAnnualReset();
-  }, [db]);
+  }, []);
 
-  const loadFriends = async () => {
-    if (db) {
-      try {
-        const friendsData = await db.from('friends').getAll();
-        setFriends((friendsData || []) as unknown as Friend[]);
-      } catch (error) {
-        console.error('Error loading friends:', error);
-      }
-    }
-  };
-
-  const loadMeetings = async () => {
-    if (db) {
-      try {
-        const meetingsData = await db.from('meetings').getAll();
-        setMeetings((meetingsData || []) as unknown as Meeting[]);
-      } catch (error) {
-        console.error('Error loading meetings:', error);
-      }
-    }
+  const loadData = async () => {
+    const friendsData = await getFriends();
+    const meetingsData = await getMeetings();
+    setFriends(friendsData);
+    setMeetings(meetingsData);
   };
 
   const scheduleAnnualReset = () => {
@@ -63,22 +46,17 @@ export default function MainScreen() {
   };
 
   const performAnnualReset = async () => {
-    if (!db) return;
-
     try {
       const currentYear = new Date().getFullYear();
-      const allMeetings = await db.from('meetings').getAll();
+      const allMeetings = await getMeetings();
       
-      for (const meeting of (allMeetings || []) as unknown as Meeting[]) {
+      const updatedMeetings = allMeetings.filter(meeting => {
         const meetingYear = new Date(meeting.date).getFullYear();
         const status = meeting.status || 'met';
-        
-        if (meetingYear === currentYear && (status === 'met' || status === 'cancelled')) {
-          await db.from('meetings').delete(String(meeting.id));
-        }
-      }
+        return !(meetingYear === currentYear && (status === 'met' || status === 'cancelled'));
+      });
       
-      await loadMeetings();
+      await loadData();
     } catch (error) {
       console.error('Error performing annual reset:', error);
     }
@@ -95,30 +73,11 @@ export default function MainScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (db) {
-                const friendMeetings = meetings.filter(meeting => String(meeting.friendId) === String(friend.id));
-                for (const meeting of friendMeetings) {
-                  await db.from('meetings').delete(String(meeting.id));
-                }
-                
-                try {
-                  const friendshipMemos = await db.from('friendshipMemos').getAll();
-                  const friendMemos = (friendshipMemos || []).filter((memo: any) => String(memo.friendId) === String(friend.id));
-                  for (const memo of friendMemos) {
-                    await db.from('friendshipMemos').delete(String(memo.id));
-                  }
-                } catch (error) {
-                  console.log('No friendship memos to delete or error:', error);
-                }
-                
-                await db.from('friends').delete(String(friend.id));
-                
-                await loadFriends();
-                await loadMeetings();
-                
-                setDeleteMode(false);
-                Alert.alert('Success', `${friend.name} has been deleted.`);
-              }
+              await deleteMeetingsByFriendId(friend.id);
+              await deleteFriend(friend.id);
+              await loadData();
+              setDeleteMode(false);
+              Alert.alert('Success', `${friend.name} has been deleted.`);
             } catch (error) {
               console.error('Error deleting friend:', error);
               Alert.alert('Error', 'Failed to delete friend. Please try again.');
@@ -148,7 +107,7 @@ export default function MainScreen() {
           `This was scheduled for ${meetingDate}, but got cancelled.`
         );
       } else if (status === 'scheduled') {
-        const instructions = `Scheduled for ${meetingDate}\n\n\nWhat to do now?\n(In case you selected a calendar option)\n\nAfter tapping 'Schedule Meetup':\n1.) In case you selected the Add to my calendar option, open your smartphone's default calendar app, and navigate to the day you selected for the meetup.\n2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.\n\nOnce the meeting invite is in front of you in your calendar:\n• Edit the event time in the calendar as needed.\n• Under Invitee, you can add an email if you want. Your default calendar app will then send the invitation to that email.\n• Feel free to change any other details about your meeting.`;
+        const instructions = `Scheduled for ${meetingDate}\n\n\nWhat to do now?\n(In case you selected a calendar option)\n\nAfter tapping 'Schedule Meetup':\n1.) In case you selected the Add to my calendar option, open your smartphone\'s default calendar app, and navigate to the day you selected for the meetup.\n2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.\n\nOnce the meeting invite is in front of you in your calendar:\n• Edit the event time in the calendar as needed.\n• Under Invitee, you can add an email if you want. Your default calendar app will then send the invitation to that email.\n• Feel free to change any other details about your meeting.`;
         Alert.alert('Meeting Details', instructions);
       } else {
         Alert.alert('Meeting Details', `Met on ${meetingDate}`);
@@ -164,13 +123,20 @@ export default function MainScreen() {
     (navigation as any).navigate('ManualAdd');
   };
 
-  const handleProfile = () => {
+  const handleProfile = async () => {
     Alert.alert(
       'Profile',
       'Profile settings coming soon!',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', onPress: signout, style: 'destructive' }
+        { 
+          text: 'Sign Out', 
+          onPress: async () => {
+            await logout();
+            (navigation as any).navigate('Login');
+          }, 
+          style: 'destructive' 
+        }
       ]
     );
   };
@@ -179,7 +145,7 @@ export default function MainScreen() {
     const currentYear = new Date().getFullYear();
     
     return meetings.filter(meeting => {
-      if (String(meeting.friendId) !== friendId) return false;
+      if (meeting.friendId !== friendId) return false;
       
       const meetingYear = new Date(meeting.date).getFullYear();
       return meetingYear === currentYear;
@@ -196,7 +162,7 @@ export default function MainScreen() {
   const getSortedFriends = () => {
     const friendsWithMeetings = friends.map(friend => ({
       ...friend,
-      meetingCount: getFriendMeetingCount(String(friend.id))
+      meetingCount: getFriendMeetingCount(friend.id)
     }));
 
     if (sortMode === 'name') {
@@ -233,7 +199,7 @@ export default function MainScreen() {
   const renderFriend = ({ item }: { item: Friend }) => (
     <FriendRow
       friend={item}
-      meetings={getFriendMeetings(String(item.id))}
+      meetings={getFriendMeetings(item.id)}
       onScheduleNext={handleScheduleNext}
       onMeetingPress={handleMeetingPress}
       deleteMode={deleteMode}
@@ -283,7 +249,7 @@ export default function MainScreen() {
       <FlatList
         data={getSortedFriends()}
         renderItem={renderFriend}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={(item) => item.id}
         style={styles.friendsList}
         contentContainerStyle={styles.friendsListContent}
         showsVerticalScrollIndicator={false}

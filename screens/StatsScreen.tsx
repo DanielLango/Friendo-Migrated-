@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -10,8 +11,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useBasic } from '@basictech/expo';
 import { Friend, Meeting } from '../types';
+import { getFriends, getMeetings } from '../utils/storage';
 
 interface FriendStats {
   friend: Friend;
@@ -37,7 +38,6 @@ export default function StatsScreen() {
   const [slideAnim] = useState(new Animated.Value(50));
   
   const navigation = useNavigation();
-  const { db } = useBasic();
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
@@ -62,83 +62,71 @@ export default function StatsScreen() {
   }, [isLoading]);
 
   const loadStats = async () => {
-    if (db) {
-      try {
-        const friends = await db.from('friends').getAll();
-        const meetings = await db.from('meetings').getAll();
+    try {
+      const friends = await getFriends();
+      const meetings = await getMeetings();
+      
+      // Filter for current year AND exclude cancelled meetings
+      const yearMeetings = meetings.filter((meeting) => {
+        const isCurrentYear = new Date(meeting.date).getFullYear() === currentYear;
+        const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
+        return isCurrentYear && !isCancelled;
+      });
+
+      setTotalMeetings(yearMeetings.length);
+
+      // Calculate friend stats
+      const stats = friends.map((friend) => {
+        const friendMeetings = yearMeetings.filter((meeting) => meeting.friendId === friend.id);
+        const lastMeeting = friendMeetings.length > 0 
+          ? friendMeetings.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+          : null;
         
-        // Filter for current year AND exclude cancelled meetings
-        const yearMeetings = (meetings || []).filter((meeting: any) => {
-          const meetingDate = typeof meeting.date === 'string' ? meeting.date : String(meeting.date);
-          const isCurrentYear = new Date(meetingDate).getFullYear() === currentYear;
-          const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
-          return isCurrentYear && !isCancelled;
+        return {
+          friend: friend,
+          meetingCount: friendMeetings.length,
+          lastMeeting: lastMeeting?.date,
+        };
+      });
+
+      stats.sort((a, b) => b.meetingCount - a.meetingCount);
+      setFriendStats(stats);
+
+      // Calculate monthly breakdown
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+
+      const monthlyData = months.map((monthName, index) => {
+        const monthMeetings = yearMeetings.filter((meeting) => {
+          const meetingDate = new Date(meeting.date);
+          return meetingDate.getMonth() === index;
         });
 
-        setTotalMeetings(yearMeetings.length);
+        return {
+          month: String(index + 1).padStart(2, '0'),
+          monthName,
+          meetingCount: monthMeetings.length,
+        };
+      });
 
-        // Calculate friend stats
-        const stats = (friends || []).map((friend: any) => {
-          const friendMeetings = yearMeetings.filter((meeting: any) => meeting.friendId === friend.id);
-          const lastMeeting = friendMeetings.length > 0 
-            ? friendMeetings.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
-            : null;
-          
-          return {
-            friend: friend as Friend,
-            meetingCount: friendMeetings.length,
-            lastMeeting: lastMeeting?.date ? String(lastMeeting.date) : undefined,
-          };
-        });
+      setMonthlyBreakdown(monthlyData);
 
-        stats.sort((a, b) => b.meetingCount - a.meetingCount);
-        setFriendStats(stats);
-
-        // Calculate monthly breakdown
-        const months = [
-          'January', 'February', 'March', 'April', 'May', 'June',
-          'July', 'August', 'September', 'October', 'November', 'December'
-        ];
-
-        const monthlyData = months.map((monthName, index) => {
-          const monthMeetings = yearMeetings.filter((meeting: any) => {
-            const meetingDate = new Date(meeting.date);
-            return meetingDate.getMonth() === index;
-          });
-
-          return {
-            month: String(index + 1).padStart(2, '0'),
-            monthName,
-            meetingCount: monthMeetings.length,
-          };
-        });
-
-        setMonthlyBreakdown(monthlyData);
-
-        // Find most active month
-        const mostActive = monthlyData.reduce((prev, current) => 
-          prev.meetingCount > current.meetingCount ? prev : current
-        );
-        
-        if (mostActive.meetingCount > 0) {
-          setMostActiveMonth(mostActive);
-        }
-
-      } catch (error) {
-        console.error('Error loading stats:', error);
-      } finally {
-        setIsLoading(false);
+      // Find most active month
+      const mostActive = monthlyData.reduce((prev, current) => 
+        prev.meetingCount > current.meetingCount ? prev : current
+      );
+      
+      if (mostActive.meetingCount > 0) {
+        setMostActiveMonth(mostActive);
       }
-    }
-  };
 
-  const getOrdinalSuffix = (num: number) => {
-    const j = num % 10;
-    const k = num % 100;
-    if (j === 1 && k !== 11) return num + "st";
-    if (j === 2 && k !== 12) return num + "nd";
-    if (j === 3 && k !== 13) return num + "rd";
-    return num + "th";
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getRankEmoji = (position: number) => {
@@ -223,7 +211,7 @@ export default function StatsScreen() {
                 Your most social month was {mostActiveMonth.monthName}
               </Text>
               <Text style={styles.highlightSubtitle}>
-                You had {mostActiveMonth.meetingCount} meeting{mostActiveMonth.meetingCount !== 1 ? 's' : ''} - that's the spirit!
+                You had {mostActiveMonth.meetingCount} meeting{mostActiveMonth.meetingCount !== 1 ? 's' : ''} - that\'s the spirit!
               </Text>
             </View>
           )}
@@ -359,6 +347,7 @@ export default function StatsScreen() {
   );
 }
 
+// Styles remain the same...
 const styles = StyleSheet.create({
   container: {
     flex: 1,

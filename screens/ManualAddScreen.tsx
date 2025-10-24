@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useBasic } from '@basictech/expo';
+import { getFriends, addFriend } from '../utils/storage';
 
 export default function ManualAddScreen() {
   const [fullName, setFullName] = useState('');
@@ -18,22 +18,15 @@ export default function ManualAddScreen() {
   const [currentFriendCount, setCurrentFriendCount] = useState(0);
   
   const navigation = useNavigation();
-  const { db, isSignedIn } = useBasic();
 
   useEffect(() => {
-    // Get current friend count
-    const fetchFriendCount = async () => {
-      if (db) {
-        try {
-          const friends = await db.from('friends').getAll();
-          setCurrentFriendCount(friends?.length || 0);
-        } catch (error) {
-          console.error('Error fetching friend count:', error);
-        }
-      }
-    };
-    fetchFriendCount();
-  }, [db]);
+    loadFriendCount();
+  }, []);
+
+  const loadFriendCount = async () => {
+    const friends = await getFriends();
+    setCurrentFriendCount(friends.length);
+  };
 
   const handleAdd = async () => {
     if (!fullName.trim()) {
@@ -46,60 +39,49 @@ export default function ManualAddScreen() {
       return;
     }
 
-    if (!isSignedIn) {
-      Alert.alert('Authentication Required', 'Please sign in to add friends', [
-        { text: 'OK', onPress: () => (navigation as any).navigate('Login') }
-      ]);
-      return;
-    }
-
-    if (db) {
-      try {
-        // Check friend limit
-        const friends = await db.from('friends').getAll();
-        if ((friends?.length || 0) >= 50) {
-          Alert.alert(
-            'Friend Limit Reached',
-            'You can only add up to 50 friends. Please remove some friends before adding new ones.',
-            [{ text: 'OK' }]
-          );
-          return;
-        }
-        
-        await db.from('friends').add({
-          name: fullName.trim(),
-          email: '',
-          friendType: isOnline && isLocal ? 'both' : isOnline ? 'online' : 'local',
-          isOnline,
-          isLocal,
-          profilePicture: '👤',
-          city: '',
-          source: 'manual',
-          createdAt: Date.now(),
-        });
-
-        Alert.alert('Success', 'Friend added successfully!', [
-          { 
-            text: 'Add Another', 
-            style: 'default',
-            onPress: () => {
-              setFullName('');
-              setIsOnline(false);
-              setIsLocal(false);
-            }
-          },
-          { 
-            text: 'Done', 
-            style: 'default',
-            onPress: () => (navigation as any).navigate('AddFriends') 
-          }
-        ]);
-      } catch (error) {
-        console.error('Error adding friend:', error);
-        Alert.alert('Error', 'Failed to add friend. Please try again.');
+    try {
+      // Check friend limit
+      const friends = await getFriends();
+      if (friends.length >= 50) {
+        Alert.alert(
+          'Friend Limit Reached',
+          'You can only add up to 50 friends. Please remove some friends before adding new ones.',
+          [{ text: 'OK' }]
+        );
+        return;
       }
-    } else {
-      Alert.alert('Database Error', 'Database not available. Please try signing in again.');
+      
+      await addFriend({
+        name: fullName.trim(),
+        email: '',
+        friendType: isOnline && isLocal ? 'both' : isOnline ? 'online' : 'local',
+        isOnline,
+        isLocal,
+        profilePicture: '👤',
+        city: '',
+        source: 'manual',
+      });
+
+      Alert.alert('Success', 'Friend added successfully!', [
+        { 
+          text: 'Add Another', 
+          style: 'default',
+          onPress: () => {
+            setFullName('');
+            setIsOnline(false);
+            setIsLocal(false);
+            loadFriendCount();
+          }
+        },
+        { 
+          text: 'Done', 
+          style: 'default',
+          onPress: () => (navigation as any).navigate('AddFriends') 
+        }
+      ]);
+    } catch (error) {
+      console.error('Error adding friend:', error);
+      Alert.alert('Error', 'Failed to add friend. Please try again.');
     }
   };
 
@@ -118,12 +100,6 @@ export default function ManualAddScreen() {
       </View>
 
       <View style={styles.content}>
-        {!isSignedIn && (
-          <View style={styles.warningContainer}>
-            <Text style={styles.warningText}>⚠️ You need to sign in to add friends</Text>
-          </View>
-        )}
-
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Nickname of your friend</Text>
           <Text style={styles.sublabel}>How you like to call the person</Text>
@@ -165,9 +141,8 @@ export default function ManualAddScreen() {
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={[styles.addButton, !isSignedIn && styles.addButtonDisabled]} 
+            style={styles.addButton} 
             onPress={handleAdd}
-            disabled={!isSignedIn}
           >
             <Text style={styles.addButtonText}>Add</Text>
           </TouchableOpacity>
@@ -214,19 +189,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingVertical: 30,
-  },
-  warningContainer: {
-    backgroundColor: '#FFF3CD',
-    borderColor: '#FFEAA7',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 20,
-  },
-  warningText: {
-    color: '#856404',
-    textAlign: 'center',
-    fontSize: 14,
   },
   inputGroup: {
     marginBottom: 30,
@@ -312,9 +274,6 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     marginLeft: 10,
-  },
-  addButtonDisabled: {
-    backgroundColor: '#CCCCCC',
   },
   addButtonText: {
     fontSize: 16,

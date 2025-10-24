@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Friend, Meeting } from '../types';
 import NotificationModal from './NotificationModal';
-import { useBasic } from '@basictech/expo';
+import { getMeetings, saveMeetings } from '../utils/storage';
 
 interface FriendRowProps {
   friend: Friend;
@@ -28,7 +28,6 @@ export default function FriendRow({
 }: FriendRowProps) {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showAllMeetings, setShowAllMeetings] = useState(false);
-  const { db } = useBasic();
   
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [pressingMeetingId, setPressingMeetingId] = useState<string | null>(null);
@@ -102,12 +101,9 @@ export default function FriendRow({
             style: 'destructive',
             onPress: async () => {
               try {
-                if (!db) {
-                  Alert.alert('Error', 'Database not available. Please try again.');
-                  return;
-                }
-                
-                await db.from('meetings').delete(String(meeting.id));
+                const allMeetings = await getMeetings();
+                const updatedMeetings = allMeetings.filter(m => m.id !== meeting.id);
+                await saveMeetings(updatedMeetings);
                 Alert.alert('Success', 'Meeting erased completely.');
               } catch (error) {
                 console.error('Error deleting meeting:', error);
@@ -129,23 +125,17 @@ export default function FriendRow({
             style: 'destructive',
             onPress: async () => {
               try {
-                if (!db) {
-                  Alert.alert('Error', 'Database not available. Please try again.');
-                  return;
-                }
-                
-                // Mark as cancelled by prepending [CANCELLED] to notes
-                const updatedMeeting = {
-                  date: meeting.date,
-                  notes: `[CANCELLED] ${meeting.notes || ''}`,
-                  venue: meeting.venue || '',
-                  activity: meeting.activity || '',
-                  friendId: String(meeting.friendId),
-                  createdAt: meeting.createdAt || Date.now(),
-                  city: meeting.city || ''
-                };
-                
-                await db.from('meetings').replace(String(meeting.id), updatedMeeting);
+                const allMeetings = await getMeetings();
+                const updatedMeetings = allMeetings.map(m => {
+                  if (m.id === meeting.id) {
+                    return {
+                      ...m,
+                      notes: `[CANCELLED] ${m.notes || ''}`
+                    };
+                  }
+                  return m;
+                });
+                await saveMeetings(updatedMeetings);
                 Alert.alert('Success', 'Meeting marked as cancelled.');
               } catch (error) {
                 console.error('Error updating meeting:', error);

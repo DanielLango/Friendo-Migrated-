@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
@@ -9,51 +10,66 @@ import {
   Linking,
   ActivityIndicator,
 } from 'react-native';
-import { useBasic } from '@basictech/expo';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../App';
 import FriendoLogo from '../components/FriendoLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveUser, isLoggedIn } from '../utils/storage';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
-  const { login, isLoading, isSignedIn, user } = useBasic();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const navigation = useNavigation<LoginScreenNavigationProp>();
-  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
 
-  React.useEffect(() => {
-    const checkAuthAndNavigate = async () => {
-      try {
-        // Wait a moment for BasicProvider to initialize
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        if (isSignedIn && user) {
-          const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
-          if (skipReflection === 'true') {
-            navigation.navigate('AddFriends');
-          } else {
-            navigation.navigate('ReflectOnFriends');
-          }
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error);
-        // Silently fail - user can still login manually
-      } finally {
-        setIsCheckingAuth(false);
-      }
-    };
-
+  useEffect(() => {
     checkAuthAndNavigate();
-  }, [isSignedIn, user, navigation]);
+  }, []);
 
-  const handleBasicTechLogin = async () => {
+  const checkAuthAndNavigate = async () => {
     try {
-      await login();
+      const loggedIn = await isLoggedIn();
+      if (loggedIn) {
+        const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
+        if (skipReflection === 'true') {
+          navigation.navigate('AddFriends');
+        } else {
+          navigation.navigate('ReflectOnFriends');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+    } finally {
+      setIsCheckingAuth(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Simple validation - just save the credentials
+      await saveUser(email, password);
+      
+      const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
+      if (skipReflection === 'true') {
+        navigation.navigate('AddFriends');
+      } else {
+        navigation.navigate('ReflectOnFriends');
+      }
     } catch (error) {
       console.error('Login error:', error);
       Alert.alert('Login Error', 'Failed to sign in. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -81,18 +97,37 @@ export default function LoginScreen() {
           Sign in to start tracking your friendships
         </Text>
         
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          autoComplete="email"
+        />
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          autoComplete="password"
+        />
+        
         <TouchableOpacity 
           style={styles.loginButton}
-          onPress={handleBasicTechLogin}
+          onPress={handleLogin}
           disabled={isLoading}
         >
           <Text style={styles.loginButtonText}>
-            {isLoading ? 'SIGNING IN...' : 'Sign in with basic.id'}
+            {isLoading ? 'SIGNING IN...' : 'SIGN IN'}
           </Text>
         </TouchableOpacity>
 
         <Text style={styles.footerText}>
-          Friendo uses basic.id to keep your data secure and under your control. You can revoke access at any time.
+          Your data is stored locally on your device.
         </Text>
 
         <TouchableOpacity 
@@ -146,6 +181,16 @@ const styles = StyleSheet.create({
     color: '#666666',
     lineHeight: 22,
   },
+  input: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    height: 50,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
   loginButton: {
     backgroundColor: '#EC4899',
     borderRadius: 8,
@@ -153,6 +198,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 30,
+    marginTop: 10,
   },
   loginButtonText: {
     color: '#FFFFFF',
