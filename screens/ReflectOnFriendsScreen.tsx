@@ -6,31 +6,46 @@ import {
   StyleSheet,
   SafeAreaView,
   Animated,
-  ImageBackground,
+  Image,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 export default function ReflectOnFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
+  const [backgroundAnim] = useState(new Animated.Value(0));
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   const navigation = useNavigation();
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    // Start background animation first
+    Animated.timing(backgroundAnim, {
+      toValue: 1,
+      duration: 2000,
+      useNativeDriver: true,
+    }).start();
+
+    // Then start content animation
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 500);
   }, []);
 
   const handleReady = async () => {
@@ -46,15 +61,30 @@ export default function ReflectOnFriendsScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Animated GIF background with purple overlay */}
-      <ImageBackground
-        source={require('../assets/images/ezgif.com-optimize.gif')}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
-        {/* Purple tint overlay */}
-        <View style={styles.purpleOverlay} />
-      </ImageBackground>
+      {/* Background with water animation and purple overlay */}
+      <View style={styles.backgroundContainer}>
+        <Animated.View 
+          style={[
+            styles.backgroundImageContainer,
+            {
+              opacity: backgroundAnim,
+            },
+          ]}
+        >
+          <Image 
+            source={require('../assets/images/ezgif.com-optimize.gif')}
+            style={styles.backgroundImage}
+            resizeMode="cover"
+            onLoad={() => setImageLoaded(true)}
+            onError={(error) => {
+              console.error('Error loading background image:', error);
+              setImageLoaded(true); // Still show content even if image fails
+            }}
+          />
+          {/* Purple overlay to create the deep purple effect */}
+          <View style={styles.purpleOverlay} />
+        </Animated.View>
+      </View>
       
       {/* Content */}
       <SafeAreaView style={styles.safeArea}>
@@ -119,14 +149,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#2D0A4E',
   },
-  backgroundImage: {
+  backgroundContainer: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
+    width: screenWidth,
+    height: screenHeight,
+  },
+  backgroundImageContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  backgroundImage: {
     width: '100%',
     height: '100%',
+    position: 'absolute',
   },
   purpleOverlay: {
     position: 'absolute',
@@ -134,8 +173,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#4A1A6E',
-    opacity: 0.75,
+    backgroundColor: '#2D0A4E',
+    opacity: 0.85, // Strong purple overlay to create the deep purple effect
   },
   safeArea: {
     flex: 1,
