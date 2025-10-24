@@ -359,7 +359,7 @@ export default function MeetingCreateScreen() {
                 styles.primaryCalendarSubtext,
                 calendarOption === 'device' && styles.primaryCalendarSubtextActive
               ]}>
-                Uses your phone\'s calendar app
+                Uses your phone's calendar app
               </Text>
             </View>
             <View style={[
@@ -404,7 +404,7 @@ export default function MeetingCreateScreen() {
             
             <View style={styles.instructionsList}>
               <Text style={styles.instructionText}>
-                After tapping 'Schedule Meetup':{'\n'}1.) In case you selected the Add to my calendar option, open your smartphone\'s default calendar app, and navigate to the day you selected for the meetup.{'\n'}2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.
+                After tapping 'Schedule Meetup':{'\n'}1.) In case you selected the Add to my calendar option, open your smartphone's default calendar app, and navigate to the day you selected for the meetup.{'\n'}2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.
               </Text>
 
               <Text style={styles.instructionsSubheading}>
