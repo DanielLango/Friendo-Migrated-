@@ -168,9 +168,9 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
           <View style={styles.featureRow}>
             <Ionicons name="star" size={24} color={PURPLE} />
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Historic friendship & dark mode</Text>
+              <Text style={styles.featureTitle}>Historic friendship</Text>
               <Text style={styles.featureDescription}>
-                View past years' data and enjoy dark mode.
+                View past years' data and friendship archives.
               </Text>
             </View>
           </View>
@@ -183,6 +183,25 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
                 Upload photos and get birthday reminders.
               </Text>
             </View>
+          </View>
+
+          <View style={styles.featureRow}>
+            <Ionicons name="star" size={24} color={PURPLE} />
+            <View style={styles.featureText}>
+              <Text style={styles.featureTitle}>Batch reminders</Text>
+              <Text style={styles.featureDescription}>
+                Weekly digest of friends you haven't connected with.
+              </Text>
+            </View>
+          </View>
+
+          {/* Bonus Features */}
+          <View style={styles.bonusFeatures}>
+            <Text style={styles.bonusFeaturesText}>
+              <Text style={styles.bonusFeaturesLabel}>Plus: </Text>
+              Dark mode, mark friends as favorites, unlimited friends (up to 1000), 
+              potential restaurant coupons, and more!
+            </Text>
           </View>
         </View>
 
@@ -349,6 +368,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: MUTED,
     lineHeight: 20,
+  },
+  bonusFeatures: {
+    backgroundColor: '#F3EDFF',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#E0D4FF',
+  },
+  bonusFeaturesText: {
+    fontSize: 14,
+    color: MUTED,
+    lineHeight: 20,
+  },
+  bonusFeaturesLabel: {
+    fontWeight: '700',
+    color: PURPLE,
   },
   sectionTitle: {
     fontSize: 18,
