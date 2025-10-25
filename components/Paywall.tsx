@@ -158,9 +158,9 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
           <View style={styles.featureRow}>
             <Ionicons name="star" size={24} color={PURPLE} />
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Never lose touch</Text>
+              <Text style={styles.featureTitle}>See who cancelled</Text>
               <Text style={styles.featureDescription}>
-                Gentle reminders to meet the people who matter.
+                Track cancellations with color-coded tokens.
               </Text>
             </View>
           </View>
@@ -168,9 +168,9 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
           <View style={styles.featureRow}>
             <Ionicons name="star" size={24} color={PURPLE} />
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Plan faster</Text>
+              <Text style={styles.featureTitle}>Historic friendship & dark mode</Text>
               <Text style={styles.featureDescription}>
-                See who cancelled, track friendship history, dark mode, profile pictures, and birthday reminders.
+                View past years' data and enjoy dark mode.
               </Text>
             </View>
           </View>
@@ -178,9 +178,9 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
           <View style={styles.featureRow}>
             <Ionicons name="star" size={24} color={PURPLE} />
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>Meaningful memories</Text>
+              <Text style={styles.featureTitle}>Profile pictures & birthdays</Text>
               <Text style={styles.featureDescription}>
-                Track who you met and when—stay close.
+                Upload photos and get birthday reminders.
               </Text>
             </View>
           </View>
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 10,
   },
   closeButton: {
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   headline: {
     fontSize: 28,
     fontWeight: '800',
-    color: DARK,
+    color: PURPLE,
     marginBottom: 16,
     lineHeight: 34,
   },
