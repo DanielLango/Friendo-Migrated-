@@ -83,7 +83,7 @@ export default function ProfileScreen() {
   };
 
   const handlePrivacyPolicy = () => {
-    Linking.openURL('https://www.ambrozitestudios.com/privacy');
+    Linking.openURL('https://www.privacypolicies.com/live/213b96d7-30cf-4a41-a182-38624ac19603');
   };
 
   const handleTermsOfService = () => {
@@ -129,11 +129,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Membership</Text>
           
-          <TouchableOpacity 
-            style={styles.membershipCard}
-            onPress={handleMembershipPress}
-            activeOpacity={membershipTier === 'Free' ? 0.7 : 1}
-          >
+          <View style={styles.membershipCard}>
             <View style={styles.membershipHeader}>
               <View style={styles.membershipInfo}>
                 <Text style={styles.membershipLabel}>Current Tier</Text>
@@ -154,19 +150,23 @@ export default function ProfileScreen() {
                   )}
                 </View>
               </View>
-              {membershipTier === 'Free' && (
-                <Ionicons name="chevron-forward" size={20} color={MUTED} />
-              )}
             </View>
             
             {membershipTier === 'Free' && (
               <View style={styles.upgradePrompt}>
-                <Text style={styles.upgradeText}>
-                  Tap to upgrade to Pro and unlock premium features
-                </Text>
+                <TouchableOpacity 
+                  style={styles.upgradeButton}
+                  onPress={handleMembershipPress}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.upgradeButtonText}>
+                    Upgrade to Pro
+                  </Text>
+                  <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                </TouchableOpacity>
               </View>
             )}
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Account Section */}
@@ -342,10 +342,25 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
   },
-  upgradeText: {
-    fontSize: 14,
-    color: PURPLE,
-    fontWeight: '600',
+  upgradeButton: {
+    backgroundColor: PURPLE,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    gap: 8,
+    shadowColor: PURPLE,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  upgradeButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   menuItem: {
     flexDirection: 'row',
