@@ -229,7 +229,7 @@ export default function ProfileScreen() {
         <View style={styles.appInfo}>
           <Text style={styles.appInfoText}>Friendo v1.0.0</Text>
           <Text style={styles.appInfoText}>Made with 💜 by Daniel Lango</Text>
-          <Text style={styles.appInfoText}>
+          <Text style={[styles.appInfoText, styles.appInfoItalic]}>
             (...during his freetime focusing on his personal hobby-project, Ambrozite Studios. Visit{' '}
             <Text style={styles.appInfoLink} onPress={handleAmbroziteStudios}>
               ambrozitestudios.com
@@ -431,11 +431,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     textAlign: 'center',
   },
+  appInfoItalic: {
+    fontStyle: 'italic',
+  },
   appInfoLink: {
     fontSize: 12,
     color: PURPLE,
     marginBottom: 4,
     textAlign: 'center',
     textDecorationLine: 'underline',
+    fontStyle: 'italic',
   },
 });
