@@ -20,6 +20,13 @@ const REVENUECAT_API_KEYS = {
 let isConfigured = false;
 
 /**
+ * Check if RevenueCat is configured
+ */
+export const isRevenueCatConfigured = (): boolean => {
+  return isConfigured;
+};
+
+/**
  * Initialize RevenueCat SDK
  * Call this once when your app starts
  */
@@ -78,6 +85,12 @@ export const checkPremiumStatus = async (): Promise<boolean> => {
  * Get available subscription packages
  */
 export const getSubscriptionPackages = async () => {
+  // Check if RevenueCat is configured first
+  if (!isConfigured) {
+    console.log('RevenueCat not configured - returning empty packages');
+    return [];
+  }
+
   try {
     const offerings = await Purchases.getOfferings();
     const current = offerings.current;

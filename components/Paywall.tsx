@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import Purchases, { PurchasesPackage, CustomerInfo } from 'react-native-purchases';
 import { Ionicons } from '@expo/vector-icons';
-import { getSubscriptionPackages } from '../utils/revenueCatConfig';
+import { getSubscriptionPackages, isRevenueCatConfigured } from '../utils/revenueCatConfig';
 import { clearPremiumCache } from '../utils/premiumFeatures';
 
 /**
@@ -21,6 +21,12 @@ const GREEN = '#1DB954';
 
 const HEADER_URI = 'https://images.unsplash.com/photo-1514846326716-43f660c31c2a?q=80&w=1200&auto=format&fit=crop';
 
+// Mock package data for preview mode
+const MOCK_PACKAGES = [
+  { id: 'annual', title: 'YEARLY', price: '$9.99/yr', subline: 'Best value', highlight: true },
+  { id: 'monthly', title: 'MONTHLY', price: '$0.99/mo', subline: 'Flexibility', highlight: false },
+];
+
 export type PaywallProps = {
   onSuccess?: (info: CustomerInfo) => void;
   onClose?: () => void;
@@ -31,6 +37,7 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   useEffect(() => {
     loadPackages();
@@ -38,19 +45,32 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
 
   const loadPackages = async () => {
     try {
+      // Check if RevenueCat is configured
+      if (!isRevenueCatConfigured()) {
+        console.log('Running in preview mode - RevenueCat not configured');
+        setIsPreviewMode(true);
+        setSelectedId('annual'); // Default select annual in preview
+        setLoading(false);
+        return;
+      }
+
       const pkgs = await getSubscriptionPackages();
-      setPackages(pkgs);
       
-      // Default select yearly if present
-      if (pkgs.length > 0) {
-        setSelectedId(pkgs[0]?.identifier ?? null);
+      if (pkgs.length === 0) {
+        // No packages available, use preview mode
+        setIsPreviewMode(true);
+        setSelectedId('annual');
+      } else {
+        setPackages(pkgs);
+        // Default select yearly if present
+        if (pkgs.length > 0) {
+          setSelectedId(pkgs[0]?.identifier ?? null);
+        }
       }
     } catch (e: any) {
       console.log('Could not load offerings:', e?.message);
-      Alert.alert(
-        'Preview Mode', 
-        'RevenueCat requires a development build. This is a preview of the paywall design.'
-      );
+      setIsPreviewMode(true);
+      setSelectedId('annual');
     } finally {
       setLoading(false);
     }
@@ -59,6 +79,15 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
   const selectedPkg = useMemo(() => packages.find(p => p.identifier === selectedId) || null, [packages, selectedId]);
 
   async function onPurchase() {
+    if (isPreviewMode) {
+      Alert.alert(
+        'Preview Mode',
+        'RevenueCat requires a development build to test purchases. Build with "eas build --profile development --platform ios" to test subscriptions.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     if (!selectedPkg) return;
     try {
       setPurchasing(true);
@@ -81,6 +110,15 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
   }
 
   async function onRestore() {
+    if (isPreviewMode) {
+      Alert.alert(
+        'Preview Mode',
+        'Restore purchases requires a development build.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
       setPurchasing(true);
       const customerInfo = await Purchases.restorePurchases();
@@ -115,10 +153,20 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 28 }}>
+        {/* Preview mode banner */}
+        {isPreviewMode && (
+          <View style={{ backgroundColor: '#FFF4E6', padding: 12, borderRadius: 12, marginBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name="information-circle" size={20} color="#F59E0B" />
+            <Text style={{ flex: 1, color: '#92400E', fontSize: 12 }}>
+              Preview Mode: Build with EAS to test purchases
+            </Text>
+          </View>
+        )}
+
         {/* Mission copy */}
         <Text style={{ fontSize: 28, fontWeight: '800', color: DARK, lineHeight: 32 }}>Say hello to your best self.</Text>
         <Text style={{ marginTop: 6, color: MUTED }}>
-          Friendo brings friends together. I\'m a one‑person studio building this with love. If you believe in the mission, your support keeps the lights on and helps more friends connect.
+          Friendo brings friends together. I'm a one‑person studio building this with love. If you believe in the mission, your support keeps the lights on and helps more friends connect.
         </Text>
 
         {/* Value bullets */}
@@ -133,6 +181,20 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
         {loading ? (
           <View style={{ paddingVertical: 24 }}>
             <ActivityIndicator />
+          </View>
+        ) : isPreviewMode ? (
+          <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
+            {MOCK_PACKAGES.map((pkg) => (
+              <PlanCard
+                key={pkg.id}
+                title={pkg.title}
+                priceLine={pkg.price}
+                subline={pkg.subline}
+                selected={selectedId === pkg.id}
+                onPress={() => setSelectedId(pkg.id)}
+                highlight={pkg.highlight}
+              />
+            ))}
           </View>
         ) : (
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
@@ -155,7 +217,7 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
 
         <TouchableOpacity
           onPress={onPurchase}
-          disabled={!selectedPkg || purchasing}
+          disabled={purchasing}
           style={{
             marginTop: 14,
             backgroundColor: PURPLE,
