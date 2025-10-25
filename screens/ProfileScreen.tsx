@@ -90,6 +90,10 @@ export default function ProfileScreen() {
     Alert.alert('Coming Soon', 'Terms of Service will be available soon.');
   };
 
+  const handleAmbroziteStudios = () => {
+    Linking.openURL('https://ambrozitestudios.com');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Paywall Modal */}
@@ -224,7 +228,15 @@ export default function ProfileScreen() {
         {/* App Info */}
         <View style={styles.appInfo}>
           <Text style={styles.appInfoText}>Friendo v1.0.0</Text>
-          <Text style={styles.appInfoText}>Made with 💜 by Ambrozi Studios</Text>
+          <Text style={styles.appInfoText}>Made with 💜 by Daniel Lango</Text>
+          <TouchableOpacity onPress={handleAmbroziteStudios} activeOpacity={0.7}>
+            <Text style={styles.appInfoLink}>
+              During his freetime focusing on his personal hobby-project, Ambrozite Studios.
+            </Text>
+            <Text style={styles.appInfoLink}>
+              Visit ambrozitestudios.com to learn more about it.
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -418,5 +430,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: MUTED,
     marginBottom: 4,
+    textAlign: 'center',
+  },
+  appInfoLink: {
+    fontSize: 12,
+    color: PURPLE,
+    marginBottom: 4,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
   },
 });
