@@ -73,6 +73,12 @@ export default function FriendRow({
       // Otherwise, it's scheduled
       console.log(`Meeting ${meeting.id} is SCHEDULED (future date)`);
       return { ...meeting, status: 'scheduled' as const };
+    })
+    .sort((a, b) => {
+      // Sort by date, earliest first
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateA - dateB;
     });
 
   const displayMeetings = showAllMeetings ? yearMeetings : yearMeetings.slice(0, 5);
