@@ -228,15 +228,13 @@ export default function ProfileScreen() {
         {/* App Info */}
         <View style={styles.appInfo}>
           <Text style={styles.appInfoText}>Friendo v1.0.0</Text>
-          <Text style={styles.appInfoText}>Made with 💜 by Daniel Lango</Text>
-          <TouchableOpacity onPress={handleAmbroziteStudios} activeOpacity={0.7}>
-            <Text style={styles.appInfoLink}>
-              During his freetime focusing on his personal hobby-project, Ambrozite Studios.
+          <Text style={styles.appInfoText}>
+            Made with 💜 by Daniel Lango (...during his freetime focusing on his personal hobby-project, Ambrozite Studios. Visit{' '}
+            <Text style={styles.appInfoLink} onPress={handleAmbroziteStudios}>
+              ambrozitestudios.com
             </Text>
-            <Text style={styles.appInfoLink}>
-              Visit ambrozitestudios.com to learn more about it.
-            </Text>
-          </TouchableOpacity>
+            {' '}to learn more about it.)
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
