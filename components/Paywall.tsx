@@ -1,318 +1,479 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Linking, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import Purchases, { PurchasesPackage, CustomerInfo } from 'react-native-purchases';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+  Linking,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getSubscriptionPackages, isRevenueCatConfigured } from '../utils/revenueCatConfig';
-import { clearPremiumCache } from '../utils/premiumFeatures';
+import Purchases, { PurchasesOffering } from 'react-native-purchases';
+import { isPremiumUser } from '../utils/premiumFeatures';
 
-/**
- * Friendo Paywall
- * - White & purple theme
- * - Emotional copy (mission-driven)
- * - Two plans: $0.99/mo, $9.99/yr
- * - RevenueCat integration
- */
-
-// ---- THEME ----
 const PURPLE = '#8000FF';
 const DARK = '#0F1222';
 const MUTED = '#606276';
-const GREEN = '#1DB954';
+const LIGHT_BG = '#F8F9FA';
 
-const HEADER_URI = 'https://images.unsplash.com/photo-1514846326716-43f660c31c2a?q=80&w=1200&auto=format&fit=crop';
-
-// Mock package data for preview mode
-const MOCK_PACKAGES = [
-  { id: 'annual', title: 'YEARLY', price: '$9.99/yr', subline: 'Best value', highlight: true },
-  { id: 'monthly', title: 'MONTHLY', price: '$0.99/mo', subline: 'Flexibility', highlight: false },
-];
-
-export type PaywallProps = {
-  onSuccess?: (info: CustomerInfo) => void;
-  onClose?: () => void;
-};
+interface PaywallProps {
+  onSuccess: () => void;
+  onClose: () => void;
+}
 
 export default function Paywall({ onSuccess, onClose }: PaywallProps) {
+  const [offerings, setOfferings] = useState<PurchasesOffering | null>(null);
   const [loading, setLoading] = useState(true);
-  const [packages, setPackages] = useState<PurchasesPackage[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState(false);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
+  const [isAlreadyPremium, setIsAlreadyPremium] = useState(false);
 
   useEffect(() => {
-    loadPackages();
+    checkPremiumStatus();
+    fetchOfferings();
   }, []);
 
-  const loadPackages = async () => {
-    try {
-      // Check if RevenueCat is configured
-      if (!isRevenueCatConfigured()) {
-        console.log('Running in preview mode - RevenueCat not configured');
-        setIsPreviewMode(true);
-        setSelectedId('annual'); // Default select annual in preview
-        setLoading(false);
-        return;
-      }
+  const checkPremiumStatus = async () => {
+    const isPremium = await isPremiumUser();
+    setIsAlreadyPremium(isPremium);
+  };
 
-      const pkgs = await getSubscriptionPackages();
-      
-      if (pkgs.length === 0) {
-        // No packages available, use preview mode
-        setIsPreviewMode(true);
-        setSelectedId('annual');
-      } else {
-        setPackages(pkgs);
-        // Default select yearly if present
-        if (pkgs.length > 0) {
-          setSelectedId(pkgs[0]?.identifier ?? null);
-        }
+  const fetchOfferings = async () => {
+    try {
+      const offerings = await Purchases.getOfferings();
+      if (offerings.current) {
+        setOfferings(offerings.current);
       }
-    } catch (e: any) {
-      console.log('Could not load offerings:', e?.message);
-      setIsPreviewMode(true);
-      setSelectedId('annual');
+    } catch (error) {
+      console.error('Error fetching offerings:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedPkg = useMemo(() => packages.find(p => p.identifier === selectedId) || null, [packages, selectedId]);
+  const handlePurchase = async () => {
+    if (!offerings) return;
 
-  async function onPurchase() {
-    if (isPreviewMode) {
-      Alert.alert(
-        'Preview Mode',
-        'RevenueCat requires a development build to test purchases. Build with "eas build --profile development --platform ios" to test subscriptions.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-
-    if (!selectedPkg) return;
+    setPurchasing(true);
     try {
-      setPurchasing(true);
-      const { customerInfo } = await Purchases.purchasePackage(selectedPkg);
-      await clearPremiumCache();
-      
-      const active = customerInfo.entitlements.active['pro'];
-      if (active) {
-        Alert.alert('Welcome to Premium! 🎉', 'Thank you for supporting Friendo!');
-        onSuccess?.(customerInfo);
-      } else {
-        Alert.alert('Purchase', 'Thanks! Your subscription will activate shortly.');
+      const packageToPurchase = selectedPlan === 'monthly' 
+        ? offerings.monthly 
+        : offerings.annual;
+
+      if (!packageToPurchase) {
+        Alert.alert('Error', 'Selected plan is not available');
+        return;
       }
-    } catch (e: any) {
-      if (e?.userCancelled) return;
-      Alert.alert('Purchase failed', e?.message ?? 'Please try again.');
+
+      const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
+      
+      if (customerInfo.entitlements.active['pro']) {
+        onSuccess();
+      }
+    } catch (error: any) {
+      if (!error.userCancelled) {
+        Alert.alert('Purchase Error', error.message);
+      }
     } finally {
       setPurchasing(false);
     }
-  }
+  };
 
-  async function onRestore() {
-    if (isPreviewMode) {
-      Alert.alert(
-        'Preview Mode',
-        'Restore purchases requires a development build.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-
+  const handleRestore = async () => {
     try {
-      setPurchasing(true);
       const customerInfo = await Purchases.restorePurchases();
-      await clearPremiumCache();
-      
-      const active = customerInfo.entitlements.active['pro'];
-      if (active) {
-        Alert.alert('Restored! 🎉', 'Your premium subscription has been restored.');
-        onSuccess?.(customerInfo);
+      if (customerInfo.entitlements.active['pro']) {
+        Alert.alert('Success', 'Your purchase has been restored!');
+        onSuccess();
       } else {
-        Alert.alert('Nothing to restore', 'No active Friendo Premium found.');
+        Alert.alert('No Purchases', 'No active subscriptions found.');
       }
-    } catch (e: any) {
-      Alert.alert('Restore failed', e?.message ?? 'Please try again.');
-    } finally {
-      setPurchasing(false);
+    } catch (error: any) {
+      Alert.alert('Restore Error', error.message);
     }
+  };
+
+  const handleCancel = async () => {
+    Alert.alert(
+      'Cancel Subscription',
+      'To cancel your subscription, please go to your account settings in the App Store or Google Play.',
+      [
+        { text: 'OK', style: 'default' },
+        { 
+          text: 'Open Settings', 
+          onPress: () => {
+            // This will open the subscription management page
+            Linking.openURL('https://apps.apple.com/account/subscriptions');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleAboutFriendo = () => {
+    Alert.alert(
+      'About Friendo',
+      'Friendo helps you stay connected with the people who matter most. Built with love by Daniel Lango.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleTermsAndPrivacy = () => {
+    Linking.openURL('https://www.privacypolicies.com/live/213b96d7-30cf-4a41-a182-38624ac19603');
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={PURPLE} />
+      </View>
+    );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      {/* Header image + close button */}
-      <View style={{ height: 180, overflow: 'hidden', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
-        <Image source={{ uri: HEADER_URI }} style={{ width: '100%', height: '100%' }} />
-        {onClose && (
-          <TouchableOpacity
-            onPress={onClose}
-            style={{ position: 'absolute', right: 16, top: 16, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 24, padding: 8 }}>
-            <Ionicons name="close" size={20} color={DARK} />
-          </TouchableOpacity>
-        )}
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <Ionicons name="close" size={28} color={DARK} />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 28 }}>
-        {/* Preview mode banner */}
-        {isPreviewMode && (
-          <View style={{ backgroundColor: '#FFF4E6', padding: 12, borderRadius: 12, marginBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Ionicons name="information-circle" size={20} color="#F59E0B" />
-            <Text style={{ flex: 1, color: '#92400E', fontSize: 12 }}>
-              Preview Mode: Build with EAS to test purchases
-            </Text>
-          </View>
-        )}
-
-        {/* Mission copy */}
-        <Text style={{ fontSize: 28, fontWeight: '800', color: DARK, lineHeight: 32 }}>Say hello to your best self.</Text>
-        <Text style={{ marginTop: 6, color: MUTED }}>
-          Friendo brings friends together. I'm a one‑person studio building this with love. If you believe in the mission, your support keeps the lights on and helps more friends connect.
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        {/* Headline */}
+        <Text style={styles.headline}>
+          Please support me and the mission by signing up for the pro version.
         </Text>
 
-        {/* Value bullets */}
-        <View style={{ marginTop: 16, gap: 10 }}>
-          <Bullet title="Never lose touch" subtitle="Gentle reminders to meet the people who matter." />
-          <Bullet title="Plan faster" subtitle="Smart venue picks and friction‑free scheduling." />
-          <Bullet title="Meaningful memories" subtitle="Track who you met and when—stay close." />
+        {/* Description */}
+        <Text style={styles.description}>
+          Friendo brings friends together. I'm a one-person studio building this with love. 
+          If you believe in the mission, your support keeps the lights on and helps more friends connect.
+        </Text>
+
+        {/* Features */}
+        <View style={styles.features}>
+          <View style={styles.featureRow}>
+            <Ionicons name="star" size={24} color={PURPLE} />
+            <View style={styles.featureText}>
+              <Text style={styles.featureTitle}>Never lose touch</Text>
+              <Text style={styles.featureDescription}>
+                Gentle reminders to meet the people who matter.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.featureRow}>
+            <Ionicons name="star" size={24} color={PURPLE} />
+            <View style={styles.featureText}>
+              <Text style={styles.featureTitle}>Plan faster</Text>
+              <Text style={styles.featureDescription}>
+                See who cancelled, track friendship history, dark mode, profile pictures, and birthday reminders.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.featureRow}>
+            <Ionicons name="star" size={24} color={PURPLE} />
+            <View style={styles.featureText}>
+              <Text style={styles.featureTitle}>Meaningful memories</Text>
+              <Text style={styles.featureDescription}>
+                Track who you met and when—stay close.
+              </Text>
+            </View>
+          </View>
         </View>
 
-        {/* Plans */}
-        <Text style={{ marginTop: 22, color: DARK, fontWeight: '700' }}>Select a plan</Text>
-        {loading ? (
-          <View style={{ paddingVertical: 24 }}>
-            <ActivityIndicator />
-          </View>
-        ) : isPreviewMode ? (
-          <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
-            {MOCK_PACKAGES.map((pkg) => (
-              <PlanCard
-                key={pkg.id}
-                title={pkg.title}
-                priceLine={pkg.price}
-                subline={pkg.subline}
-                selected={selectedId === pkg.id}
-                onPress={() => setSelectedId(pkg.id)}
-                highlight={pkg.highlight}
-              />
-            ))}
-          </View>
-        ) : (
-          <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
-            {packages.map((pkg) => (
-              <PlanCard
-                key={pkg.identifier}
-                title={pkg.packageType === 'ANNUAL' ? 'YEARLY' : 'MONTHLY'}
-                priceLine={pkg.product.priceString || (pkg.packageType === 'ANNUAL' ? '$9.99/yr' : '$0.99/mo')}
-                subline={pkg.packageType === 'ANNUAL' ? 'Best value' : 'Flexibility'}
-                selected={selectedId === pkg.identifier}
-                onPress={() => setSelectedId(pkg.identifier)}
-                highlight={pkg.packageType === 'ANNUAL'}
-              />
-            ))}
-          </View>
+        {/* Plan Selection */}
+        <Text style={styles.sectionTitle}>Select a plan</Text>
+
+        <View style={styles.plansContainer}>
+          {/* Monthly Plan */}
+          <TouchableOpacity
+            style={[
+              styles.planCard,
+              selectedPlan === 'monthly' && styles.planCardSelected,
+            ]}
+            onPress={() => setSelectedPlan('monthly')}
+          >
+            <View style={styles.planHeader}>
+              <Text style={styles.planType}>MONTHLY</Text>
+              <View style={[
+                styles.radioButton,
+                selectedPlan === 'monthly' && styles.radioButtonSelected
+              ]}>
+                {selectedPlan === 'monthly' && (
+                  <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                )}
+              </View>
+            </View>
+            <Text style={styles.planPrice}>$0.99/mo</Text>
+            <Text style={styles.planSubtext}>Flexibility</Text>
+          </TouchableOpacity>
+
+          {/* Yearly Plan */}
+          <TouchableOpacity
+            style={[
+              styles.planCard,
+              selectedPlan === 'yearly' && styles.planCardSelected,
+            ]}
+            onPress={() => setSelectedPlan('yearly')}
+          >
+            <View style={styles.bestValueBadge}>
+              <Text style={styles.bestValueText}>BEST VALUE</Text>
+            </View>
+            <View style={styles.planHeader}>
+              <Text style={styles.planType}>YEARLY</Text>
+              <View style={[
+                styles.radioButton,
+                selectedPlan === 'yearly' && styles.radioButtonSelected
+              ]}>
+                {selectedPlan === 'yearly' && (
+                  <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                )}
+              </View>
+            </View>
+            <Text style={styles.planPrice}>$9.99/yr</Text>
+            <Text style={styles.planSubtext}>Best value</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Cancel Link for Premium Users */}
+        {isAlreadyPremium && (
+          <TouchableOpacity onPress={handleCancel} style={styles.cancelLink}>
+            <Text style={styles.cancelLinkText}>Change plans or cancel anytime</Text>
+          </TouchableOpacity>
         )}
 
-        {/* Legal + CTA */}
-        <Text style={{ marginTop: 8, color: MUTED, fontSize: 12 }}>Change plans or cancel anytime.</Text>
-
+        {/* Support Button */}
         <TouchableOpacity
-          onPress={onPurchase}
+          style={styles.supportButton}
+          onPress={handlePurchase}
           disabled={purchasing}
-          style={{
-            marginTop: 14,
-            backgroundColor: PURPLE,
-            paddingVertical: 14,
-            borderRadius: 14,
-            alignItems: 'center',
-            shadowColor: PURPLE,
-            shadowOpacity: 0.25,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 8 },
-            opacity: purchasing ? 0.7 : 1,
-          }}>
+        >
           {purchasing ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={{ color: 'white', fontSize: 16, fontWeight: '800' }}>Support Friendo</Text>
+            <Text style={styles.supportButtonText}>Support Friendo</Text>
           )}
         </TouchableOpacity>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 12 }}>
-          <TouchableOpacity onPress={onRestore}><Text style={{ color: PURPLE, fontWeight: '700' }}>Restore</Text></TouchableOpacity>
-          <Dot />
-          <TouchableOpacity onPress={() => Linking.openURL('https://www.ambrozitestudios.com/about')}>
-            <Text style={{ color: PURPLE, fontWeight: '700' }}>About Friendo</Text>
+        {/* Footer Links */}
+        <View style={styles.footerLinks}>
+          <TouchableOpacity onPress={handleRestore}>
+            <Text style={styles.footerLink}>Restore</Text>
+          </TouchableOpacity>
+          <Text style={styles.footerDivider}>•</Text>
+          <TouchableOpacity onPress={handleAboutFriendo}>
+            <Text style={styles.footerLink}>About Friendo</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={{ color: MUTED, fontSize: 11, marginTop: 12, textAlign: 'center' }}>
-          By subscribing you agree to the Terms & Privacy. Your subscription renews automatically until cancelled in your account settings.
-        </Text>
+        {/* Terms */}
+        <TouchableOpacity onPress={handleTermsAndPrivacy}>
+          <Text style={styles.termsText}>
+            By subscribing you agree to the{' '}
+            <Text style={styles.termsLink}>Terms & Privacy</Text>. Your subscription 
+            renews automatically until cancelled in your account settings.
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
 }
 
-function Dot() {
-  return <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#D7D8E0', alignSelf: 'center' }} />;
-}
-
-function Bullet({ title, subtitle }: { title: string; subtitle: string }) {
-  return (
-    <View style={{ flexDirection: 'row', gap: 10 }}>
-      <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#F3EDFF', alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name="star" size={16} color={PURPLE} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: DARK, fontWeight: '700' }}>{title}</Text>
-        <Text style={{ color: MUTED }}>{subtitle}</Text>
-      </View>
-    </View>
-  );
-}
-
-function PlanCard({ title, priceLine, subline, selected, onPress, highlight }: {
-  title: string;
-  priceLine: string;
-  subline?: string;
-  selected?: boolean;
-  highlight?: boolean;
-  onPress?: () => void;
-}) {
-  return (
-    <TouchableOpacity onPress={onPress} style={{ flex: 1 }}>
-      <View
-        style={{
-          borderWidth: 2,
-          borderColor: selected ? PURPLE : '#E7E8EF',
-          backgroundColor: '#FFFFFF',
-          borderRadius: 16,
-          padding: 14,
-          gap: 2,
-          shadowColor: '#000',
-          shadowOpacity: 0.04,
-          shadowRadius: 8,
-          shadowOffset: { width: 0, height: 4 },
-        }}
-      >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ color: DARK, fontWeight: '800' }}>{title}</Text>
-          {selected ? (
-            <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: PURPLE, alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="checkmark" size={14} color="white" />
-            </View>
-          ) : (
-            <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#E1E2EA' }} />
-          )}
-        </View>
-        <Text style={{ color: DARK, fontSize: 18, fontWeight: '900' }}>{priceLine}</Text>
-        {!!subline && <Text style={{ color: MUTED }}>{subline}</Text>}
-        {highlight && (
-          <View style={{ marginTop: 6, alignSelf: 'flex-start', backgroundColor: '#E9FAEF', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
-            <Text style={{ color: GREEN, fontWeight: '800', fontSize: 11 }}>BEST VALUE</Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: LIGHT_BG,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: LIGHT_BG,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 10,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  headline: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: DARK,
+    marginBottom: 16,
+    lineHeight: 34,
+  },
+  description: {
+    fontSize: 15,
+    color: MUTED,
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  features: {
+    marginBottom: 32,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  featureText: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: DARK,
+    marginBottom: 4,
+  },
+  featureDescription: {
+    fontSize: 14,
+    color: MUTED,
+    lineHeight: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: DARK,
+    marginBottom: 16,
+  },
+  plansContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  planCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    minHeight: 160,
+  },
+  planCardSelected: {
+    borderColor: PURPLE,
+    backgroundColor: '#F3EDFF',
+  },
+  planHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  planType: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: DARK,
+    letterSpacing: 0.5,
+  },
+  radioButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#D0D0D0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioButtonSelected: {
+    backgroundColor: PURPLE,
+    borderColor: PURPLE,
+  },
+  planPrice: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: DARK,
+    marginBottom: 4,
+  },
+  planSubtext: {
+    fontSize: 14,
+    color: MUTED,
+  },
+  bestValueBadge: {
+    position: 'absolute',
+    top: -10,
+    left: 12,
+    backgroundColor: '#10B981',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  bestValueText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  cancelLink: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  cancelLinkText: {
+    fontSize: 14,
+    color: PURPLE,
+    textDecorationLine: 'underline',
+  },
+  supportButton: {
+    backgroundColor: PURPLE,
+    paddingVertical: 18,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: PURPLE,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  supportButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  footerLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  footerLink: {
+    fontSize: 16,
+    color: PURPLE,
+    fontWeight: '600',
+  },
+  footerDivider: {
+    fontSize: 16,
+    color: MUTED,
+    marginHorizontal: 12,
+  },
+  termsText: {
+    fontSize: 12,
+    color: MUTED,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  termsLink: {
+    color: PURPLE,
+    textDecorationLine: 'underline',
+  },
+});
