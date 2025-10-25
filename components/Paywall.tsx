@@ -113,11 +113,7 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
   };
 
   const handleAboutFriendo = () => {
-    Alert.alert(
-      'About Friendo',
-      'Friendo helps you stay connected with the people who matter most. Built with love by Daniel Lango.',
-      [{ text: 'OK' }]
-    );
+    Linking.openURL('https://www.ambrozitestudios.com/about');
   };
 
   const handleTermsAndPrivacy = () => {
