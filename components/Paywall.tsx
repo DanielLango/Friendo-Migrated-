@@ -198,7 +198,7 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
           {/* Bonus Features */}
           <View style={styles.bonusFeatures}>
             <Text style={styles.bonusFeaturesText}>
-              <Text style={styles.bonusFeaturesLabel}>Plus: </Text>
+              <Text style={styles.bonusFeaturesLabel}>& more! Such as: </Text>
               Dark mode, mark friends as favorites, unlimited friends (up to 1000), 
               potential restaurant coupons, and more!
             </Text>
