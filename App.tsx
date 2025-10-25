@@ -11,6 +11,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 // Import screens
@@ -53,6 +56,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       <NavigationContainer>
         <Stack.Navigator 
           id={undefined}
@@ -74,6 +78,8 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
 =======
+=======
+>>>>>>> Stashed changes
       <BasicProvider project_id={schema.project_id} schema={schema}>
         <NavigationContainer>
           <Stack.Navigator 
@@ -96,6 +102,9 @@ export default function App() {
           </Stack.Navigator>
         </NavigationContainer>
       </BasicProvider>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     </SafeAreaProvider>
   );
