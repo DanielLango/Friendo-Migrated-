@@ -195,21 +195,7 @@ export default function MainScreen() {
   };
 
   const handleProfile = () => {
-    Alert.alert(
-      'Profile',
-      'Profile settings',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Sign Out', 
-          onPress: async () => {
-            await logout();
-            (navigation as any).navigate('Login');
-          }, 
-          style: 'destructive' 
-        }
-      ]
-    );
+    (navigation as any).navigate('Profile');
   };
 
   const getFriendMeetings = (friendId: string) => {

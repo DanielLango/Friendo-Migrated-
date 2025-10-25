@@ -15,6 +15,7 @@ import ManualAddScreen from './screens/ManualAddScreen';
 import MainScreen from './screens/MainScreen';
 import StatsScreen from './screens/StatsScreen';
 import MeetingCreateScreen from './screens/MeetingCreateScreen';
+import ProfileScreen from './screens/ProfileScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   Main: undefined;
   Stats: undefined;
   MeetingCreate: undefined;
+  Profile: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -61,6 +63,7 @@ export default function App() {
           <Stack.Screen name="Main" component={MainScreen} />
           <Stack.Screen name="Stats" component={StatsScreen} />
           <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
