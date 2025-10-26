@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import { supabase } from './supabase';
 import { Friend, Meeting } from '../types';
 
@@ -21,8 +22,15 @@ const SECURE_KEYS = {
 // Remember Me operations
 export const saveRememberMeCredentials = async (email: string, password: string) => {
   try {
-    await SecureStore.setItemAsync(SECURE_KEYS.EMAIL, email);
-    await SecureStore.setItemAsync(SECURE_KEYS.PASSWORD, password);
+    if (Platform.OS === 'web') {
+      // Use AsyncStorage for web
+      await AsyncStorage.setItem(SECURE_KEYS.EMAIL, email);
+      await AsyncStorage.setItem(SECURE_KEYS.PASSWORD, password);
+    } else {
+      // Use SecureStore for native platforms
+      await SecureStore.setItemAsync(SECURE_KEYS.EMAIL, email);
+      await SecureStore.setItemAsync(SECURE_KEYS.PASSWORD, password);
+    }
     await AsyncStorage.setItem(KEYS.REMEMBER_ME, 'true');
     return true;
   } catch (error) {
@@ -36,8 +44,18 @@ export const getRememberMeCredentials = async (): Promise<{ email: string; passw
     const rememberMe = await AsyncStorage.getItem(KEYS.REMEMBER_ME);
     if (rememberMe !== 'true') return null;
 
-    const email = await SecureStore.getItemAsync(SECURE_KEYS.EMAIL);
-    const password = await SecureStore.getItemAsync(SECURE_KEYS.PASSWORD);
+    let email: string | null;
+    let password: string | null;
+
+    if (Platform.OS === 'web') {
+      // Use AsyncStorage for web
+      email = await AsyncStorage.getItem(SECURE_KEYS.EMAIL);
+      password = await AsyncStorage.getItem(SECURE_KEYS.PASSWORD);
+    } else {
+      // Use SecureStore for native platforms
+      email = await SecureStore.getItemAsync(SECURE_KEYS.EMAIL);
+      password = await SecureStore.getItemAsync(SECURE_KEYS.PASSWORD);
+    }
 
     if (email && password) {
       return { email, password };
@@ -51,8 +69,15 @@ export const getRememberMeCredentials = async (): Promise<{ email: string; passw
 
 export const clearRememberMeCredentials = async () => {
   try {
-    await SecureStore.deleteItemAsync(SECURE_KEYS.EMAIL);
-    await SecureStore.deleteItemAsync(SECURE_KEYS.PASSWORD);
+    if (Platform.OS === 'web') {
+      // Use AsyncStorage for web
+      await AsyncStorage.removeItem(SECURE_KEYS.EMAIL);
+      await AsyncStorage.removeItem(SECURE_KEYS.PASSWORD);
+    } else {
+      // Use SecureStore for native platforms
+      await SecureStore.deleteItemAsync(SECURE_KEYS.EMAIL);
+      await SecureStore.deleteItemAsync(SECURE_KEYS.PASSWORD);
+    }
     await AsyncStorage.removeItem(KEYS.REMEMBER_ME);
     return true;
   } catch (error) {
