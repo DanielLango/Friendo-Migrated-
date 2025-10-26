@@ -1,17 +1,32 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getFriends, getMeetings } from './storage';
 
 const PAYWALL_LAST_SHOWN_KEY = '@friendo_paywall_last_shown';
 
 /**
  * Check if the paywall should be shown based on:
+ * - At least 3 friends added
+ * - At least 2 meetings scheduled
  * - Maximum once per calendar day
  */
 export const shouldShowPaywall = async (): Promise<boolean> => {
   try {
+    // First check if user has met the minimum threshold
+    const friends = await getFriends();
+    if (friends.length < 3) {
+      return false;
+    }
+
+    const meetings = await getMeetings();
+    if (meetings.length < 2) {
+      return false;
+    }
+
+    // User has met the threshold, now check if we've shown it today
     const lastShownStr = await AsyncStorage.getItem(PAYWALL_LAST_SHOWN_KEY);
     
     if (!lastShownStr) {
-      return true; // Never shown before
+      return true; // Never shown before, and threshold is met
     }
 
     const lastShownDate = new Date(lastShownStr);

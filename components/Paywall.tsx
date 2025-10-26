@@ -140,7 +140,7 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Headline */}
         <Text style={styles.headline}>
-          Please support me and the mission by signing up for the pro version.
+          Enjoying the app? Please support me and the mission by signing up for the pro version.
         </Text>
 
         {/* Description */}
@@ -154,7 +154,7 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
           <View style={styles.featureRow}>
             <Ionicons name="star" size={24} color={PURPLE} />
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>See who cancelled</Text>
+              <Text style={styles.featureTitle}>Mark who cancelled</Text>
               <Text style={styles.featureDescription}>
                 Track cancellations with color-coded tokens.
               </Text>
