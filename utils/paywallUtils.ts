@@ -1,35 +1,29 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getFriends, getMeetings } from './storage';
 
-const PAYWALL_SHOWN_KEY = '@friendo_paywall_shown';
+const PAYWALL_LAST_SHOWN_KEY = '@friendo_paywall_last_shown';
 
 /**
  * Check if the paywall should be shown based on:
- * - At least 3 friends added
- * - At least 2 meetings scheduled
- * - Paywall hasn't been shown before
+ * - Maximum once per calendar day
  */
 export const shouldShowPaywall = async (): Promise<boolean> => {
   try {
-    // Check if paywall has already been shown
-    const hasShown = await AsyncStorage.getItem(PAYWALL_SHOWN_KEY);
-    if (hasShown === 'true') {
-      return false;
+    const lastShownStr = await AsyncStorage.getItem(PAYWALL_LAST_SHOWN_KEY);
+    
+    if (!lastShownStr) {
+      return true; // Never shown before
     }
 
-    // Check friend count
-    const friends = await getFriends();
-    if (friends.length < 3) {
-      return false;
-    }
+    const lastShownDate = new Date(lastShownStr);
+    const today = new Date();
+    
+    // Check if it's a different calendar day
+    const isDifferentDay = 
+      lastShownDate.getFullYear() !== today.getFullYear() ||
+      lastShownDate.getMonth() !== today.getMonth() ||
+      lastShownDate.getDate() !== today.getDate();
 
-    // Check meeting count
-    const meetings = await getMeetings();
-    if (meetings.length < 2) {
-      return false;
-    }
-
-    return true;
+    return isDifferentDay;
   } catch (error) {
     console.error('Error checking paywall status:', error);
     return false;
@@ -37,11 +31,12 @@ export const shouldShowPaywall = async (): Promise<boolean> => {
 };
 
 /**
- * Mark that the paywall has been shown
+ * Mark that the paywall has been shown today
  */
 export const markPaywallShown = async (): Promise<void> => {
   try {
-    await AsyncStorage.setItem(PAYWALL_SHOWN_KEY, 'true');
+    const today = new Date().toISOString();
+    await AsyncStorage.setItem(PAYWALL_LAST_SHOWN_KEY, today);
   } catch (error) {
     console.error('Error marking paywall as shown:', error);
   }
@@ -52,7 +47,7 @@ export const markPaywallShown = async (): Promise<void> => {
  */
 export const resetPaywallShown = async (): Promise<void> => {
   try {
-    await AsyncStorage.removeItem(PAYWALL_SHOWN_KEY);
+    await AsyncStorage.removeItem(PAYWALL_LAST_SHOWN_KEY);
   } catch (error) {
     console.error('Error resetting paywall status:', error);
   }

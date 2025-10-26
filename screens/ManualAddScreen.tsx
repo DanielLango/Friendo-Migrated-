@@ -72,22 +72,30 @@ export default function ManualAddScreen() {
         notificationDays: 30,
       });
 
-      Alert.alert('Success', 'Friend added successfully!', [
-        { 
-          text: 'Add Another', 
-          style: 'default',
-          onPress: () => {
-            setFullName('');
-            setIsOnline(false);
-            setIsLocal(false);
+      // Check if we should show the paywall (once per day)
+      const shouldShow = await shouldShowPaywall();
+      if (shouldShow) {
+        await markPaywallShown();
+        setShowPaywall(true);
+      } else {
+        // Show success message if not showing paywall
+        Alert.alert('Success', 'Friend added successfully!', [
+          { 
+            text: 'Add Another', 
+            style: 'default',
+            onPress: () => {
+              setFullName('');
+              setIsOnline(false);
+              setIsLocal(false);
+            }
+          },
+          { 
+            text: 'Done', 
+            style: 'default',
+            onPress: () => (navigation as any).navigate('AddFriends') 
           }
-        },
-        { 
-          text: 'Done', 
-          style: 'default',
-          onPress: () => (navigation as any).navigate('AddFriends') 
-        }
-      ]);
+        ]);
+      }
     } catch (error) {
       console.error('Error adding friend:', error);
       Alert.alert('Error', 'Failed to add friend. Please try again.');

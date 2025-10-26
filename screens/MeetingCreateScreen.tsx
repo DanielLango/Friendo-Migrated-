@@ -128,7 +128,15 @@ export default function MeetingCreateScreen() {
         // Don't fail the whole operation for notification errors
       }
 
-      // Handle calendar options
+      // Check if we should show the paywall (once per day)
+      const shouldShow = await shouldShowPaywall();
+      if (shouldShow) {
+        await markPaywallShown();
+        setShowPaywall(true);
+        return; // Don't show success alert yet
+      }
+
+      // Handle calendar options (only if not showing paywall)
       if (calendarOption === 'device') {
         // Add to device calendar
         const success = await createMeetingEvent(
@@ -173,6 +181,7 @@ export default function MeetingCreateScreen() {
 
   const handlePaywallClose = () => {
     setShowPaywall(false);
+    Alert.alert('Success', 'Meeting scheduled successfully!');
     navigation.goBack();
   };
 
