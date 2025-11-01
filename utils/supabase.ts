@@ -7,6 +7,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables');
   console.error('URL:', supabaseUrl ? 'Set' : 'Missing');
   console.error('Key:', supabaseAnonKey ? 'Set' : 'Missing');
+  console.error('Please restart the Expo dev server with: npx expo start -c');
+  throw new Error('Supabase environment variables are not configured. Please restart the dev server.');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
