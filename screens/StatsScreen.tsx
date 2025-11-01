@@ -342,16 +342,35 @@ export default function StatsScreen() {
             )}
           </View>
 
-          {/* Premium: Download Previous Years Data */}
-          {isPremium && (
-            <TouchableOpacity
-              style={styles.downloadButton}
-              onPress={handleDownloadPreviousYears}
-            >
-              <Text style={styles.downloadButtonIcon}>📥</Text>
-              <Text style={styles.downloadButtonText}>Download previous years data</Text>
-            </TouchableOpacity>
-          )}
+          {/* Download Previous Years Data - Always visible, greyed out for free users */}
+          <TouchableOpacity
+            style={[
+              styles.downloadButton,
+              !isPremium && styles.downloadButtonDisabled
+            ]}
+            onPress={isPremium ? handleDownloadPreviousYears : undefined}
+            disabled={!isPremium}
+          >
+            <Text style={[
+              styles.downloadButtonIcon,
+              !isPremium && styles.downloadButtonIconDisabled
+            ]}>
+              📥
+            </Text>
+            <View style={styles.downloadButtonTextContainer}>
+              <Text style={[
+                styles.downloadButtonText,
+                !isPremium && styles.downloadButtonTextDisabled
+              ]}>
+                Download previous years data
+              </Text>
+              {!isPremium && (
+                <Text style={styles.downloadButtonSubtext}>
+                  Premium feature only
+                </Text>
+              )}
+            </View>
+          </TouchableOpacity>
 
           {/* Monthly Chart */}
           <View style={styles.chartCard}>
@@ -812,13 +831,34 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#8000FF',
   },
+  downloadButtonDisabled: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#CCCCCC',
+    opacity: 0.6,
+  },
   downloadButtonIcon: {
     fontSize: 20,
     marginRight: 8,
+  },
+  downloadButtonIconDisabled: {
+    opacity: 0.5,
+  },
+  downloadButtonTextContainer: {
+    alignItems: 'center',
   },
   downloadButtonText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#8000FF',
+  },
+  downloadButtonTextDisabled: {
+    color: '#999999',
+    fontStyle: 'italic',
+  },
+  downloadButtonSubtext: {
+    fontSize: 11,
+    color: '#999999',
+    fontStyle: 'italic',
+    marginTop: 2,
   },
 });
