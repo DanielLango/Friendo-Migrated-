@@ -13,7 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { logout } from '../utils/storage';
-import { isPremiumUser } from '../utils/premiumFeatures';
+import { isPremiumUser, toggleDebugPremium, getDebugPremiumStatus } from '../utils/premiumFeatures';
 import Paywall from '../components/Paywall';
 
 const PURPLE = '#8000FF';
@@ -25,14 +25,17 @@ export default function ProfileScreen() {
   const navigation = useNavigation();
   const [membershipTier, setMembershipTier] = useState<'Free' | 'Pro'>('Free');
   const [showPaywall, setShowPaywall] = useState(false);
+  const [debugPremiumEnabled, setDebugPremiumEnabled] = useState(false);
 
   useEffect(() => {
     checkMembership();
+    checkDebugStatus();
   }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       checkMembership();
+      checkDebugStatus();
     });
     return unsubscribe;
   }, [navigation]);
@@ -40,6 +43,25 @@ export default function ProfileScreen() {
   const checkMembership = async () => {
     const isPremium = await isPremiumUser();
     setMembershipTier(isPremium ? 'Pro' : 'Free');
+  };
+
+  const checkDebugStatus = async () => {
+    if (__DEV__) {
+      const status = await getDebugPremiumStatus();
+      setDebugPremiumEnabled(status);
+    }
+  };
+
+  const handleDebugToggle = async () => {
+    const newStatus = await toggleDebugPremium();
+    setDebugPremiumEnabled(newStatus);
+    await checkMembership();
+    
+    Alert.alert(
+      '🔧 Debug Mode',
+      `Premium features ${newStatus ? 'ENABLED' : 'DISABLED'} for testing`,
+      [{ text: 'OK' }]
+    );
   };
 
   const handleLogout = () => {
@@ -132,6 +154,48 @@ export default function ProfileScreen() {
             <Ionicons name="person" size={48} color={PURPLE} />
           </View>
         </View>
+
+        {/* Debug Toggle (DEV only) */}
+        {__DEV__ && (
+          <View style={styles.debugSection}>
+            <TouchableOpacity 
+              style={[
+                styles.debugToggle,
+                debugPremiumEnabled && styles.debugToggleActive
+              ]}
+              onPress={handleDebugToggle}
+              activeOpacity={0.7}
+            >
+              <View style={styles.debugToggleLeft}>
+                <Ionicons 
+                  name="bug" 
+                  size={20} 
+                  color={debugPremiumEnabled ? '#FFFFFF' : '#FF6B00'} 
+                />
+                <Text style={[
+                  styles.debugToggleText,
+                  debugPremiumEnabled && styles.debugToggleTextActive
+                ]}>
+                  Test Premium Features
+                </Text>
+              </View>
+              <View style={[
+                styles.debugBadge,
+                debugPremiumEnabled && styles.debugBadgeActive
+              ]}>
+                <Text style={[
+                  styles.debugBadgeText,
+                  debugPremiumEnabled && styles.debugBadgeTextActive
+                ]}>
+                  {debugPremiumEnabled ? 'ON' : 'OFF'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <Text style={styles.debugNote}>
+              🔧 Developer mode: Toggle premium features for testing
+            </Text>
+          </View>
+        )}
 
         {/* Membership Section */}
         <View style={styles.section}>
@@ -311,6 +375,61 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 3,
     borderColor: PURPLE,
+  },
+  debugSection: {
+    paddingHorizontal: 20,
+    marginTop: 16,
+  },
+  debugToggle: {
+    backgroundColor: '#FFF4E6',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 2,
+    borderColor: '#FF6B00',
+  },
+  debugToggleActive: {
+    backgroundColor: '#FF6B00',
+    borderColor: '#FF6B00',
+  },
+  debugToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  debugToggleText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FF6B00',
+  },
+  debugToggleTextActive: {
+    color: '#FFFFFF',
+  },
+  debugBadge: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  debugBadgeActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  debugBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FF6B00',
+  },
+  debugBadgeTextActive: {
+    color: '#FFFFFF',
+  },
+  debugNote: {
+    fontSize: 11,
+    color: '#999999',
+    marginTop: 8,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   section: {
     marginTop: 24,
