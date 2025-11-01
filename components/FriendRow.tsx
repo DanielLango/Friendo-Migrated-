@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 import { Friend, Meeting } from '../types';
 import NotificationModal from './NotificationModal';
+import CancellationModal from './CancellationModal';
 import { getMeetings, saveMeetings } from '../utils/storage';
+import { isPremiumUser } from '../utils/premiumFeatures';
 
 interface FriendRowProps {
   friend: Friend;
@@ -28,6 +30,8 @@ export default function FriendRow({
 }: FriendRowProps) {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showAllMeetings, setShowAllMeetings] = useState(false);
+  const [showCancellationModal, setShowCancellationModal] = useState(false);
+  const [selectedMeetingForCancellation, setSelectedMeetingForCancellation] = useState<Meeting | null>(null);
   
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [pressingMeetingId, setPressingMeetingId] = useState<string | null>(null);
@@ -136,37 +140,96 @@ export default function FriendRow({
         ]
       );
     } else {
-      // If not cancelled, offer to cancel
-      Alert.alert(
-        'Mark Meeting as Cancelled?',
-        'This will mark the meeting as cancelled. The token will turn red and won\'t count toward your meeting total.',
-        [
-          { text: 'No', style: 'cancel' },
-          {
-            text: 'Yes, Cancel Meeting',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                const allMeetings = await getMeetings();
-                const updatedMeetings = allMeetings.map(m => {
-                  if (m.id === meeting.id) {
-                    return {
-                      ...m,
-                      notes: `[CANCELLED] ${m.notes || ''}`
-                    };
-                  }
-                  return m;
-                });
-                await saveMeetings(updatedMeetings);
-                Alert.alert('Success', 'Meeting marked as cancelled.');
-              } catch (error) {
-                console.error('Error updating meeting:', error);
-                Alert.alert('Error', `Failed to update meeting: ${error}`);
+      // Check if user is premium
+      const isPremium = await isPremiumUser();
+      
+      if (isPremium) {
+        // Premium users get the "who cancelled" modal
+        setSelectedMeetingForCancellation(meeting);
+        setShowCancellationModal(true);
+      } else {
+        // Free users get the old behavior
+        Alert.alert(
+          'Mark Meeting as Cancelled?',
+          'This will mark the meeting as cancelled. The token will turn red and won\'t count toward your meeting total.',
+          [
+            { text: 'No', style: 'cancel' },
+            {
+              text: 'Yes, Cancel Meeting',
+              style: 'destructive',
+              onPress: async () => {
+                try {
+                  const allMeetings = await getMeetings();
+                  const updatedMeetings = allMeetings.map(m => {
+                    if (m.id === meeting.id) {
+                      return {
+                        ...m,
+                        notes: `[CANCELLED] ${m.notes || ''}`
+                      };
+                    }
+                    return m;
+                  });
+                  await saveMeetings(updatedMeetings);
+                  Alert.alert('Success', 'Meeting marked as cancelled.');
+                } catch (error) {
+                  console.error('Error updating meeting:', error);
+                  Alert.alert('Error', `Failed to update meeting: ${error}`);
+                }
               }
             }
-          }
-        ]
-      );
+          ]
+        );
+      }
+    }
+  };
+
+  const handleCancellationByUser = async () => {
+    if (!selectedMeetingForCancellation) return;
+    
+    try {
+      const allMeetings = await getMeetings();
+      const updatedMeetings = allMeetings.map(m => {
+        if (m.id === selectedMeetingForCancellation.id) {
+          return {
+            ...m,
+            notes: `[CANCELLED] ${m.notes || ''}`,
+            cancelledBy: 'user' as const,
+          };
+        }
+        return m;
+      });
+      await saveMeetings(updatedMeetings);
+      setShowCancellationModal(false);
+      setSelectedMeetingForCancellation(null);
+      Alert.alert('Success', 'Meeting marked as cancelled by you.');
+    } catch (error) {
+      console.error('Error updating meeting:', error);
+      Alert.alert('Error', `Failed to update meeting: ${error}`);
+    }
+  };
+
+  const handleCancellationByFriend = async () => {
+    if (!selectedMeetingForCancellation) return;
+    
+    try {
+      const allMeetings = await getMeetings();
+      const updatedMeetings = allMeetings.map(m => {
+        if (m.id === selectedMeetingForCancellation.id) {
+          return {
+            ...m,
+            notes: `[CANCELLED] ${m.notes || ''}`,
+            cancelledBy: 'friend' as const,
+          };
+        }
+        return m;
+      });
+      await saveMeetings(updatedMeetings);
+      setShowCancellationModal(false);
+      setSelectedMeetingForCancellation(null);
+      Alert.alert('Success', `Meeting marked as cancelled by ${friend.name}.`);
+    } catch (error) {
+      console.error('Error updating meeting:', error);
+      Alert.alert('Error', `Failed to update meeting: ${error}`);
     }
   };
 
@@ -193,6 +256,13 @@ export default function FriendRow({
     const status = meeting.status || 'met';
     
     if (status === 'cancelled') {
+      // Check who cancelled (premium feature)
+      if (meeting.cancelledBy === 'user') {
+        return styles.cancelledByUserToken; // Pink
+      } else if (meeting.cancelledBy === 'friend') {
+        return styles.cancelledByFriendToken; // Red
+      }
+      // Default red for non-premium or old cancelled meetings
       return styles.cancelledToken;
     } else if (status === 'scheduled') {
       return styles.scheduledToken;
@@ -292,6 +362,17 @@ export default function FriendRow({
           </TouchableOpacity>
         )}
       </View>
+
+      <CancellationModal
+        visible={showCancellationModal}
+        friendName={friend.name}
+        onSelectUser={handleCancellationByUser}
+        onSelectFriend={handleCancellationByFriend}
+        onCancel={() => {
+          setShowCancellationModal(false);
+          setSelectedMeetingForCancellation(null);
+        }}
+      />
 
       <NotificationModal
         visible={showNotificationModal && !deleteMode}
@@ -412,6 +493,22 @@ const styles = StyleSheet.create({
   },
   cancelledToken: {
     backgroundColor: '#FF4444',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 4,
+  },
+  cancelledByUserToken: {
+    backgroundColor: '#FF69B4', // Pink
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 4,
+  },
+  cancelledByFriendToken: {
+    backgroundColor: '#FF4444', // Red
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
