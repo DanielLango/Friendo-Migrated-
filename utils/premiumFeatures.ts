@@ -3,6 +3,7 @@ import { checkPremiumStatus } from './revenueCatConfig';
 
 const PREMIUM_STATUS_KEY = '@friendo_premium_status';
 const PREMIUM_CHECK_TIMESTAMP = '@friendo_premium_check_time';
+const DEBUG_PREMIUM_KEY = '@friendo_debug_premium'; // Debug toggle key
 
 // Cache premium status for 5 minutes to reduce API calls
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -12,6 +13,14 @@ const CACHE_DURATION = 5 * 60 * 1000;
  */
 export const isPremiumUser = async (): Promise<boolean> => {
   try {
+    // Check debug mode first (for testing only)
+    if (__DEV__) {
+      const debugPremium = await AsyncStorage.getItem(DEBUG_PREMIUM_KEY);
+      if (debugPremium === 'true') {
+        return true;
+      }
+    }
+
     // Check cache first
     const cachedStatus = await AsyncStorage.getItem(PREMIUM_STATUS_KEY);
     const cachedTime = await AsyncStorage.getItem(PREMIUM_CHECK_TIMESTAMP);
@@ -37,6 +46,31 @@ export const isPremiumUser = async (): Promise<boolean> => {
     const cachedStatus = await AsyncStorage.getItem(PREMIUM_STATUS_KEY);
     return cachedStatus === 'true';
   }
+};
+
+/**
+ * Toggle debug premium mode (DEV only)
+ */
+export const toggleDebugPremium = async (): Promise<boolean> => {
+  if (!__DEV__) return false;
+  
+  const current = await AsyncStorage.getItem(DEBUG_PREMIUM_KEY);
+  const newValue = current === 'true' ? 'false' : 'true';
+  await AsyncStorage.setItem(DEBUG_PREMIUM_KEY, newValue);
+  
+  // Clear cache to force refresh
+  await clearPremiumCache();
+  
+  return newValue === 'true';
+};
+
+/**
+ * Get debug premium status (DEV only)
+ */
+export const getDebugPremiumStatus = async (): Promise<boolean> => {
+  if (!__DEV__) return false;
+  const status = await AsyncStorage.getItem(DEBUG_PREMIUM_KEY);
+  return status === 'true';
 };
 
 /**
