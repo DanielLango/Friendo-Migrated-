@@ -8,11 +8,16 @@ import {
   SafeAreaView,
   Alert,
   Modal,
+  ScrollView,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getFriends, addFriend } from '../utils/storage';
 import Paywall from '../components/Paywall';
+import BirthdaySettings from '../components/BirthdaySettings';
+import PhotoUploadModal from '../components/PhotoUploadModal';
 import { shouldShowPaywall, markPaywallShown } from '../utils/paywallUtils';
+import { isPremiumUser } from '../utils/premiumFeatures';
 
 export default function ManualAddScreen() {
   const [fullName, setFullName] = useState('');
@@ -20,21 +25,32 @@ export default function ManualAddScreen() {
   const [isLocal, setIsLocal] = useState(false);
   const [currentFriendCount, setCurrentFriendCount] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
+  const [birthday, setBirthday] = useState<string | undefined>(undefined);
+  const [birthdayNotificationEnabled, setBirthdayNotificationEnabled] = useState(false);
+  const [profilePictureUri, setProfilePictureUri] = useState<string | undefined>(undefined);
+  const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   
   const navigation = useNavigation();
 
   useEffect(() => {
-    // Get current friend count
-    const fetchFriendCount = async () => {
-      try {
-        const friends = await getFriends();
-        setCurrentFriendCount(friends.length);
-      } catch (error) {
-        console.error('Error fetching friend count:', error);
-      }
-    };
+    checkPremiumStatus();
     fetchFriendCount();
   }, []);
+
+  const checkPremiumStatus = async () => {
+    const premium = await isPremiumUser();
+    setIsPremium(premium);
+  };
+
+  const fetchFriendCount = async () => {
+    try {
+      const friends = await getFriends();
+      setCurrentFriendCount(friends.length);
+    } catch (error) {
+      console.error('Error fetching friend count:', error);
+    }
+  };
 
   const handleAdd = async () => {
     if (!fullName.trim()) {
@@ -50,10 +66,12 @@ export default function ManualAddScreen() {
     try {
       // Check friend limit
       const friends = await getFriends();
-      if (friends.length >= 50) {
+      const maxFriends = isPremium ? 1000 : 50;
+      
+      if (friends.length >= maxFriends) {
         Alert.alert(
           'Friend Limit Reached',
-          'You can only add up to 50 friends. Please remove some friends before adding new ones.',
+          `You can only add up to ${maxFriends} friends${!isPremium ? '. Upgrade to Premium for up to 1000 friends!' : '.'}`,
           [{ text: 'OK' }]
         );
         return;
@@ -66,10 +84,13 @@ export default function ManualAddScreen() {
         isOnline,
         isLocal,
         profilePicture: '👤',
+        profilePictureUri,
         city: '',
         source: 'manual',
         notificationFrequency: 'monthly',
         notificationDays: 30,
+        birthday,
+        birthdayNotificationEnabled,
       });
 
       // Check if we should show the paywall (once per day)
@@ -87,6 +108,9 @@ export default function ManualAddScreen() {
               setFullName('');
               setIsOnline(false);
               setIsLocal(false);
+              setBirthday(undefined);
+              setBirthdayNotificationEnabled(false);
+              setProfilePictureUri(undefined);
             }
           },
           { 
@@ -112,6 +136,9 @@ export default function ManualAddScreen() {
           setFullName('');
           setIsOnline(false);
           setIsLocal(false);
+          setBirthday(undefined);
+          setBirthdayNotificationEnabled(false);
+          setProfilePictureUri(undefined);
         }
       },
       { 
@@ -145,7 +172,7 @@ export default function ManualAddScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content}>
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Nickname of your friend</Text>
           <Text style={styles.sublabel}>How you like to call the person</Text>
@@ -156,6 +183,30 @@ export default function ManualAddScreen() {
             onChangeText={setFullName}
           />
         </View>
+
+        {/* Premium: Photo Upload */}
+        {isPremium && (
+          <View style={styles.premiumSection}>
+            <View style={styles.premiumHeader}>
+              <Text style={styles.premiumIcon}>⭐</Text>
+              <Text style={styles.premiumLabel}>Premium Feature</Text>
+            </View>
+            
+            <TouchableOpacity
+              style={styles.photoUploadButton}
+              onPress={() => setShowPhotoUpload(true)}
+            >
+              {profilePictureUri ? (
+                <Image source={{ uri: profilePictureUri }} style={styles.profileImage} />
+              ) : (
+                <View style={styles.photoPlaceholder}>
+                  <Text style={styles.photoPlaceholderIcon}>📷</Text>
+                  <Text style={styles.photoPlaceholderText}>Set Photo</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Friend Type:</Text>
@@ -181,6 +232,31 @@ export default function ManualAddScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Premium: Birthday Settings */}
+        {isPremium && (
+          <BirthdaySettings
+            friend={{
+              id: 'temp',
+              name: fullName || 'Friend',
+              friendType: 'both',
+              isOnline,
+              isLocal,
+              source: 'manual',
+              notificationFrequency: 'monthly',
+              notificationDays: 30,
+              createdAt: Date.now(),
+              birthday,
+              birthdayNotificationEnabled,
+            }}
+            onUpdate={(updates) => {
+              if (updates.birthday !== undefined) setBirthday(updates.birthday);
+              if (updates.birthdayNotificationEnabled !== undefined) {
+                setBirthdayNotificationEnabled(updates.birthdayNotificationEnabled);
+              }
+            }}
+          />
+        )}
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -200,7 +276,15 @@ export default function ManualAddScreen() {
             This app is for your personal use only. Please avoid entering sensitive or real personal data about others unless you have their permission.
           </Text>
         </View>
-      </View>
+      </ScrollView>
+
+      {/* Photo Upload Modal */}
+      <PhotoUploadModal
+        visible={showPhotoUpload}
+        friendName={fullName || 'Friend'}
+        onUpload={(uri) => setProfilePictureUri(uri)}
+        onClose={() => setShowPhotoUpload(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -336,5 +420,57 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
     fontStyle: 'italic',
+  },
+  premiumSection: {
+    backgroundColor: '#FFF9E6',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FFD700',
+  },
+  premiumHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  premiumIcon: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  premiumLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F59E0B',
+  },
+  photoUploadButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#8000FF',
+  },
+  photoPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    borderStyle: 'dashed',
+  },
+  photoPlaceholderIcon: {
+    fontSize: 32,
+    marginBottom: 4,
+  },
+  photoPlaceholderText: {
+    fontSize: 12,
+    color: '#666666',
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { Friend, Meeting } from '../types';
 import NotificationModal from './NotificationModal';
 import CancellationModal from './CancellationModal';
 import { getMeetings, saveMeetings } from '../utils/storage';
+import { saveFriends, getFriends } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
 
 interface FriendRowProps {
@@ -32,6 +33,7 @@ export default function FriendRow({
   const [showAllMeetings, setShowAllMeetings] = useState(false);
   const [showCancellationModal, setShowCancellationModal] = useState(false);
   const [selectedMeetingForCancellation, setSelectedMeetingForCancellation] = useState<Meeting | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
   
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [pressingMeetingId, setPressingMeetingId] = useState<string | null>(null);
@@ -90,6 +92,30 @@ export default function FriendRow({
 
   console.log(`Friend ${friend.name} has ${yearMeetings.length} meetings this year to display`);
   console.log(`Display meetings:`, displayMeetings.map(m => ({ id: m.id, status: m.status })));
+
+  useEffect(() => {
+    checkPremiumStatus();
+  }, []);
+
+  const checkPremiumStatus = async () => {
+    const premium = await isPremiumUser();
+    setIsPremium(premium);
+  };
+
+  const handleToggleFavorite = async () => {
+    try {
+      const allFriends = await getFriends();
+      const updatedFriends = allFriends.map(f => {
+        if (f.id === friend.id) {
+          return { ...f, isFavorite: !f.isFavorite };
+        }
+        return f;
+      });
+      await saveFriends(updatedFriends);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
+  };
 
   const handleLongPressStart = (meetingId: string) => {
     setPressingMeetingId(meetingId);
@@ -305,6 +331,19 @@ export default function FriendRow({
         <View style={styles.nameSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{friend.name}</Text>
+            
+            {/* Premium: Favorite Star */}
+            {isPremium && !deleteMode && (
+              <TouchableOpacity
+                style={styles.favoriteButton}
+                onPress={handleToggleFavorite}
+              >
+                <Text style={styles.favoriteIcon}>
+                  {friend.isFavorite ? '⭐' : '☆'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            
             {!deleteMode && (
               <TouchableOpacity
                 style={styles.scheduleButton}
@@ -454,6 +493,13 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  favoriteButton: {
+    padding: 4,
+    marginRight: 8,
+  },
+  favoriteIcon: {
+    fontSize: 20,
   },
   typeIndicator: {
     flexDirection: 'row',

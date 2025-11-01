@@ -30,6 +30,7 @@ export default function MainScreen() {
     loadData();
     scheduleAnnualReset();
     checkPaywallStatus();
+    checkPremiumStatus();
   }, []);
 
   useEffect(() => {
@@ -54,6 +55,11 @@ export default function MainScreen() {
         await markPaywallShown();
       }
     }
+  };
+
+  const checkPremiumStatus = async () => {
+    const premium = await isPremiumUser();
+    setIsPremium(premium);
   };
 
   const loadData = async () => {
@@ -232,6 +238,17 @@ export default function MainScreen() {
       ...friend,
       meetingCount: getFriendMeetingCount(friend.id)
     }));
+
+    // Premium: Favorites jump to top in default view
+    if (sortMode === 'default' && isPremium) {
+      return [...friendsWithMeetings].sort((a, b) => {
+        // Favorites first
+        if (a.isFavorite && !b.isFavorite) return -1;
+        if (!a.isFavorite && b.isFavorite) return 1;
+        // Then by creation date
+        return (a.createdAt || 0) - (b.createdAt || 0);
+      });
+    }
 
     if (sortMode === 'name') {
       return [...friendsWithMeetings].sort((a, b) => 

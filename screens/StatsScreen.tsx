@@ -12,6 +12,10 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Friend, Meeting } from '../types';
 import { getFriends, getMeetings } from '../utils/storage';
+import { isPremiumUser } from '../utils/premiumFeatures';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { Alert } from 'react-native';
 
 interface FriendStats {
   friend: Friend;
@@ -35,13 +39,71 @@ export default function StatsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
+  const [isPremium, setIsPremium] = useState(false);
   
   const navigation = useNavigation();
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     loadStats();
+    checkPremiumStatus();
   }, []);
+
+  const checkPremiumStatus = async () => {
+    const premium = await isPremiumUser();
+    setIsPremium(premium);
+  };
+
+  const handleDownloadPreviousYears = async () => {
+    try {
+      const meetings = await getMeetings();
+      const friends = await getFriends();
+      
+      // Group meetings by year
+      const meetingsByYear: { [year: number]: Meeting[] } = {};
+      meetings.forEach(meeting => {
+        const year = new Date(meeting.date).getFullYear();
+        if (!meetingsByYear[year]) {
+          meetingsByYear[year] = [];
+        }
+        meetingsByYear[year].push(meeting);
+      });
+
+      // Create CSV content
+      let csvContent = 'Year,Friend Name,Date,Activity,Venue,City,Notes,Status\n';
+      
+      Object.keys(meetingsByYear).sort().forEach(year => {
+        meetingsByYear[parseInt(year)].forEach(meeting => {
+          const friend = friends.find(f => f.id === meeting.friendId);
+          const friendName = friend ? friend.name : 'Unknown';
+          const status = meeting.status || 'met';
+          const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
+          const actualStatus = isCancelled ? 'cancelled' : status;
+          
+          csvContent += `${year},"${friendName}","${meeting.date}","${meeting.activity}","${meeting.venue}","${meeting.city || ''}","${meeting.notes || ''}","${actualStatus}"\n`;
+        });
+      });
+
+      // Save to file
+      const fileName = `friendo_meetings_export_${Date.now()}.csv`;
+      const fileUri = FileSystem.documentDirectory + fileName;
+      
+      await FileSystem.writeAsStringAsync(fileUri, csvContent, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      // Share the file
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri);
+        Alert.alert('Success', 'Meeting data exported successfully!');
+      } else {
+        Alert.alert('Success', `File saved to: ${fileUri}`);
+      }
+    } catch (error) {
+      console.error('Error downloading previous years data:', error);
+      Alert.alert('Error', 'Failed to export data. Please try again.');
+    }
+  };
 
   useEffect(() => {
     if (!isLoading) {
@@ -280,6 +342,17 @@ export default function StatsScreen() {
             )}
           </View>
 
+          {/* Premium: Download Previous Years Data */}
+          {isPremium && (
+            <TouchableOpacity
+              style={styles.downloadButton}
+              onPress={handleDownloadPreviousYears}
+            >
+              <Text style={styles.downloadButtonIcon}>📥</Text>
+              <Text style={styles.downloadButtonText}>Download previous years data</Text>
+            </TouchableOpacity>
+          )}
+
           {/* Monthly Chart */}
           <View style={styles.chartCard}>
             <Text style={styles.chartTitle}>Your {currentYear} Friendship Journey</Text>
@@ -346,7 +419,6 @@ export default function StatsScreen() {
   );
 }
 
-// Styles remain the same...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -728,5 +800,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666666',
     textAlign: 'center',
+  },
+  downloadButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#8000FF',
+  },
+  downloadButtonIcon: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  downloadButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8000FF',
   },
 });

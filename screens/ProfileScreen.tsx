@@ -94,6 +94,10 @@ export default function ProfileScreen() {
     Linking.openURL('https://ambrozitestudios.com');
   };
 
+  const handleBatchNotifications = () => {
+    (navigation as any).navigate('BatchNotifications');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Paywall Modal */}
@@ -172,6 +176,26 @@ export default function ProfileScreen() {
             )}
           </View>
         </View>
+
+        {/* Premium Features Section */}
+        {membershipTier === 'Pro' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Premium Features</Text>
+            
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={handleBatchNotifications}
+            >
+              <View style={styles.menuItemLeft}>
+                <View style={styles.menuIconContainer}>
+                  <Ionicons name="notifications-outline" size={20} color={PURPLE} />
+                </View>
+                <Text style={styles.menuItemText}>Batch Notifications</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={MUTED} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Account Section */}
         <View style={styles.section}>
