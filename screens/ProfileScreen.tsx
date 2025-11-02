@@ -5,326 +5,252 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Alert,
   ScrollView,
   Linking,
-  Modal,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
 import { logout } from '../utils/storage';
-import { isPremiumUser, toggleDebugPremium, getDebugPremiumStatus } from '../utils/premiumFeatures';
-import Paywall from '../components/Paywall';
-
-const PURPLE = '#8000FF';
-const DARK = '#0F1222';
-const MUTED = '#606276';
-const LIGHT_BG = '#F8F9FA';
+import { isPremiumUser } from '../utils/premiumFeatures';
+import { cleanupOrphanedMeetings, getDatabaseDiagnostics } from '../utils/dataRecovery';
 
 export default function ProfileScreen() {
+  const [isPremium, setIsPremium] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
-  const [membershipTier, setMembershipTier] = useState<'Free' | 'Pro'>('Free');
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [debugPremiumEnabled, setDebugPremiumEnabled] = useState(false);
 
   useEffect(() => {
-    checkMembership();
-    checkDebugStatus();
+    checkPremiumStatus();
   }, []);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      checkMembership();
-      checkDebugStatus();
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  const checkMembership = async () => {
-    const isPremium = await isPremiumUser();
-    setMembershipTier(isPremium ? 'Pro' : 'Free');
+  const checkPremiumStatus = async () => {
+    const premium = await isPremiumUser();
+    setIsPremium(premium);
   };
 
-  const checkDebugStatus = async () => {
-    if (__DEV__) {
-      const status = await getDebugPremiumStatus();
-      setDebugPremiumEnabled(status);
-    }
-  };
-
-  const handleDebugToggle = async () => {
-    const newStatus = await toggleDebugPremium();
-    setDebugPremiumEnabled(newStatus);
-    await checkMembership();
-    
+  const handleLogout = async () => {
     Alert.alert(
-      '🔧 Debug Mode',
-      `Premium features ${newStatus ? 'ENABLED' : 'DISABLED'} for testing`,
-      [{ text: 'OK' }]
-    );
-  };
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
+      'Logout',
+      'Are you sure you want to logout?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Sign Out',
+          text: 'Logout',
           style: 'destructive',
           onPress: async () => {
-            await logout();
-            (navigation as any).navigate('Login');
+            const success = await logout();
+            if (success) {
+              (navigation as any).replace('Login');
+            } else {
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
           },
         },
       ]
     );
   };
 
-  const handleMembershipPress = () => {
-    if (membershipTier === 'Free') {
-      setShowPaywall(true);
-    } else {
-      Alert.alert(
-        'Premium Member 🎉',
-        'You\'re already a premium member! Thank you for supporting Friendo.',
-        [{ text: 'Awesome!' }]
-      );
+  const handleEmergencyCleanup = async () => {
+    setIsLoading(true);
+    try {
+      // Get diagnostics first
+      const diagnostics = await getDatabaseDiagnostics();
+      
+      if ('error' in diagnostics) {
+        Alert.alert('Error', diagnostics.error);
+        setIsLoading(false);
+        return;
+      }
+
+      const message = `
+DATABASE STATUS:
+• Friends: ${diagnostics.friendsCount}
+• Meetings: ${diagnostics.meetingsCount}
+• Orphaned Meetings: ${diagnostics.orphanedMeetingsCount}
+
+${diagnostics.orphanedMeetingsCount > 0 ? 'Found orphaned meetings that need cleanup!' : 'Database looks healthy!'}
+      `.trim();
+
+      console.log('=== EMERGENCY DIAGNOSTICS ===');
+      console.log(JSON.stringify(diagnostics, null, 2));
+
+      if (diagnostics.orphanedMeetingsCount > 0) {
+        Alert.alert(
+          'Database Issues Found',
+          message + '\n\nWould you like to clean up orphaned meetings?',
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => setIsLoading(false) },
+            {
+              text: 'Clean Up Now',
+              style: 'destructive',
+              onPress: async () => {
+                const result = await cleanupOrphanedMeetings();
+                setIsLoading(false);
+                Alert.alert(
+                  result.success ? 'Success! ✅' : 'Error',
+                  result.message + '\n\nPlease restart the app.',
+                  [
+                    {
+                      text: 'OK',
+                      onPress: () => (navigation as any).navigate('Main')
+                    }
+                  ]
+                );
+              }
+            }
+          ]
+        );
+      } else {
+        setIsLoading(false);
+        Alert.alert('Database Status', message);
+      }
+    } catch (error) {
+      console.error('Emergency cleanup error:', error);
+      setIsLoading(false);
+      Alert.alert('Error', 'Failed to run diagnostics. Check console for details.');
     }
   };
 
-  const handlePaywallSuccess = async () => {
-    setShowPaywall(false);
-    await checkMembership();
+  const handleNuclearOption = async () => {
     Alert.alert(
-      'Welcome to Premium! 🎉',
-      'Thank you for supporting Friendo! You now have access to all premium features.',
-      [{ text: 'Awesome!', style: 'default' }]
+      '⚠️ NUCLEAR OPTION ⚠️',
+      'This will DELETE ALL your friends and meetings data. This cannot be undone!\n\nOnly use this if the app is completely broken.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'DELETE EVERYTHING',
+          style: 'destructive',
+          onPress: async () => {
+            setIsLoading(true);
+            try {
+              const { supabase } = await import('../utils/supabase');
+              const { data: { user } } = await supabase.auth.getUser();
+              
+              if (!user) {
+                Alert.alert('Error', 'Not logged in');
+                setIsLoading(false);
+                return;
+              }
+
+              // Delete all meetings
+              await supabase.from('meetings').delete().eq('user_id', user.id);
+              
+              // Delete all friends
+              await supabase.from('friends').delete().eq('user_id', user.id);
+
+              setIsLoading(false);
+              Alert.alert(
+                'Success',
+                'All data has been deleted. You can now start fresh!',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => (navigation as any).navigate('AddFriends')
+                  }
+                ]
+              );
+            } catch (error) {
+              console.error('Nuclear option error:', error);
+              setIsLoading(false);
+              Alert.alert('Error', 'Failed to delete data. Check console.');
+            }
+          }
+        }
+      ]
     );
-  };
-
-  const handlePrivacyPolicy = () => {
-    Linking.openURL('https://www.privacypolicies.com/live/213b96d7-30cf-4a41-a182-38624ac19603');
-  };
-
-  const handleTermsOfService = () => {
-    Alert.alert('Coming Soon', 'Terms of Service will be available soon.');
-  };
-
-  const handleAmbroziteStudios = () => {
-    Linking.openURL('https://ambrozitestudios.com');
-  };
-
-  const handleBatchNotifications = () => {
-    (navigation as any).navigate('BatchNotifications');
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Paywall Modal */}
-      <Modal
-        visible={showPaywall}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowPaywall(false)}
-      >
-        <Paywall 
-          onSuccess={handlePaywallSuccess}
-          onClose={() => setShowPaywall(false)}
-        />
-      </Modal>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#8000FF" />
+          <Text style={styles.loadingText}>Working...</Text>
+        </View>
+      )}
 
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={PURPLE} />
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.backButton}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <View style={styles.backButton} />
+        <Text style={styles.title}>Profile</Text>
+        <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-        {/* Profile Icon */}
-        <View style={styles.profileIconContainer}>
-          <View style={styles.profileIcon}>
-            <Ionicons name="person" size={48} color={PURPLE} />
-          </View>
-        </View>
-
-        {/* Debug Toggle (DEV only) */}
-        {__DEV__ && (
-          <View style={styles.debugSection}>
-            <TouchableOpacity 
-              style={[
-                styles.debugToggle,
-                debugPremiumEnabled && styles.debugToggleActive
-              ]}
-              onPress={handleDebugToggle}
-              activeOpacity={0.7}
-            >
-              <View style={styles.debugToggleLeft}>
-                <Ionicons 
-                  name="bug" 
-                  size={20} 
-                  color={debugPremiumEnabled ? '#FFFFFF' : '#FF6B00'} 
-                />
-                <Text style={[
-                  styles.debugToggleText,
-                  debugPremiumEnabled && styles.debugToggleTextActive
-                ]}>
-                  Test Premium Features
-                </Text>
-              </View>
-              <View style={[
-                styles.debugBadge,
-                debugPremiumEnabled && styles.debugBadgeActive
-              ]}>
-                <Text style={[
-                  styles.debugBadgeText,
-                  debugPremiumEnabled && styles.debugBadgeTextActive
-                ]}>
-                  {debugPremiumEnabled ? 'ON' : 'OFF'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-            <Text style={styles.debugNote}>
-              🔧 Developer mode: Toggle premium features for testing
-            </Text>
-          </View>
-        )}
-
-        {/* Membership Section */}
+      <ScrollView style={styles.content}>
+        {/* Membership Tier */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Membership</Text>
-          
-          <View style={styles.membershipCard}>
-            <View style={styles.membershipHeader}>
-              <View style={styles.membershipInfo}>
-                <Text style={styles.membershipLabel}>Current Tier</Text>
-                <View style={styles.tierBadgeContainer}>
-                  <View style={[
-                    styles.tierBadge,
-                    membershipTier === 'Pro' && styles.tierBadgePro
-                  ]}>
-                    <Text style={[
-                      styles.tierBadgeText,
-                      membershipTier === 'Pro' && styles.tierBadgeTextPro
-                    ]}>
-                      {membershipTier}
-                    </Text>
-                  </View>
-                  {membershipTier === 'Pro' && (
-                    <Ionicons name="star" size={16} color="#FFD700" style={styles.starIcon} />
-                  )}
-                </View>
-              </View>
-            </View>
-            
-            {membershipTier === 'Free' && (
-              <View style={styles.upgradePrompt}>
-                <TouchableOpacity 
-                  style={styles.upgradeButton}
-                  onPress={handleMembershipPress}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.upgradeButtonText}>
-                    Upgrade to Pro
-                  </Text>
-                  <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-            )}
+          <View style={[styles.tierBadge, isPremium && styles.tierBadgePremium]}>
+            <Text style={[styles.tierText, isPremium && styles.tierTextPremium]}>
+              {isPremium ? '⭐ Premium' : '🆓 Free'}
+            </Text>
           </View>
         </View>
 
-        {/* Premium Features Section */}
-        {membershipTier === 'Pro' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Premium Features</Text>
-            
-            <TouchableOpacity 
-              style={styles.menuItem}
-              onPress={handleBatchNotifications}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={styles.menuIconContainer}>
-                  <Ionicons name="notifications-outline" size={20} color={PURPLE} />
-                </View>
-                <Text style={styles.menuItemText}>Batch Notifications</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={MUTED} />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Account Section */}
+        {/* Emergency Recovery Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
+          <Text style={styles.sectionTitle}>🚨 Emergency Recovery</Text>
+          <Text style={styles.sectionDescription}>
+            Use these tools if the app is not working correctly
+          </Text>
           
-          <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={handleLogout}
+          <TouchableOpacity
+            style={styles.recoveryButton}
+            onPress={handleEmergencyCleanup}
+            disabled={isLoading}
           >
-            <View style={styles.menuItemLeft}>
-              <View style={styles.menuIconContainer}>
-                <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
-              </View>
-              <Text style={[styles.menuItemText, styles.logoutText]}>Log Out</Text>
-            </View>
+            <Text style={styles.recoveryButtonText}>🔧 Run Diagnostics & Cleanup</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.recoveryButton, styles.nuclearButton]}
+            onPress={handleNuclearOption}
+            disabled={isLoading}
+          >
+            <Text style={[styles.recoveryButtonText, styles.nuclearButtonText]}>
+              ☢️ Nuclear Option (Delete All Data)
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Legal Section */}
+        {/* Links Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Legal</Text>
           
-          <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={handlePrivacyPolicy}
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() => Linking.openURL('https://www.privacypolicies.com/live/213b96d7-30cf-4a41-a182-38624ac19603')}
           >
-            <View style={styles.menuItemLeft}>
-              <View style={styles.menuIconContainer}>
-                <Ionicons name="shield-checkmark-outline" size={20} color={PURPLE} />
-              </View>
-              <Text style={styles.menuItemText}>Privacy Policy</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={MUTED} />
+            <Text style={styles.linkButtonText}>Privacy Policy</Text>
           </TouchableOpacity>
 
-          <View style={styles.menuDivider} />
-
-          <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={handleTermsOfService}
+          <TouchableOpacity
+            style={styles.linkButton}
+            onPress={() => Alert.alert('Coming Soon', 'Terms & Conditions will be available soon.')}
           >
-            <View style={styles.menuItemLeft}>
-              <View style={styles.menuIconContainer}>
-                <Ionicons name="document-text-outline" size={20} color={PURPLE} />
-              </View>
-              <Text style={styles.menuItemText}>Terms of Service</Text>
-            </View>
-            <View style={styles.comingSoonBadge}>
-              <Text style={styles.comingSoonText}>Coming Soon</Text>
-            </View>
+            <Text style={styles.linkButtonText}>Terms & Conditions</Text>
           </TouchableOpacity>
         </View>
 
-        {/* App Info */}
-        <View style={styles.appInfo}>
-          <Text style={styles.appInfoText}>Friendo v1.0.0</Text>
-          <Text style={styles.appInfoText}>Made with 💜 by Daniel Lango</Text>
-          <Text style={[styles.appInfoText, styles.appInfoItalic]}>
-            (...during his freetime focusing on his personal hobby-project, Ambrozite Studios. Visit{' '}
-            <Text style={styles.appInfoLink} onPress={handleAmbroziteStudios}>
-              ambrozitestudios.com
-            </Text>
-            {' '}to learn more about it.)
+        {/* About Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.aboutText}>
+            Made with love by Daniel Lango, during his free time focusing on his personal hobby-project, Ambrozite Studios.
           </Text>
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://ambrozitestudios.com')}
+          >
+            <Text style={styles.linkText}>Visit ambrozitestudios.com</Text>
+          </TouchableOpacity>
         </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -333,256 +259,141 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: LIGHT_BG,
+    backgroundColor: '#F8F9FA',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginTop: 12,
+    fontWeight: '600',
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 15,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    fontSize: 16,
+    color: '#8000FF',
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: DARK,
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  placeholder: {
+    width: 50,
   },
   content: {
     flex: 1,
   },
-  contentContainer: {
-    paddingBottom: 40,
-  },
-  profileIconContainer: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
-  profileIcon: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#F3EDFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: PURPLE,
-  },
-  debugSection: {
-    paddingHorizontal: 20,
-    marginTop: 16,
-  },
-  debugToggle: {
-    backgroundColor: '#FFF4E6',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 2,
-    borderColor: '#FF6B00',
-  },
-  debugToggleActive: {
-    backgroundColor: '#FF6B00',
-    borderColor: '#FF6B00',
-  },
-  debugToggleLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  debugToggleText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FF6B00',
-  },
-  debugToggleTextActive: {
-    color: '#FFFFFF',
-  },
-  debugBadge: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  debugBadgeActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  debugBadgeText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#FF6B00',
-  },
-  debugBadgeTextActive: {
-    color: '#FFFFFF',
-  },
-  debugNote: {
-    fontSize: 11,
-    color: '#999999',
-    marginTop: 8,
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
   section: {
-    marginTop: 24,
+    backgroundColor: '#FFFFFF',
+    marginTop: 16,
     paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E0E0E0',
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: MUTED,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333333',
     marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
-  membershipCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  membershipHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  membershipInfo: {
-    flex: 1,
-  },
-  membershipLabel: {
+  sectionDescription: {
     fontSize: 14,
-    color: MUTED,
-    marginBottom: 8,
-  },
-  tierBadgeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    color: '#666666',
+    marginBottom: 16,
+    lineHeight: 20,
   },
   tierBadge: {
     backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    alignSelf: 'flex-start',
   },
-  tierBadgePro: {
-    backgroundColor: '#F3EDFF',
+  tierBadgePremium: {
+    backgroundColor: '#FFF9E6',
+    borderWidth: 1,
+    borderColor: '#FFD700',
   },
-  tierBadgeText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: DARK,
-  },
-  tierBadgeTextPro: {
-    color: PURPLE,
-  },
-  starIcon: {
-    marginLeft: 8,
-  },
-  upgradePrompt: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-  },
-  upgradeButton: {
-    backgroundColor: PURPLE,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    gap: 8,
-    shadowColor: PURPLE,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  upgradeButtonText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  menuIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F8F9FA',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  menuItemText: {
+  tierText: {
     fontSize: 16,
     fontWeight: '600',
-    color: DARK,
+    color: '#666666',
   },
-  logoutText: {
-    color: '#FF3B30',
-  },
-  menuDivider: {
-    height: 1,
-    backgroundColor: '#F0F0F0',
-    marginVertical: 4,
-  },
-  comingSoonBadge: {
-    backgroundColor: '#FFF4E6',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  comingSoonText: {
-    fontSize: 11,
-    fontWeight: '700',
+  tierTextPremium: {
     color: '#F59E0B',
   },
-  appInfo: {
+  recoveryButton: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 12,
     alignItems: 'center',
-    marginTop: 32,
-    paddingHorizontal: 20,
   },
-  appInfoText: {
-    fontSize: 12,
-    color: MUTED,
-    marginBottom: 4,
-    textAlign: 'center',
+  nuclearButton: {
+    backgroundColor: '#EF4444',
   },
-  appInfoItalic: {
-    fontStyle: 'italic',
+  recoveryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
-  appInfoLink: {
-    fontSize: 12,
-    color: PURPLE,
-    marginBottom: 4,
-    textAlign: 'center',
+  nuclearButtonText: {
+    color: '#FFFFFF',
+  },
+  linkButton: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  linkButtonText: {
+    fontSize: 16,
+    color: '#8000FF',
+  },
+  aboutText: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  linkText: {
+    fontSize: 14,
+    color: '#007AFF',
     textDecorationLine: 'underline',
-    fontStyle: 'italic',
+  },
+  logoutButton: {
+    backgroundColor: '#FF4444',
+    borderRadius: 8,
+    paddingVertical: 16,
+    marginHorizontal: 20,
+    marginVertical: 30,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
