@@ -10,9 +10,11 @@ import {
   Modal,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getFriends, addFriend } from '../utils/storage';
+import { getFriends, addFriend, getUser } from '../utils/storage';
+import { uploadProfilePicture } from '../utils/imageUpload';
 import Paywall from '../components/Paywall';
 import BirthdaySettings from '../components/BirthdaySettings';
 import PhotoUploadModal from '../components/PhotoUploadModal';
@@ -30,6 +32,7 @@ export default function ManualAddScreen() {
   const [birthdayNotificationEnabled, setBirthdayNotificationEnabled] = useState(false);
   const [profilePictureUri, setProfilePictureUri] = useState<string | undefined>(undefined);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   const navigation = useNavigation();
 
@@ -64,6 +67,8 @@ export default function ManualAddScreen() {
     }
 
     try {
+      setIsUploading(true);
+      
       // Check friend limit
       const friends = await getFriends();
       const maxFriends = isPremium ? 1000 : 50;
@@ -74,7 +79,23 @@ export default function ManualAddScreen() {
           `You can only add up to ${maxFriends} friends${!isPremium ? '. Upgrade to Premium for up to 1000 friends!' : '.'}`,
           [{ text: 'OK' }]
         );
+        setIsUploading(false);
         return;
+      }
+      
+      // Upload profile picture if provided
+      let uploadedImageUrl: string | undefined = undefined;
+      if (profilePictureUri) {
+        const user = await getUser();
+        if (user) {
+          console.log('Uploading profile picture...');
+          uploadedImageUrl = await uploadProfilePicture(profilePictureUri, user.id);
+          if (!uploadedImageUrl) {
+            Alert.alert('Warning', 'Failed to upload profile picture. Friend will be added without it.');
+          } else {
+            console.log('Profile picture uploaded:', uploadedImageUrl);
+          }
+        }
       }
       
       await addFriend({
@@ -84,7 +105,7 @@ export default function ManualAddScreen() {
         isOnline,
         isLocal,
         profilePicture: '👤',
-        profilePictureUri,
+        profilePictureUri: uploadedImageUrl, // Use the uploaded URL
         city: '',
         source: 'manual',
         notificationFrequency: 'monthly',
@@ -92,6 +113,8 @@ export default function ManualAddScreen() {
         birthday,
         birthdayNotificationEnabled,
       });
+
+      setIsUploading(false);
 
       // Check if we should show the paywall (once per day)
       const shouldShow = await shouldShowPaywall();
@@ -122,6 +145,7 @@ export default function ManualAddScreen() {
       }
     } catch (error) {
       console.error('Error adding friend:', error);
+      setIsUploading(false);
       Alert.alert('Error', 'Failed to add friend. Please try again.');
     }
   };
@@ -164,6 +188,13 @@ export default function ManualAddScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {isUploading && (
+        <View style={styles.uploadingOverlay}>
+          <ActivityIndicator size="large" color="#8000FF" />
+          <Text style={styles.uploadingText}>Uploading...</Text>
+        </View>
+      )}
+      
       <View style={styles.header}>
         <TouchableOpacity onPress={handleCancel}>
           <Text style={styles.backButton}>← Back</Text>
@@ -472,5 +503,22 @@ const styles = StyleSheet.create({
   photoPlaceholderText: {
     fontSize: 12,
     color: '#666666',
+  },
+  uploadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  uploadingText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginTop: 12,
+    fontWeight: '600',
   },
 });

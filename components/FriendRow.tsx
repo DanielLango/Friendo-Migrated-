@@ -7,15 +7,17 @@ import {
   Alert,
   Pressable,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Friend, Meeting } from '../types';
 import NotificationModal from './NotificationModal';
 import CancellationModal from './CancellationModal';
 import PhotoUploadModal from './PhotoUploadModal';
 import BirthdaySettings from './BirthdaySettings';
-import { getMeetings, saveMeetings } from '../utils/storage';
+import { getMeetings, saveMeetings, getUser } from '../utils/storage';
 import { saveFriends, getFriends } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
+import { uploadProfilePicture } from '../utils/imageUpload';
 
 interface FriendRowProps {
   friend: Friend;
@@ -41,6 +43,7 @@ export default function FriendRow({
   const [isPremium, setIsPremium] = useState(false);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [showBirthdaySettings, setShowBirthdaySettings] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [pressingMeetingId, setPressingMeetingId] = useState<string | null>(null);
@@ -128,17 +131,45 @@ export default function FriendRow({
 
   const handlePhotoUpload = async (uri: string) => {
     try {
+      setIsUploadingPhoto(true);
+      
+      // Upload to Supabase Storage
+      const user = await getUser();
+      if (!user) {
+        Alert.alert('Error', 'You must be logged in to upload photos');
+        setIsUploadingPhoto(false);
+        return;
+      }
+
+      console.log('Uploading profile picture for friend:', friend.name);
+      const uploadedUrl = await uploadProfilePicture(uri, user.id);
+      
+      if (!uploadedUrl) {
+        Alert.alert('Error', 'Failed to upload photo. Please try again.');
+        setIsUploadingPhoto(false);
+        return;
+      }
+
+      console.log('Photo uploaded successfully:', uploadedUrl);
+
+      // Update friend with the uploaded URL
       const allFriends = await getFriends();
       const updatedFriends = allFriends.map(f => {
         if (f.id === friend.id) {
-          return { ...f, profilePictureUri: uri };
+          return { ...f, profilePictureUri: uploadedUrl };
         }
         return f;
       });
       await saveFriends(updatedFriends);
+      
+      setIsUploadingPhoto(false);
       if (onDataChange) onDataChange();
+      
+      Alert.alert('Success', 'Profile picture updated!');
     } catch (error) {
       console.error('Error updating profile picture:', error);
+      setIsUploadingPhoto(false);
+      Alert.alert('Error', 'Failed to update profile picture');
     }
   };
 
@@ -354,6 +385,12 @@ export default function FriendRow({
       onPress={() => deleteMode && onScheduleNext(friend)}
       disabled={!deleteMode}
     >
+      {isUploadingPhoto && (
+        <View style={styles.uploadingOverlay}>
+          <ActivityIndicator size="small" color="#8000FF" />
+        </View>
+      )}
+      
       {deleteMode && (
         <View style={styles.deleteOverlay}>
           <Text style={styles.deleteIcon}>🗑️</Text>
@@ -790,5 +827,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  uploadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    zIndex: 999,
   },
 });
