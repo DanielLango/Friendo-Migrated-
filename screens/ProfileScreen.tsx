@@ -13,21 +13,38 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { logout } from '../utils/storage';
-import { isPremiumUser } from '../utils/premiumFeatures';
+import { isPremiumUser, toggleDebugPremium, getDebugPremiumStatus } from '../utils/premiumFeatures';
 import Paywall from '../components/Paywall';
 
 export default function ProfileScreen() {
   const [isPremium, setIsPremium] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [debugPremium, setDebugPremium] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
     checkPremiumStatus();
+    loadDebugStatus();
   }, []);
 
   const checkPremiumStatus = async () => {
     const premium = await isPremiumUser();
     setIsPremium(premium);
+  };
+
+  const loadDebugStatus = async () => {
+    const status = await getDebugPremiumStatus();
+    setDebugPremium(status);
+  };
+
+  const handleToggleDebugPremium = async () => {
+    const newStatus = await toggleDebugPremium();
+    setDebugPremium(newStatus);
+    await checkPremiumStatus();
+    Alert.alert(
+      'Debug Premium',
+      `Premium features ${newStatus ? 'ENABLED' : 'DISABLED'} for testing`
+    );
   };
 
   const handleUpgradeToPro = () => {
@@ -98,6 +115,18 @@ export default function ProfileScreen() {
               <TouchableOpacity style={styles.upgradeButton} onPress={handleUpgradeToPro}>
                 <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
                 <MaterialIcons name="arrow-forward" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
+
+            {/* Debug Toggle Button (DEV only) */}
+            {__DEV__ && (
+              <TouchableOpacity 
+                style={styles.debugButton} 
+                onPress={handleToggleDebugPremium}
+              >
+                <Text style={styles.debugButtonText}>
+                  🧪 Debug: {debugPremium ? 'Premium ON' : 'Premium OFF'}
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -259,6 +288,18 @@ const styles = StyleSheet.create({
   },
   upgradeButtonText: {
     fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  debugButton: {
+    backgroundColor: '#F97316',
+    paddingVertical: 12,
+    borderRadius: 20,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  debugButtonText: {
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
