@@ -123,11 +123,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Clear Meetings Button */}
-        <TouchableOpacity style={styles.clearButton} onPress={handleClearMeetings}>
-          <Text style={styles.clearButtonText}>Clear All Meetings</Text>
-        </TouchableOpacity>
-
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>
