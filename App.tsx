@@ -11,6 +11,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 // Import screens
@@ -25,8 +28,11 @@ import MainScreen from './screens/MainScreen';
 import StatsScreen from './screens/StatsScreen';
 import MeetingCreateScreen from './screens/MeetingCreateScreen';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import ProfileScreen from './screens/ProfileScreen';
 import BatchNotificationsScreen from './screens/BatchNotificationsScreen';
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 
@@ -42,8 +48,11 @@ export type RootStackParamList = {
   Stats: undefined;
   MeetingCreate: undefined;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   Profile: undefined;
   BatchNotifications: undefined;
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 };
@@ -62,6 +71,7 @@ export default function App() {
   
   return (
     <SafeAreaProvider>
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
       <NavigationContainer>
         <Stack.Navigator 
@@ -86,6 +96,8 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
 =======
+=======
+>>>>>>> Stashed changes
       <BasicProvider project_id={schema.project_id} schema={schema}>
         <NavigationContainer>
           <Stack.Navigator 
@@ -108,6 +120,9 @@ export default function App() {
           </Stack.Navigator>
         </NavigationContainer>
       </BasicProvider>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     </SafeAreaProvider>
   );
