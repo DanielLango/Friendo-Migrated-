@@ -16,6 +16,7 @@ import Paywall from '../components/Paywall';
 import { getFriends, getMeetings, deleteFriend, deleteMeetingsByFriendId, logout } from '../utils/storage';
 import { shouldShowPaywall, markPaywallShown } from '../utils/paywallUtils';
 import { isPremiumUser } from '../utils/premiumFeatures';
+import { cleanupOrphanedMeetings, getDatabaseDiagnostics } from '../utils/dataRecovery';
 
 export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -210,6 +211,52 @@ export default function MainScreen() {
     Alert.alert('Test Complete', 'Check the console for results');
   };
 
+  const handleDiagnostics = async () => {
+    const diagnostics = await getDatabaseDiagnostics();
+    
+    if ('error' in diagnostics) {
+      Alert.alert('Error', diagnostics.error);
+      return;
+    }
+
+    const message = `
+Friends: ${diagnostics.friendsCount}
+Meetings: ${diagnostics.meetingsCount}
+Orphaned Meetings: ${diagnostics.orphanedMeetingsCount}
+
+${diagnostics.orphanedMeetingsCount > 0 ? 'You have orphaned meetings (meetings without friends). Would you like to clean them up?' : 'Everything looks good!'}
+    `.trim();
+
+    console.log('=== DATABASE DIAGNOSTICS ===');
+    console.log(JSON.stringify(diagnostics, null, 2));
+
+    if (diagnostics.orphanedMeetingsCount > 0) {
+      Alert.alert(
+        'Database Diagnostics',
+        message,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Clean Up',
+            style: 'destructive',
+            onPress: async () => {
+              const result = await cleanupOrphanedMeetings();
+              Alert.alert(
+                result.success ? 'Success' : 'Error',
+                result.message
+              );
+              if (result.success) {
+                await loadData();
+              }
+            }
+          }
+        ]
+      );
+    } else {
+      Alert.alert('Database Diagnostics', message);
+    }
+  };
+
   const getFriendMeetings = (friendId: string) => {
     const currentYear = new Date().getFullYear();
     
@@ -373,8 +420,8 @@ export default function MainScreen() {
           <Text style={styles.navButtonText}>👤 Profile</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navButton} onPress={handleTestSupabase}>
-          <Text style={styles.navButtonText}>🔧 Test DB</Text>
+        <TouchableOpacity style={styles.navButton} onPress={handleDiagnostics}>
+          <Text style={styles.navButtonText}>🔧 Fix DB</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
