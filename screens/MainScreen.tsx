@@ -288,6 +288,7 @@ export default function MainScreen() {
       onScheduleNext={handleScheduleNext}
       onMeetingPress={handleMeetingPress}
       deleteMode={deleteMode}
+      onDataChange={loadData}
     />
   );
 

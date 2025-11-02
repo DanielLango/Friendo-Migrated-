@@ -23,6 +23,7 @@ interface FriendRowProps {
   onScheduleNext: (friend: Friend) => void;
   onMeetingPress: (meeting: Meeting) => void;
   deleteMode?: boolean;
+  onDataChange?: () => void;
 }
 
 export default function FriendRow({ 
@@ -30,7 +31,8 @@ export default function FriendRow({
   meetings, 
   onScheduleNext, 
   onMeetingPress,
-  deleteMode = false
+  deleteMode = false,
+  onDataChange
 }: FriendRowProps) {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showAllMeetings, setShowAllMeetings] = useState(false);
@@ -117,6 +119,7 @@ export default function FriendRow({
         return f;
       });
       await saveFriends(updatedFriends);
+      if (onDataChange) onDataChange();
     } catch (error) {
       console.error('Error toggling favorite:', error);
     }
@@ -132,6 +135,7 @@ export default function FriendRow({
         return f;
       });
       await saveFriends(updatedFriends);
+      if (onDataChange) onDataChange();
     } catch (error) {
       console.error('Error updating profile picture:', error);
     }
@@ -147,6 +151,7 @@ export default function FriendRow({
         return f;
       });
       await saveFriends(updatedFriends);
+      if (onDataChange) onDataChange();
     } catch (error) {
       console.error('Error updating birthday:', error);
     }
@@ -403,21 +408,24 @@ export default function FriendRow({
             <Text style={styles.typeText}>
               {friend.friendType === 'online' ? 'Online' : 'Local'}
             </Text>
-            
-            {/* Premium: Birthday indicator */}
-            {isPremium && friend.birthday && (
-              <TouchableOpacity
-                style={styles.birthdayIndicator}
-                onPress={() => !deleteMode && setShowBirthdaySettings(true)}
-                disabled={deleteMode}
-              >
-                <Text style={styles.birthdayIcon}>🎂</Text>
-                <Text style={styles.birthdayText}>{friend.birthday}</Text>
-              </TouchableOpacity>
-            )}
           </View>
         </View>
       </View>
+
+      {/* Premium: Birthday - Thin grey italic line above tokens */}
+      {isPremium && friend.birthday && (
+        <TouchableOpacity
+          style={styles.birthdayRow}
+          onPress={() => !deleteMode && setShowBirthdaySettings(true)}
+          disabled={deleteMode}
+        >
+          <Text style={styles.birthdayRowText}>Birthday: {friend.birthday}</Text>
+          <Text style={styles.birthdayRowText}>Birthday Notification</Text>
+          <View style={[styles.notificationToggle, friend.birthdayNotificationEnabled && styles.notificationToggleOn]}>
+            <View style={[styles.notificationToggleThumb, friend.birthdayNotificationEnabled && styles.notificationToggleThumbOn]} />
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Meetings Section */}
       <View style={styles.meetingsSection}>
@@ -636,24 +644,41 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginRight: 12,
   },
-  birthdayIndicator: {
+  birthdayRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF9E6',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#FFE082',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
-  birthdayIcon: {
+  birthdayRowText: {
     fontSize: 12,
-    marginRight: 4,
+    color: '#999999',
+    fontStyle: 'italic',
   },
-  birthdayText: {
-    fontSize: 11,
-    color: '#666666',
-    fontWeight: '600',
+  notificationToggle: {
+    width: 40,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#E0E0E0',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  notificationToggleOn: {
+    backgroundColor: '#4CAF50',
+  },
+  notificationToggleThumb: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    alignSelf: 'flex-start',
+  },
+  notificationToggleThumbOn: {
+    alignSelf: 'flex-end',
   },
   meetingsSection: {
     marginBottom: 12,
