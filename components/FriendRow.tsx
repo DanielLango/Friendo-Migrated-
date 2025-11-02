@@ -99,6 +99,7 @@ export default function FriendRow({
 
   console.log(`Friend ${friend.name} has ${yearMeetings.length} meetings this year to display`);
   console.log(`Display meetings:`, displayMeetings.map(m => ({ id: m.id, status: m.status })));
+  console.log(`displayMeetings.length: ${displayMeetings.length}`);
 
   useEffect(() => {
     checkPremiumStatus();
@@ -429,39 +430,45 @@ export default function FriendRow({
 
       {/* Meetings Section */}
       <View style={styles.meetingsSection}>
-        <View style={styles.meetingsContainer}>
-          {displayMeetings.map((meeting, index) => (
-            <Pressable
-              key={meeting.id}
-              style={[
-                getTokenStyle(meeting),
-                pressingMeetingId === meeting.id && styles.tokenPressing
-              ]}
-              onPress={() => handleTokenPress(meeting)}
-              onPressIn={() => handleLongPressStart(meeting.id)}
-              onPressOut={handleLongPressEnd}
-              disabled={deleteMode}
-            >
-              <Text style={styles.tokenText}>{getTokenText(meeting)}</Text>
-            </Pressable>
-          ))}
-          {hasMoreMeetings && !showAllMeetings && (
-            <TouchableOpacity
-              style={styles.moreToken}
-              onPress={() => !deleteMode && setShowAllMeetings(true)}
-              disabled={deleteMode}
-            >
-              <Text style={styles.moreText}>+{yearMeetings.length - 5}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        {showAllMeetings && hasMoreMeetings && (
-          <TouchableOpacity 
-            onPress={() => !deleteMode && setShowAllMeetings(false)}
-            disabled={deleteMode}
-          >
-            <Text style={styles.showLessText}>Show less</Text>
-          </TouchableOpacity>
+        {displayMeetings.length === 0 ? (
+          <Text style={styles.noMeetingsText}>No meetings this year</Text>
+        ) : (
+          <>
+            <View style={styles.meetingsContainer}>
+              {displayMeetings.map((meeting, index) => (
+                <Pressable
+                  key={meeting.id}
+                  style={[
+                    getTokenStyle(meeting),
+                    pressingMeetingId === meeting.id && styles.tokenPressing
+                  ]}
+                  onPress={() => handleTokenPress(meeting)}
+                  onPressIn={() => handleLongPressStart(meeting.id)}
+                  onPressOut={handleLongPressEnd}
+                  disabled={deleteMode}
+                >
+                  <Text style={styles.tokenText}>{getTokenText(meeting)}</Text>
+                </Pressable>
+              ))}
+              {hasMoreMeetings && !showAllMeetings && (
+                <TouchableOpacity
+                  style={styles.moreToken}
+                  onPress={() => !deleteMode && setShowAllMeetings(true)}
+                  disabled={deleteMode}
+                >
+                  <Text style={styles.moreText}>+{yearMeetings.length - 5}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            {showAllMeetings && hasMoreMeetings && (
+              <TouchableOpacity 
+                onPress={() => !deleteMode && setShowAllMeetings(false)}
+                disabled={deleteMode}
+              >
+                <Text style={styles.showLessText}>Show less</Text>
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
 
@@ -755,6 +762,11 @@ const styles = StyleSheet.create({
     color: '#8000FF',
     marginTop: 4,
     textAlign: 'center',
+  },
+  noMeetingsText: {
+    fontSize: 12,
+    color: '#999999',
+    fontStyle: 'italic',
   },
   birthdaySettingsModal: {
     position: 'absolute',
