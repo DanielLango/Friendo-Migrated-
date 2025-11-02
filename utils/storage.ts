@@ -410,8 +410,15 @@ export const saveMeetings = async (meetings: Meeting[]) => {
 
 export const getMeetings = async (): Promise<Meeting[]> => {
   try {
+    console.log('=== GET MEETINGS START ===');
+    
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
+    if (!user) {
+      console.log('No user logged in');
+      return [];
+    }
+    
+    console.log('Fetching meetings for user:', user.id);
 
     const { data, error } = await supabase
       .from('meetings')
@@ -419,7 +426,12 @@ export const getMeetings = async (): Promise<Meeting[]> => {
       .eq('user_id', user.id)
       .order('date', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase fetch error:', error);
+      throw error;
+    }
+    
+    console.log('Raw data from Supabase:', data);
     
     // Transform snake_case to camelCase INCLUDING PREMIUM FIELDS
     const meetings = (data || []).map(meeting => ({
@@ -436,6 +448,9 @@ export const getMeetings = async (): Promise<Meeting[]> => {
     }));
     
     console.log(`Loaded ${meetings.length} meetings from Supabase`);
+    console.log('Transformed meetings:', meetings);
+    console.log('=== GET MEETINGS END ===');
+    
     return meetings;
   } catch (error) {
     console.error('Error getting meetings:', error);
@@ -445,8 +460,13 @@ export const getMeetings = async (): Promise<Meeting[]> => {
 
 export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
   try {
+    console.log('=== ADD MEETING START ===');
+    console.log('Meeting data to add:', meeting);
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('No user logged in');
+    
+    console.log('User ID:', user.id);
 
     const newMeeting = {
       user_id: user.id,
@@ -460,6 +480,8 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
       cancelledby: meeting.cancelledBy, // Premium
       created_at: typeof meeting.createdAt === 'number' ? meeting.createdAt : Date.now(),
     };
+    
+    console.log('Formatted meeting for Supabase:', newMeeting);
 
     const { data, error } = await supabase
       .from('meetings')
@@ -467,10 +489,15 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
+    
+    console.log('Meeting inserted successfully:', data);
     
     // Transform response back to camelCase INCLUDING PREMIUM FIELDS
-    return {
+    const result = {
       id: data.id,
       friendId: data.friend_id,
       date: data.date,
@@ -482,6 +509,11 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
       cancelledBy: data.cancelledby, // Premium
       createdAt: data.created_at,
     };
+    
+    console.log('Returning meeting:', result);
+    console.log('=== ADD MEETING END ===');
+    
+    return result;
   } catch (error) {
     console.error('Error adding meeting:', error);
     return null;
