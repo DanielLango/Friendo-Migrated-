@@ -326,39 +326,39 @@ const styles = StyleSheet.create({
   },
   tierBadge: {
     backgroundColor: '#F0F0F0',
-    borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     alignSelf: 'flex-start',
   },
   tierBadgePremium: {
-    backgroundColor: '#FFF9E6',
+    backgroundColor: '#FFF7ED',
     borderWidth: 1,
-    borderColor: '#FFD700',
+    borderColor: '#FDBA74',
   },
   tierText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#666666',
   },
   tierTextPremium: {
-    color: '#F59E0B',
+    color: '#EA580C',
   },
   recoveryButton: {
     backgroundColor: '#3B82F6',
-    borderRadius: 8,
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     marginBottom: 12,
-    alignItems: 'center',
-  },
-  nuclearButton: {
-    backgroundColor: '#EF4444',
   },
   recoveryButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  nuclearButton: {
+    backgroundColor: '#EF4444',
   },
   nuclearButtonText: {
     color: '#FFFFFF',
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E0E0E0',
   },
   linkButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#8000FF',
   },
   aboutText: {
@@ -384,16 +384,16 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   logoutButton: {
-    backgroundColor: '#FF4444',
-    borderRadius: 8,
-    paddingVertical: 16,
+    backgroundColor: '#EF4444',
     marginHorizontal: 20,
     marginVertical: 30,
-    alignItems: 'center',
+    paddingVertical: 14,
+    borderRadius: 8,
   },
   logoutButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
