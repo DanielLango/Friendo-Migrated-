@@ -6,10 +6,13 @@ import {
   StyleSheet,
   Alert,
   Pressable,
+  Image,
 } from 'react-native';
 import { Friend, Meeting } from '../types';
 import NotificationModal from './NotificationModal';
 import CancellationModal from './CancellationModal';
+import PhotoUploadModal from './PhotoUploadModal';
+import BirthdaySettings from './BirthdaySettings';
 import { getMeetings, saveMeetings } from '../utils/storage';
 import { saveFriends, getFriends } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
@@ -34,6 +37,8 @@ export default function FriendRow({
   const [showCancellationModal, setShowCancellationModal] = useState(false);
   const [selectedMeetingForCancellation, setSelectedMeetingForCancellation] = useState<Meeting | null>(null);
   const [isPremium, setIsPremium] = useState(false);
+  const [showPhotoUpload, setShowPhotoUpload] = useState(false);
+  const [showBirthdaySettings, setShowBirthdaySettings] = useState(false);
   
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [pressingMeetingId, setPressingMeetingId] = useState<string | null>(null);
@@ -117,11 +122,41 @@ export default function FriendRow({
     }
   };
 
+  const handlePhotoUpload = async (uri: string) => {
+    try {
+      const allFriends = await getFriends();
+      const updatedFriends = allFriends.map(f => {
+        if (f.id === friend.id) {
+          return { ...f, profilePictureUri: uri };
+        }
+        return f;
+      });
+      await saveFriends(updatedFriends);
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+    }
+  };
+
+  const handleBirthdayUpdate = async (updates: Partial<Friend>) => {
+    try {
+      const allFriends = await getFriends();
+      const updatedFriends = allFriends.map(f => {
+        if (f.id === friend.id) {
+          return { ...f, ...updates };
+        }
+        return f;
+      });
+      await saveFriends(updatedFriends);
+    } catch (error) {
+      console.error('Error updating birthday:', error);
+    }
+  };
+
   const handleLongPressStart = (meetingId: string) => {
     setPressingMeetingId(meetingId);
     longPressTimer.current = setTimeout(() => {
       handleLongPressComplete(meetingId);
-    }, 3000); // 3 seconds
+    }, 1000); // Changed from 3000 to 1000 (1 second)
   };
 
   const handleLongPressEnd = () => {
@@ -328,21 +363,29 @@ export default function FriendRow({
         >
           <Text style={styles.bellIcon}>🔔</Text>
         </TouchableOpacity>
+        
+        {/* Premium: Profile Picture */}
+        {isPremium && friend.profilePictureUri ? (
+          <TouchableOpacity
+            style={styles.profilePictureContainer}
+            onPress={() => !deleteMode && setShowPhotoUpload(true)}
+            disabled={deleteMode}
+          >
+            <Image source={{ uri: friend.profilePictureUri }} style={styles.profilePicture} />
+          </TouchableOpacity>
+        ) : isPremium ? (
+          <TouchableOpacity
+            style={styles.profilePicturePlaceholder}
+            onPress={() => !deleteMode && setShowPhotoUpload(true)}
+            disabled={deleteMode}
+          >
+            <Text style={styles.profilePicturePlaceholderText}>📷</Text>
+          </TouchableOpacity>
+        ) : null}
+        
         <View style={styles.nameSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{friend.name}</Text>
-            
-            {/* Premium: Favorite Star */}
-            {isPremium && !deleteMode && (
-              <TouchableOpacity
-                style={styles.favoriteButton}
-                onPress={handleToggleFavorite}
-              >
-                <Text style={styles.favoriteIcon}>
-                  {friend.isFavorite ? '⭐' : '☆'}
-                </Text>
-              </TouchableOpacity>
-            )}
             
             {!deleteMode && (
               <TouchableOpacity
@@ -360,6 +403,18 @@ export default function FriendRow({
             <Text style={styles.typeText}>
               {friend.friendType === 'online' ? 'Online' : 'Local'}
             </Text>
+            
+            {/* Premium: Birthday indicator */}
+            {isPremium && friend.birthday && (
+              <TouchableOpacity
+                style={styles.birthdayIndicator}
+                onPress={() => !deleteMode && setShowBirthdaySettings(true)}
+                disabled={deleteMode}
+              >
+                <Text style={styles.birthdayIcon}>🎂</Text>
+                <Text style={styles.birthdayText}>{friend.birthday}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -402,6 +457,18 @@ export default function FriendRow({
         )}
       </View>
 
+      {/* Premium: Favorite Star - Bottom Right Corner */}
+      {isPremium && !deleteMode && (
+        <TouchableOpacity
+          style={styles.favoriteButton}
+          onPress={handleToggleFavorite}
+        >
+          <Text style={styles.favoriteIcon}>
+            {friend.isFavorite ? '⭐' : '☆'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
       <CancellationModal
         visible={showCancellationModal}
         friendName={friend.name}
@@ -418,6 +485,32 @@ export default function FriendRow({
         friend={friend}
         onClose={() => setShowNotificationModal(false)}
       />
+
+      {/* Premium: Photo Upload Modal */}
+      {isPremium && (
+        <PhotoUploadModal
+          visible={showPhotoUpload}
+          friendName={friend.name}
+          onUpload={handlePhotoUpload}
+          onClose={() => setShowPhotoUpload(false)}
+        />
+      )}
+
+      {/* Premium: Birthday Settings Modal */}
+      {isPremium && showBirthdaySettings && (
+        <View style={styles.birthdaySettingsModal}>
+          <BirthdaySettings
+            friend={friend}
+            onUpdate={handleBirthdayUpdate}
+          />
+          <TouchableOpacity
+            style={styles.closeBirthdayButton}
+            onPress={() => setShowBirthdaySettings(false)}
+          >
+            <Text style={styles.closeBirthdayButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
@@ -465,6 +558,31 @@ const styles = StyleSheet.create({
   bellIcon: {
     fontSize: 18,
   },
+  profilePictureContainer: {
+    marginRight: 12,
+  },
+  profilePicture: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#8000FF',
+  },
+  profilePicturePlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderStyle: 'dashed',
+  },
+  profilePicturePlaceholderText: {
+    fontSize: 16,
+  },
   nameSection: {
     flex: 1,
     minWidth: 0,
@@ -495,15 +613,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   favoriteButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
     padding: 4,
-    marginRight: 8,
+    zIndex: 10,
   },
   favoriteIcon: {
-    fontSize: 20,
+    fontSize: 24,
   },
   typeIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
   },
   typeIcon: {
     fontSize: 14,
@@ -512,6 +634,26 @@ const styles = StyleSheet.create({
   typeText: {
     fontSize: 14,
     color: '#666666',
+    marginRight: 12,
+  },
+  birthdayIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF9E6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FFE082',
+  },
+  birthdayIcon: {
+    fontSize: 12,
+    marginRight: 4,
+  },
+  birthdayText: {
+    fontSize: 11,
+    color: '#666666',
+    fontWeight: '600',
   },
   meetingsSection: {
     marginBottom: 12,
@@ -588,5 +730,28 @@ const styles = StyleSheet.create({
     color: '#8000FF',
     marginTop: 4,
     textAlign: 'center',
+  },
+  birthdaySettingsModal: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    zIndex: 100,
+  },
+  closeBirthdayButton: {
+    backgroundColor: '#8000FF',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  closeBirthdayButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

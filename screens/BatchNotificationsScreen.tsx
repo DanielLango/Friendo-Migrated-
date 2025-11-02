@@ -28,8 +28,13 @@ export default function BatchNotificationsScreen() {
   }, []);
 
   const loadFriends = async () => {
-    const friendsData = await getFriends();
-    setFriends(friendsData);
+    try {
+      const friendsData = await getFriends();
+      setFriends(friendsData);
+    } catch (error) {
+      console.error('Error loading friends:', error);
+      Alert.alert('Error', 'Failed to load friends. Please try again.');
+    }
   };
 
   const toggleFriendSelection = (friendId: string) => {
@@ -81,31 +86,38 @@ export default function BatchNotificationsScreen() {
             Choose which friends to include in this batch notification
           </Text>
           
-          <View style={styles.friendsList}>
-            {friends.map((friend) => (
-              <TouchableOpacity
-                key={friend.id}
-                style={[
-                  styles.friendItem,
-                  selectedFriends.has(friend.id) && styles.friendItemSelected
-                ]}
-                onPress={() => toggleFriendSelection(friend.id)}
-              >
-                <View style={styles.friendInfo}>
-                  <Text style={styles.friendName}>{friend.name}</Text>
-                  <Text style={styles.friendType}>{friend.friendType}</Text>
-                </View>
-                <View style={[
-                  styles.checkbox,
-                  selectedFriends.has(friend.id) && styles.checkboxChecked
-                ]}>
-                  {selectedFriends.has(friend.id) && (
-                    <Text style={styles.checkmark}>✓</Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {friends.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No friends added yet</Text>
+              <Text style={styles.emptyStateSubtext}>Add friends first to use batch notifications</Text>
+            </View>
+          ) : (
+            <View style={styles.friendsList}>
+              {friends.map((friend) => (
+                <TouchableOpacity
+                  key={friend.id}
+                  style={[
+                    styles.friendItem,
+                    selectedFriends.has(friend.id) && styles.friendItemSelected
+                  ]}
+                  onPress={() => toggleFriendSelection(friend.id)}
+                >
+                  <View style={styles.friendInfo}>
+                    <Text style={styles.friendName}>{friend.name}</Text>
+                    <Text style={styles.friendType}>{friend.friendType}</Text>
+                  </View>
+                  <View style={[
+                    styles.checkbox,
+                    selectedFriends.has(friend.id) && styles.checkboxChecked
+                  ]}>
+                    {selectedFriends.has(friend.id) && (
+                      <Text style={styles.checkmark}>✓</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -234,7 +246,14 @@ export default function BatchNotificationsScreen() {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+        <TouchableOpacity 
+          style={[
+            styles.saveButton,
+            selectedFriends.size === 0 && styles.saveButtonDisabled
+          ]} 
+          onPress={handleSave}
+          disabled={selectedFriends.size === 0}
+        >
           <Text style={styles.saveButtonText}>Save Batch Notifications</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -288,6 +307,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     marginBottom: 16,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 12,
+    color: '#999999',
   },
   friendsList: {
     gap: 8,
@@ -449,6 +481,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginVertical: 20,
     alignItems: 'center',
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#CCCCCC',
   },
   saveButtonText: {
     fontSize: 16,
