@@ -7,9 +7,12 @@ import {
   SafeAreaView,
   Animated,
   Dimensions,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getFriends, getMeetings } from '../utils/storage';
+import { cleanupOrphanedMeetings, getDatabaseDiagnostics } from '../utils/dataRecovery';
 
 const { width } = Dimensions.get('window');
 
@@ -19,6 +22,7 @@ export default function AddFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
   const [pulseAnim] = useState(new Animated.Value(1));
+  const [isRecovering, setIsRecovering] = useState(false);
   
   const navigation = useNavigation();
 
@@ -39,6 +43,116 @@ export default function AddFriendsScreen() {
       console.error('Error loading friends count:', error);
     }
   }, []);
+
+  const handleEmergencyRecovery = async () => {
+    setIsRecovering(true);
+    try {
+      // Get diagnostics first
+      const diagnostics = await getDatabaseDiagnostics();
+      
+      if ('error' in diagnostics) {
+        Alert.alert('Error', diagnostics.error);
+        setIsRecovering(false);
+        return;
+      }
+
+      const message = `
+DATABASE STATUS:
+• Friends: ${diagnostics.friendsCount}
+• Meetings: ${diagnostics.meetingsCount}
+• Orphaned Meetings: ${diagnostics.orphanedMeetingsCount}
+
+${diagnostics.orphanedMeetingsCount > 0 ? 'Found orphaned meetings that need cleanup!' : 'Database looks healthy!'}
+      `.trim();
+
+      console.log('=== EMERGENCY DIAGNOSTICS ===');
+      console.log(JSON.stringify(diagnostics, null, 2));
+
+      if (diagnostics.orphanedMeetingsCount > 0) {
+        Alert.alert(
+          'Database Issues Found',
+          message + '\n\nWould you like to clean up orphaned meetings?',
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => setIsRecovering(false) },
+            {
+              text: 'Clean Up Now',
+              style: 'destructive',
+              onPress: async () => {
+                const result = await cleanupOrphanedMeetings();
+                setIsRecovering(false);
+                Alert.alert(
+                  result.success ? 'Success! ✅' : 'Error',
+                  result.message + '\n\nTry adding friends again!',
+                  [
+                    {
+                      text: 'OK',
+                      onPress: () => loadFriendsCount()
+                    }
+                  ]
+                );
+              }
+            }
+          ]
+        );
+      } else {
+        setIsRecovering(false);
+        Alert.alert('Database Status', message);
+      }
+    } catch (error) {
+      console.error('Emergency recovery error:', error);
+      setIsRecovering(false);
+      Alert.alert('Error', 'Failed to run diagnostics. Check console for details.');
+    }
+  };
+
+  const handleNuclearOption = async () => {
+    Alert.alert(
+      '⚠️ NUCLEAR OPTION ⚠️',
+      'This will DELETE ALL your friends and meetings data. This cannot be undone!\n\nOnly use this if the app is completely broken.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'DELETE EVERYTHING',
+          style: 'destructive',
+          onPress: async () => {
+            setIsRecovering(true);
+            try {
+              const { supabase } = await import('../utils/supabase');
+              const { data: { user } } = await supabase.auth.getUser();
+              
+              if (!user) {
+                Alert.alert('Error', 'Not logged in');
+                setIsRecovering(false);
+                return;
+              }
+
+              // Delete all meetings
+              await supabase.from('meetings').delete().eq('user_id', user.id);
+              
+              // Delete all friends
+              await supabase.from('friends').delete().eq('user_id', user.id);
+
+              setIsRecovering(false);
+              Alert.alert(
+                'Success',
+                'All data has been deleted. You can now start fresh!',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => loadFriendsCount()
+                  }
+                ]
+              );
+            } catch (error) {
+              console.error('Nuclear option error:', error);
+              setIsRecovering(false);
+              Alert.alert('Error', 'Failed to delete data. Check console.');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   useEffect(() => {
     // Animate screen entrance
@@ -100,6 +214,13 @@ export default function AddFriendsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {isRecovering && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#8000FF" />
+          <Text style={styles.loadingText}>Running diagnostics...</Text>
+        </View>
+      )}
+
       <Animated.View 
         style={[
           styles.content,
@@ -109,6 +230,30 @@ export default function AddFriendsScreen() {
           },
         ]}
       >
+        {/* Emergency Recovery Banner */}
+        {friendCount === 0 && totalMeetings > 0 && (
+          <View style={styles.emergencyBanner}>
+            <Text style={styles.emergencyTitle}>🚨 Database Issue Detected</Text>
+            <Text style={styles.emergencyText}>
+              You have {totalMeetings} meetings but 0 friends. This shouldn\'t happen!
+            </Text>
+            <TouchableOpacity 
+              style={styles.emergencyButton}
+              onPress={handleEmergencyRecovery}
+              disabled={isRecovering}
+            >
+              <Text style={styles.emergencyButtonText}>🔧 Fix Database Now</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.nuclearButton}
+              onPress={handleNuclearOption}
+              disabled={isRecovering}
+            >
+              <Text style={styles.nuclearButtonText}>☢️ Delete All Data</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Header Section */}
         <View style={styles.headerSection}>
           <View style={styles.iconContainer}>
@@ -220,6 +365,68 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F4FF',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginTop: 12,
+    fontWeight: '600',
+  },
+  emergencyBanner: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#EF4444',
+  },
+  emergencyTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#991B1B',
+    marginBottom: 8,
+  },
+  emergencyText: {
+    fontSize: 14,
+    color: '#7F1D1D',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  emergencyButton: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  emergencyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  nuclearButton: {
+    backgroundColor: '#EF4444',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  nuclearButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   content: {
     flex: 1,
