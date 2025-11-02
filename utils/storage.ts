@@ -215,7 +215,7 @@ export const saveFriends = async (friends: Friend[]) => {
       .delete()
       .eq('user_id', user.id);
 
-    // Insert new friends with snake_case column names
+    // Insert new friends with snake_case column names INCLUDING PREMIUM FIELDS
     const friendsWithUserId = friends.map(friend => ({
       id: friend.id,
       user_id: user.id,
@@ -225,10 +225,16 @@ export const saveFriends = async (friends: Friend[]) => {
       isonline: friend.isOnline,
       islocal: friend.isLocal,
       profilepicture: friend.profilePicture,
+      profilepictureuri: friend.profilePictureUri, // Premium
       city: friend.city,
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
+      birthday: friend.birthday, // Premium
+      birthdaynotificationenabled: friend.birthdayNotificationEnabled, // Premium
+      birthdaynotificationtime: friend.birthdayNotificationTime, // Premium
+      birthdaynotificationdaysbefore: friend.birthdayNotificationDaysBefore, // Premium
+      isfavorite: friend.isFavorite, // Premium
       created_at: friend.createdAt || Date.now(),
     }));
 
@@ -257,7 +263,7 @@ export const getFriends = async (): Promise<Friend[]> => {
 
     if (error) throw error;
     
-    // Transform snake_case to camelCase
+    // Transform snake_case to camelCase INCLUDING PREMIUM FIELDS
     const friends = (data || []).map(friend => ({
       id: friend.id,
       name: friend.name,
@@ -266,10 +272,16 @@ export const getFriends = async (): Promise<Friend[]> => {
       isOnline: friend.isonline ?? friend.isOnline ?? false,
       isLocal: friend.islocal ?? friend.isLocal ?? false,
       profilePicture: friend.profilepicture || friend.profilePicture,
+      profilePictureUri: friend.profilepictureuri || friend.profilePictureUri, // Premium
       city: friend.city,
       source: friend.source,
       notificationFrequency: friend.notificationfrequency || friend.notificationFrequency || 'monthly',
       notificationDays: friend.notificationdays ?? friend.notificationDays ?? 30,
+      birthday: friend.birthday, // Premium
+      birthdayNotificationEnabled: friend.birthdaynotificationenabled ?? friend.birthdayNotificationEnabled, // Premium
+      birthdayNotificationTime: friend.birthdaynotificationtime || friend.birthdayNotificationTime, // Premium
+      birthdayNotificationDaysBefore: friend.birthdaynotificationdaysbefore ?? friend.birthdayNotificationDaysBefore, // Premium
+      isFavorite: friend.isfavorite ?? friend.isFavorite ?? false, // Premium
       createdAt: friend.created_at || friend.createdAt,
     }));
     
@@ -294,10 +306,16 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       isonline: friend.isOnline,
       islocal: friend.isLocal,
       profilepicture: friend.profilePicture,
+      profilepictureuri: friend.profilePictureUri, // Premium
       city: friend.city,
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
+      birthday: friend.birthday, // Premium
+      birthdaynotificationenabled: friend.birthdayNotificationEnabled, // Premium
+      birthdaynotificationtime: friend.birthdayNotificationTime, // Premium
+      birthdaynotificationdaysbefore: friend.birthdayNotificationDaysBefore, // Premium
+      isfavorite: friend.isFavorite, // Premium
       created_at: Date.now(),
     };
 
@@ -309,7 +327,7 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
 
     if (error) throw error;
     
-    // Transform response back to camelCase
+    // Transform response back to camelCase INCLUDING PREMIUM FIELDS
     return {
       id: data.id,
       name: data.name,
@@ -318,10 +336,16 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       isOnline: data.isonline,
       isLocal: data.islocal,
       profilePicture: data.profilepicture,
+      profilePictureUri: data.profilepictureuri, // Premium
       city: data.city,
       source: data.source,
       notificationFrequency: data.notificationfrequency,
       notificationDays: data.notificationdays,
+      birthday: data.birthday, // Premium
+      birthdayNotificationEnabled: data.birthdaynotificationenabled, // Premium
+      birthdayNotificationTime: data.birthdaynotificationtime, // Premium
+      birthdayNotificationDaysBefore: data.birthdaynotificationdaysbefore, // Premium
+      isFavorite: data.isfavorite, // Premium
       createdAt: data.created_at,
     };
   } catch (error) {
@@ -357,7 +381,7 @@ export const saveMeetings = async (meetings: Meeting[]) => {
       .delete()
       .eq('user_id', user.id);
 
-    // Insert new meetings with snake_case column names
+    // Insert new meetings with snake_case column names INCLUDING PREMIUM FIELDS
     const meetingsWithUserId = meetings.map(meeting => ({
       id: meeting.id,
       user_id: user.id,
@@ -368,6 +392,7 @@ export const saveMeetings = async (meetings: Meeting[]) => {
       city: meeting.city,
       notes: meeting.notes,
       status: meeting.status || 'scheduled',
+      cancelledby: meeting.cancelledBy, // Premium
       created_at: typeof meeting.createdAt === 'number' ? meeting.createdAt : Date.now(),
     }));
 
@@ -396,7 +421,7 @@ export const getMeetings = async (): Promise<Meeting[]> => {
 
     if (error) throw error;
     
-    // Transform snake_case to camelCase
+    // Transform snake_case to camelCase INCLUDING PREMIUM FIELDS
     const meetings = (data || []).map(meeting => ({
       id: meeting.id,
       friendId: meeting.friend_id,
@@ -406,6 +431,7 @@ export const getMeetings = async (): Promise<Meeting[]> => {
       city: meeting.city,
       notes: meeting.notes,
       status: meeting.status,
+      cancelledBy: meeting.cancelledby, // Premium
       createdAt: meeting.created_at,
     }));
     
@@ -431,6 +457,7 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
       city: meeting.city,
       notes: meeting.notes,
       status: meeting.status || 'scheduled',
+      cancelledby: meeting.cancelledBy, // Premium
       created_at: typeof meeting.createdAt === 'number' ? meeting.createdAt : Date.now(),
     };
 
@@ -442,7 +469,7 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
 
     if (error) throw error;
     
-    // Transform response back to camelCase
+    // Transform response back to camelCase INCLUDING PREMIUM FIELDS
     return {
       id: data.id,
       friendId: data.friend_id,
@@ -452,6 +479,7 @@ export const addMeeting = async (meeting: Omit<Meeting, 'id'>) => {
       city: data.city,
       notes: data.notes,
       status: data.status,
+      cancelledBy: data.cancelledby, // Premium
       createdAt: data.created_at,
     };
   } catch (error) {
