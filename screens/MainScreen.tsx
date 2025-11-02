@@ -419,10 +419,6 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'You have orphaned meetings (meetings 
         <TouchableOpacity style={styles.navButton} onPress={handleProfile}>
           <Text style={styles.navButtonText}>👤 Profile</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navButton} onPress={handleDiagnostics}>
-          <Text style={styles.navButtonText}>🔧 Fix DB</Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
