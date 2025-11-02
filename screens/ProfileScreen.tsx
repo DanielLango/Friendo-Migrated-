@@ -8,14 +8,17 @@ import {
   Alert,
   ScrollView,
   Linking,
+  Modal,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { logout } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
+import Paywall from '../components/Paywall';
 
 export default function ProfileScreen() {
   const [isPremium, setIsPremium] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -28,7 +31,17 @@ export default function ProfileScreen() {
   };
 
   const handleUpgradeToPro = () => {
-    Alert.alert('Upgrade to Pro', 'Premium features coming soon!');
+    setShowPaywall(true);
+  };
+
+  const handlePaywallSuccess = () => {
+    setShowPaywall(false);
+    checkPremiumStatus();
+    Alert.alert('Welcome to Pro!', 'Thank you for supporting Friendo! 💜');
+  };
+
+  const handlePaywallClose = () => {
+    setShowPaywall(false);
   };
 
   const handleLogout = async () => {
@@ -142,6 +155,16 @@ export default function ProfileScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Paywall Modal */}
+      <Modal
+        visible={showPaywall}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handlePaywallClose}
+      >
+        <Paywall onSuccess={handlePaywallSuccess} onClose={handlePaywallClose} />
+      </Modal>
     </SafeAreaView>
   );
 }
