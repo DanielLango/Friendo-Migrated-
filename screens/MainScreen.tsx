@@ -204,6 +204,12 @@ export default function MainScreen() {
     (navigation as any).navigate('Profile');
   };
 
+  const handleTestSupabase = async () => {
+    const { testSupabaseConnection } = await import('../utils/testSupabase');
+    await testSupabaseConnection();
+    Alert.alert('Test Complete', 'Check the console for results');
+  };
+
   const getFriendMeetings = (friendId: string) => {
     const currentYear = new Date().getFullYear();
     
@@ -365,6 +371,10 @@ export default function MainScreen() {
         
         <TouchableOpacity style={styles.navButton} onPress={handleProfile}>
           <Text style={styles.navButtonText}>👤 Profile</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navButton} onPress={handleTestSupabase}>
+          <Text style={styles.navButtonText}>🔧 Test DB</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
