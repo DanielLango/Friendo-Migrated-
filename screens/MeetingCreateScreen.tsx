@@ -401,12 +401,14 @@ export default function MeetingCreateScreen() {
             onPress={() => setShowInstructions(!showInstructions)}
             activeOpacity={0.7}
           >
-            <Text style={styles.instructionsHeaderTitle}>
-              What to do now?
-            </Text>
-            <Text style={styles.instructionsHeaderSubtitle}>
-              (In case you selected a calendar option)
-            </Text>
+            <View style={styles.instructionsHeaderContent}>
+              <Text style={styles.instructionsHeaderTitle}>
+                What to do now?
+              </Text>
+              <Text style={styles.instructionsHeaderSubtitle}>
+                (In case you selected a calendar option)
+              </Text>
+            </View>
             <Text style={[
               styles.instructionsDropdownIcon,
               showInstructions && styles.instructionsDropdownIconOpen
@@ -970,23 +972,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  instructionsHeaderTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333333',
+  instructionsHeaderContent: {
     flex: 1,
   },
+  instructionsHeaderTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 4,
+  },
   instructionsHeaderSubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#666666',
     fontStyle: 'italic',
-    marginRight: 12,
   },
   instructionsDropdownIcon: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#8000FF',
     fontWeight: 'bold',
-    transform: [{ rotate: '0deg' }],
+    marginLeft: 12,
   },
   instructionsDropdownIconOpen: {
     transform: [{ rotate: '180deg' }],
