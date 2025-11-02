@@ -9,6 +9,7 @@ import {
   ScrollView,
   Linking,
   Modal,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -49,6 +50,29 @@ export default function ProfileScreen() {
 
   const handleUpgradeToPro = () => {
     setShowPaywall(true);
+  };
+
+  const handleCancelMembership = () => {
+    Alert.alert(
+      'Cancel Pro Membership',
+      'To cancel your subscription, please visit your subscription settings:\n\n' +
+      (Platform.OS === 'ios' 
+        ? '• Open Settings app\n• Tap your name at the top\n• Tap Subscriptions\n• Select Friendo\n• Tap Cancel Subscription'
+        : '• Open Google Play Store\n• Tap Menu → Subscriptions\n• Select Friendo\n• Tap Cancel Subscription'),
+      [
+        { text: 'OK', style: 'default' },
+        {
+          text: 'Open Settings',
+          onPress: () => {
+            if (Platform.OS === 'ios') {
+              Linking.openURL('https://apps.apple.com/account/subscriptions');
+            } else {
+              Linking.openURL('https://play.google.com/store/account/subscriptions');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handlePaywallSuccess = () => {
@@ -115,6 +139,12 @@ export default function ProfileScreen() {
               <TouchableOpacity style={styles.upgradeButton} onPress={handleUpgradeToPro}>
                 <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
                 <MaterialIcons name="arrow-forward" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
+
+            {isPremium && (
+              <TouchableOpacity style={styles.cancelButton} onPress={handleCancelMembership}>
+                <Text style={styles.cancelButtonText}>Cancel Pro Membership</Text>
               </TouchableOpacity>
             )}
 
@@ -302,6 +332,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  cancelButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#EF4444',
+    paddingVertical: 14,
+    borderRadius: 25,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#EF4444',
   },
   menuItem: {
     flexDirection: 'row',
