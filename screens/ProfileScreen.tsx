@@ -10,7 +10,8 @@ import {
   Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { logout, clearAllMeetings } from '../utils/storage';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { logout } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
 
 export default function ProfileScreen() {
@@ -26,26 +27,8 @@ export default function ProfileScreen() {
     setIsPremium(premium);
   };
 
-  const handleClearMeetings = async () => {
-    Alert.alert(
-      'Clear All Meetings',
-      'Are you sure you want to delete all your meetings? This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete All',
-          style: 'destructive',
-          onPress: async () => {
-            const success = await clearAllMeetings();
-            if (success) {
-              Alert.alert('Success', 'All meetings have been deleted.');
-            } else {
-              Alert.alert('Error', 'Failed to delete meetings. Please try again.');
-            }
-          },
-        },
-      ]
-    );
+  const handleUpgradeToPro = () => {
+    Alert.alert('Upgrade to Pro', 'Premium features coming soon!');
   };
 
   const handleLogout = async () => {
@@ -72,61 +55,92 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>← Back</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#8000FF" />
         </TouchableOpacity>
-        <Text style={styles.title}>Profile</Text>
+        <Text style={styles.headerTitle}>Profile</Text>
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content}>
-        {/* Membership Tier */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Membership</Text>
-          <View style={[styles.tierBadge, isPremium && styles.tierBadgePremium]}>
-            <Text style={[styles.tierText, isPremium && styles.tierTextPremium]}>
-              {isPremium ? '⭐ Premium' : '🆓 Free'}
-            </Text>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Profile Icon */}
+        <View style={styles.profileIconContainer}>
+          <View style={styles.profileIcon}>
+            <MaterialIcons name="person" size={60} color="#8000FF" />
           </View>
         </View>
 
-        {/* Links Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Legal</Text>
+        {/* Membership Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>MEMBERSHIP</Text>
+          <View style={styles.membershipCard}>
+            <Text style={styles.currentTierLabel}>Current Tier</Text>
+            <View style={styles.tierBadge}>
+              <Text style={styles.tierText}>{isPremium ? 'Premium' : 'Free'}</Text>
+            </View>
+
+            {!isPremium && (
+              <TouchableOpacity style={styles.upgradeButton} onPress={handleUpgradeToPro}>
+                <Text style={styles.upgradeButtonText}>Upgrade to Pro</Text>
+                <MaterialIcons name="arrow-forward" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* Account Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>ACCOUNT</Text>
+          <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
+            <MaterialIcons name="logout" size={24} color="#EF4444" />
+            <Text style={styles.logoutText}>Log Out</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Legal Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>LEGAL</Text>
           
           <TouchableOpacity
-            style={styles.linkButton}
+            style={styles.menuItem}
             onPress={() => Linking.openURL('https://www.privacypolicies.com/live/213b96d7-30cf-4a41-a182-38624ac19603')}
           >
-            <Text style={styles.linkButtonText}>Privacy Policy</Text>
+            <MaterialCommunityIcons name="shield-check" size={24} color="#8000FF" />
+            <Text style={styles.menuItemText}>Privacy Policy</Text>
+            <MaterialIcons name="chevron-right" size={24} color="#CCCCCC" />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.linkButton}
-            onPress={() => Alert.alert('Coming Soon', 'Terms & Conditions will be available soon.')}
+            style={styles.menuItem}
+            onPress={() => Alert.alert('Coming Soon', 'Terms of Service will be available soon.')}
           >
-            <Text style={styles.linkButtonText}>Terms & Conditions</Text>
+            <MaterialCommunityIcons name="file-document" size={24} color="#8000FF" />
+            <Text style={styles.menuItemText}>Terms of Service</Text>
+            <View style={styles.comingSoonBadge}>
+              <Text style={styles.comingSoonText}>Coming Soon</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
-        {/* About Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
-          <Text style={styles.aboutText}>
-            Made with love by Daniel Lango, during his free time focusing on his personal hobby-project, Ambrozite Studios.
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.versionText}>Friendo v1.0.0</Text>
+          <Text style={styles.footerText}>
+            Made with <Text style={styles.heartEmoji}>💜</Text> by Daniel Lango
           </Text>
-          <TouchableOpacity
-            onPress={() => Linking.openURL('https://ambrozitestudios.com')}
-          >
-            <Text style={styles.linkText}>Visit ambrozitestudios.com</Text>
-          </TouchableOpacity>
+          <Text style={styles.footerSubtext}>
+            (...during his freetime focusing on his personal hobby-project, Ambrozite Studios. Visit{' '}
+            <Text
+              style={styles.linkText}
+              onPress={() => Linking.openURL('https://ambrozitestudios.com')}
+            >
+              ambrozitestudios.com
+            </Text>{' '}
+            to learn more about it.)
+          </Text>
         </View>
-
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -148,99 +162,143 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E0E0E0',
   },
   backButton: {
-    fontSize: 16,
-    color: '#8000FF',
+    padding: 5,
   },
-  title: {
-    fontSize: 18,
+  headerTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#000000',
   },
   placeholder: {
-    width: 50,
+    width: 34,
   },
   content: {
     flex: 1,
   },
-  section: {
+  profileIconContainer: {
+    alignItems: 'center',
+    paddingVertical: 30,
     backgroundColor: '#FFFFFF',
-    marginTop: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#E0E0E0',
+  },
+  profileIcon: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#F0E6FF',
+    borderWidth: 3,
+    borderColor: '#8000FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionContainer: {
+    marginTop: 20,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 15,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 12,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#999999',
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    letterSpacing: 0.5,
+  },
+  membershipCard: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  currentTierLabel: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 10,
   },
   tierBadge: {
     backgroundColor: '#F0F0F0',
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 20,
     alignSelf: 'flex-start',
-  },
-  tierBadgePremium: {
-    backgroundColor: '#FFF7ED',
-    borderWidth: 1,
-    borderColor: '#FDBA74',
+    marginBottom: 20,
   },
   tierText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#666666',
+    color: '#333333',
   },
-  tierTextPremium: {
-    color: '#EA580C',
+  upgradeButton: {
+    backgroundColor: '#8000FF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 25,
+    gap: 8,
   },
-  linkButton: {
-    paddingVertical: 12,
+  upgradeButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#F0F0F0',
   },
-  linkButtonText: {
-    fontSize: 15,
-    color: '#8000FF',
+  menuItemText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333333',
+    marginLeft: 15,
   },
-  aboutText: {
+  logoutText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#EF4444',
+    marginLeft: 15,
+    fontWeight: '500',
+  },
+  comingSoonBadge: {
+    backgroundColor: '#FFF7ED',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  comingSoonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#F97316',
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 30,
+  },
+  versionText: {
+    fontSize: 14,
+    color: '#999999',
+    marginBottom: 10,
+  },
+  footerText: {
     fontSize: 14,
     color: '#666666',
-    lineHeight: 20,
-    marginBottom: 12,
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  heartEmoji: {
+    fontSize: 14,
+  },
+  footerSubtext: {
+    fontSize: 12,
+    color: '#999999',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    lineHeight: 18,
   },
   linkText: {
-    fontSize: 14,
-    color: '#007AFF',
+    color: '#8000FF',
     textDecorationLine: 'underline',
-  },
-  clearButton: {
-    backgroundColor: '#FF9800',
-    marginHorizontal: 20,
-    marginTop: 30,
-    paddingVertical: 14,
-    borderRadius: 8,
-  },
-  clearButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  logoutButton: {
-    backgroundColor: '#EF4444',
-    marginHorizontal: 20,
-    marginVertical: 15,
-    paddingVertical: 14,
-    borderRadius: 8,
-  },
-  logoutButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
 });
