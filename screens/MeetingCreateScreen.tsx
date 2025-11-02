@@ -445,7 +445,7 @@ export default function MeetingCreateScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📝 Additional Details</Text>
+          <Text style={styles.sectionTitle}>📝 What's the plan? Fill it in here!</Text>
           <View style={styles.notesHints}>
             <Text style={styles.notesHint}>
               • Click outside the box once filled
