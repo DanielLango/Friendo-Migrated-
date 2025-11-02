@@ -549,3 +549,21 @@ export const deleteMeetingsByFriendId = async (friendId: string) => {
     return false;
   }
 };
+
+export const clearAllMeetings = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No user logged in');
+
+    const { error } = await supabase
+      .from('meetings')
+      .delete()
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error clearing all meetings:', error);
+    return false;
+  }
+};

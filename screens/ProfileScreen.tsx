@@ -10,7 +10,7 @@ import {
   Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { logout } from '../utils/storage';
+import { logout, clearAllMeetings } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
 
 export default function ProfileScreen() {
@@ -24,6 +24,28 @@ export default function ProfileScreen() {
   const checkPremiumStatus = async () => {
     const premium = await isPremiumUser();
     setIsPremium(premium);
+  };
+
+  const handleClearMeetings = async () => {
+    Alert.alert(
+      'Clear All Meetings',
+      'Are you sure you want to delete all your meetings? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete All',
+          style: 'destructive',
+          onPress: async () => {
+            const success = await clearAllMeetings();
+            if (success) {
+              Alert.alert('Success', 'All meetings have been deleted.');
+            } else {
+              Alert.alert('Error', 'Failed to delete meetings. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleLogout = async () => {
@@ -100,6 +122,11 @@ export default function ProfileScreen() {
             <Text style={styles.linkText}>Visit ambrozitestudios.com</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Clear Meetings Button */}
+        <TouchableOpacity style={styles.clearButton} onPress={handleClearMeetings}>
+          <Text style={styles.clearButtonText}>Clear All Meetings</Text>
+        </TouchableOpacity>
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -195,10 +222,23 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     textDecorationLine: 'underline',
   },
+  clearButton: {
+    backgroundColor: '#FF9800',
+    marginHorizontal: 20,
+    marginTop: 30,
+    paddingVertical: 14,
+    borderRadius: 8,
+  },
+  clearButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   logoutButton: {
     backgroundColor: '#EF4444',
     marginHorizontal: 20,
-    marginVertical: 30,
+    marginVertical: 15,
     paddingVertical: 14,
     borderRadius: 8,
   },
