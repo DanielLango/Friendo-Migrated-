@@ -13,7 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { logout } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
-import { cleanupOrphanedMeetings, getDatabaseDiagnostics } from '../utils/dataRecovery';
+// import { cleanupOrphanedMeetings, getDatabaseDiagnostics } from '../utils/dataRecovery';
 
 export default function ProfileScreen() {
   const [isPremium, setIsPremium] = useState(false);
@@ -51,6 +51,7 @@ export default function ProfileScreen() {
     );
   };
 
+  /*
   const handleEmergencyCleanup = async () => {
     setIsLoading(true);
     try {
@@ -78,7 +79,7 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'Found orphaned meetings that need cle
       if (diagnostics.orphanedMeetingsCount > 0) {
         Alert.alert(
           'Database Issues Found',
-          message + '\n\nWould you like to clean up orphaned meetings?',
+          message + '\\n\\nWould you like to clean up orphaned meetings?',
           [
             { text: 'Cancel', style: 'cancel', onPress: () => setIsLoading(false) },
             {
@@ -89,7 +90,7 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'Found orphaned meetings that need cle
                 setIsLoading(false);
                 Alert.alert(
                   result.success ? 'Success! ✅' : 'Error',
-                  result.message + '\n\nPlease restart the app.',
+                  result.message + '\\n\\nPlease restart the app.',
                   [
                     {
                       text: 'OK',
@@ -115,7 +116,7 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'Found orphaned meetings that need cle
   const handleNuclearOption = async () => {
     Alert.alert(
       '⚠️ NUCLEAR OPTION ⚠️',
-      'This will DELETE ALL your friends and meetings data. This cannot be undone!\n\nOnly use this if the app is completely broken.',
+      'This will DELETE ALL your friends and meetings data. This cannot be undone!\\n\\nOnly use this if the app is completely broken.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -160,6 +161,7 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'Found orphaned meetings that need cle
       ]
     );
   };
+  */
 
   return (
     <SafeAreaView style={styles.container}>
@@ -189,7 +191,8 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'Found orphaned meetings that need cle
           </View>
         </View>
 
-        {/* Emergency Recovery Section */}
+        {/* Emergency Recovery Section - COMMENTED OUT */}
+        {/*
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🚨 Emergency Recovery</Text>
           <Text style={styles.sectionDescription}>
@@ -214,6 +217,7 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'Found orphaned meetings that need cle
             </Text>
           </TouchableOpacity>
         </View>
+        */}
 
         {/* Links Section */}
         <View style={styles.section}>
