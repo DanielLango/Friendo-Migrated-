@@ -36,6 +36,7 @@ export default function MeetingCreateScreen() {
   const [isCreating, setIsCreating] = useState(false);
   const [activityConfirmed, setActivityConfirmed] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   
   const navigation = useNavigation();
   const route = useRoute();
@@ -394,46 +395,60 @@ export default function MeetingCreateScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* What to do now instructions */}
-          <View style={styles.instructionsBox}>
-            <Text style={styles.instructionsTitle}>
+          {/* What to do now instructions - Collapsible */}
+          <TouchableOpacity 
+            style={styles.instructionsHeader}
+            onPress={() => setShowInstructions(!showInstructions)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.instructionsHeaderTitle}>
               What to do now?
             </Text>
-            <Text style={styles.instructionsSubtitle}>
+            <Text style={styles.instructionsHeaderSubtitle}>
               (In case you selected a calendar option)
             </Text>
-            
-            <View style={styles.instructionsList}>
-              <Text style={styles.instructionText}>
-                After tapping 'Schedule Meetup':{'\n'}1.) In case you selected the Add to my calendar option, open your smartphone's default calendar app, and navigate to the day you selected for the meetup.{'\n'}2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.
-              </Text>
+            <Text style={[
+              styles.instructionsDropdownIcon,
+              showInstructions && styles.instructionsDropdownIconOpen
+            ]}>
+              ▼
+            </Text>
+          </TouchableOpacity>
 
-              <Text style={styles.instructionsSubheading}>
-                Once the meeting invite is in front of you in your calendar:
-              </Text>
-
-              <View style={styles.instructionItem}>
-                <Text style={styles.bulletPoint}>•</Text>
+          {showInstructions && (
+            <View style={styles.instructionsBox}>
+              <View style={styles.instructionsList}>
                 <Text style={styles.instructionText}>
-                  Edit the event time in the calendar as needed.
+                  After tapping 'Schedule Meetup':{'\n'}1.) In case you selected the Add to my calendar option, open your smartphone's default calendar app, and navigate to the day you selected for the meetup.{'\n'}2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.
                 </Text>
-              </View>
 
-              <View style={styles.instructionItem}>
-                <Text style={styles.bulletPoint}>•</Text>
-                <Text style={styles.instructionText}>
-                  Under Invitee, you can add an email if you want. Your default calendar app will then send the invitation to that email.
+                <Text style={styles.instructionsSubheading}>
+                  Once the meeting invite is in front of you in your calendar:
                 </Text>
-              </View>
 
-              <View style={styles.instructionItem}>
-                <Text style={styles.bulletPoint}>•</Text>
-                <Text style={styles.instructionText}>
-                  Feel free to change any other details about your meeting.
-                </Text>
+                <View style={styles.instructionItem}>
+                  <Text style={styles.bulletPoint}>•</Text>
+                  <Text style={styles.instructionText}>
+                    Edit the event time in the calendar as needed.
+                  </Text>
+                </View>
+
+                <View style={styles.instructionItem}>
+                  <Text style={styles.bulletPoint}>•</Text>
+                  <Text style={styles.instructionText}>
+                    Under Invitee, you can add an email if you want. Your default calendar app will then send the invitation to that email.
+                  </Text>
+                </View>
+
+                <View style={styles.instructionItem}>
+                  <Text style={styles.bulletPoint}>•</Text>
+                  <Text style={styles.instructionText}>
+                    Feel free to change any other details about your meeting.
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
+          )}
 
           {/* Pro Tip */}
           <View style={styles.proTipBox}>
@@ -811,7 +826,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F4FF',
     borderRadius: 12,
     padding: 16,
-    marginTop: 20,
+    marginTop: 8,
     borderWidth: 1,
     borderColor: '#D0DCFF',
   },
@@ -943,5 +958,37 @@ const styles = StyleSheet.create({
   proTipBold: {
     fontWeight: 'bold',
     color: '#F57C00',
+  },
+  instructionsHeader: {
+    backgroundColor: '#F0F4FF',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#D0DCFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  instructionsHeaderTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333333',
+    flex: 1,
+  },
+  instructionsHeaderSubtitle: {
+    fontSize: 13,
+    color: '#666666',
+    fontStyle: 'italic',
+    marginRight: 12,
+  },
+  instructionsDropdownIcon: {
+    fontSize: 14,
+    color: '#8000FF',
+    fontWeight: 'bold',
+    transform: [{ rotate: '0deg' }],
+  },
+  instructionsDropdownIconOpen: {
+    transform: [{ rotate: '180deg' }],
   },
 });
