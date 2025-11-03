@@ -549,18 +549,12 @@ export default function FriendRow({
       )}
 
       {isPremium && showBirthdaySettings && (
-        <View style={[styles.birthdaySettingsModal, { backgroundColor: colors.cardBackground }]}>
-          <BirthdaySettings
-            friend={friend}
-            onUpdate={handleBirthdayUpdate}
-          />
-          <TouchableOpacity
-            style={[styles.closeBirthdayButton, { backgroundColor: colors.purple }]}
-            onPress={() => setShowBirthdaySettings(false)}
-          >
-            <Text style={styles.closeBirthdayButtonText}>Close</Text>
-          </TouchableOpacity>
-        </View>
+        <BirthdaySettings
+          visible={showBirthdaySettings}
+          friend={friend}
+          onUpdate={handleBirthdayUpdate}
+          onClose={() => setShowBirthdaySettings(false)}
+        />
       )}
     </TouchableOpacity>
   );
@@ -791,27 +785,6 @@ const styles = StyleSheet.create({
   noMeetingsText: {
     fontSize: 12,
     fontStyle: 'italic',
-  },
-  birthdaySettingsModal: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 12,
-    padding: 16,
-    zIndex: 100,
-  },
-  closeBirthdayButton: {
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  closeBirthdayButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
   },
   uploadingOverlay: {
     position: 'absolute',

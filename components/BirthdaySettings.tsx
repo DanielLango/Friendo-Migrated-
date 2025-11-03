@@ -14,11 +14,13 @@ import { getFriendConsentAccepted, setFriendConsentAccepted } from '../utils/sto
 import { useTheme } from '../utils/themeContext';
 
 interface BirthdaySettingsProps {
+  visible: boolean;
   friend: Friend;
   onUpdate: (updates: Partial<Friend>) => void;
+  onClose: () => void;
 }
 
-export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsProps) {
+export default function BirthdaySettings({ visible, friend, onUpdate, onClose }: BirthdaySettingsProps) {
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<number>(
@@ -68,6 +70,7 @@ export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsP
     const birthday = `${selectedMonth.toString().padStart(2, '0')}/${selectedDay.toString().padStart(2, '0')}`;
     onUpdate({ birthday });
     setShowDatePicker(false);
+    onClose();
   };
 
   const handleToggleNotification = (enabled: boolean) => {
@@ -79,38 +82,59 @@ export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsP
   };
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.header, { backgroundColor: colors.isDarkMode ? 'rgba(255, 193, 7, 0.2)' : '#FFF9E6' }]}>
-        <Text style={styles.headerIcon}>🎂</Text>
-        <Text style={[styles.headerText, { color: colors.text }]}>Birthday</Text>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.birthdaySelector, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-        onPress={handleBirthdayClick}
+    <>
+      {/* Main Birthday Settings Modal */}
+      <Modal
+        visible={visible && !showConsentModal && !showDatePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={onClose}
       >
-        <Text style={[styles.birthdayLabel, { color: colors.textSecondary }]}>Birthday Date</Text>
-        <Text style={[styles.birthdayValue, { color: colors.text }]}>
-          {friend.birthday || '__/__'}
-        </Text>
-      </TouchableOpacity>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.modalBackground }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Birthday Settings</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Text style={[styles.modalClose, { color: colors.textSecondary }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
 
-      {friend.birthday && (
-        <View style={[styles.notificationToggle, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <View style={styles.notificationInfo}>
-            <Text style={[styles.notificationLabel, { color: colors.text }]}>Birthday Notification</Text>
-            <Text style={[styles.notificationSubtext, { color: colors.textSecondary }]}>
-              Get reminded on their birthday
-            </Text>
+            <View style={styles.content}>
+              <View style={[styles.header, { backgroundColor: colors.isDarkMode ? 'rgba(255, 193, 7, 0.2)' : '#FFF9E6' }]}>
+                <Text style={styles.headerIcon}>🎂</Text>
+                <Text style={[styles.headerText, { color: colors.text }]}>Birthday</Text>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.birthdaySelector, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+                onPress={handleBirthdayClick}
+              >
+                <Text style={[styles.birthdayLabel, { color: colors.textSecondary }]}>Birthday Date</Text>
+                <Text style={[styles.birthdayValue, { color: colors.text }]}>
+                  {friend.birthday || '__/__'}
+                </Text>
+              </TouchableOpacity>
+
+              {friend.birthday && (
+                <View style={[styles.notificationToggle, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                  <View style={styles.notificationInfo}>
+                    <Text style={[styles.notificationLabel, { color: colors.text }]}>Birthday Notification</Text>
+                    <Text style={[styles.notificationSubtext, { color: colors.textSecondary }]}>
+                      Get reminded on their birthday
+                    </Text>
+                  </View>
+                  <Switch
+                    value={friend.birthdayNotificationEnabled || false}
+                    onValueChange={handleToggleNotification}
+                    trackColor={{ false: colors.border, true: colors.purple }}
+                    thumbColor={colors.white}
+                  />
+                </View>
+              )}
+            </View>
           </View>
-          <Switch
-            value={friend.birthdayNotificationEnabled || false}
-            onValueChange={handleToggleNotification}
-            trackColor={{ false: colors.border, true: colors.purple }}
-            thumbColor={colors.white}
-          />
         </View>
-      )}
+      </Modal>
 
       {/* Friend Consent Modal */}
       <Modal
@@ -272,7 +296,7 @@ export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsP
           </View>
         </View>
       </Modal>
-    </View>
+    </>
   );
 }
 
@@ -486,5 +510,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  content: {
+    flex: 1,
   },
 });
