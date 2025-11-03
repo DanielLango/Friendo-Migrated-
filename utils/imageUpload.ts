@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import * as FileSystem from 'expo-file-system';
-import { decode } from 'base64-arraybuffer';
+import { decode as decodeBase64 } from 'base64-arraybuffer';
 
 /**
  * Upload an image to Supabase Storage
@@ -22,14 +22,16 @@ export const uploadProfilePicture = async (
 
     // Read the file as base64
     const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
+      encoding: 'base64',
     });
 
     // Convert base64 to ArrayBuffer
-    const arrayBuffer = decode(base64);
+    const arrayBuffer = decodeBase64(base64);
 
     // Determine content type
     const contentType = fileExt === 'png' ? 'image/png' : 'image/jpeg';
+
+    console.log('Uploading to Supabase Storage...', { filePath, contentType });
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
@@ -41,7 +43,7 @@ export const uploadProfilePicture = async (
 
     if (error) {
       console.error('Upload error:', error);
-      return null;
+      throw new Error(`Upload failed: ${error.message}`);
     }
 
     console.log('Upload successful:', data);
@@ -55,7 +57,10 @@ export const uploadProfilePicture = async (
     return urlData.publicUrl;
   } catch (error) {
     console.error('Error uploading image:', error);
-    return null;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Failed to upload image');
   }
 };
 

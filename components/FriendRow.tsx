@@ -142,14 +142,11 @@ export default function FriendRow({
       }
 
       console.log('Uploading profile picture for friend:', friend.name);
+      console.log('User ID:', user.id);
+      console.log('Image URI:', uri);
+      
       const uploadedUrl = await uploadProfilePicture(uri, user.id);
       
-      if (!uploadedUrl) {
-        Alert.alert('Error', 'Failed to upload photo. Please try again.');
-        setIsUploadingPhoto(false);
-        return;
-      }
-
       console.log('Photo uploaded successfully:', uploadedUrl);
 
       // Update friend with the uploaded URL
@@ -169,7 +166,9 @@ export default function FriendRow({
     } catch (error) {
       console.error('Error updating profile picture:', error);
       setIsUploadingPhoto(false);
-      Alert.alert('Error', 'Failed to update profile picture');
+      
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile picture';
+      Alert.alert('Error', errorMessage);
     }
   };
 
