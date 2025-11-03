@@ -449,21 +449,6 @@ export default function FriendRow({
         </View>
       </View>
 
-      {/* Premium: Birthday - Thin grey italic line above tokens */}
-      {isPremium && friend.birthday && (
-        <TouchableOpacity
-          style={styles.birthdayRow}
-          onPress={() => !deleteMode && setShowBirthdaySettings(true)}
-          disabled={deleteMode}
-        >
-          <Text style={styles.birthdayRowText}>Birthday: {friend.birthday}</Text>
-          <Text style={styles.birthdayRowText}>Birthday Notification</Text>
-          <View style={[styles.notificationToggle, friend.birthdayNotificationEnabled && styles.notificationToggleOn]}>
-            <View style={[styles.notificationToggleThumb, friend.birthdayNotificationEnabled && styles.notificationToggleThumbOn]} />
-          </View>
-        </TouchableOpacity>
-      )}
-
       {/* Meetings Section */}
       <View style={styles.meetingsSection}>
         {displayMeetings.length === 0 ? (
@@ -507,6 +492,21 @@ export default function FriendRow({
           </>
         )}
       </View>
+
+      {/* Premium: Birthday - Thin grey italic line between tokens and current info */}
+      {isPremium && friend.birthday && (
+        <TouchableOpacity
+          style={styles.birthdayRow}
+          onPress={() => !deleteMode && setShowBirthdaySettings(true)}
+          disabled={deleteMode}
+        >
+          <Text style={styles.birthdayRowText}>Birthday: {friend.birthday}</Text>
+          <Text style={styles.birthdayRowText}>Birthday Notification</Text>
+          <View style={[styles.notificationToggle, friend.birthdayNotificationEnabled && styles.notificationToggleOn]}>
+            <View style={[styles.notificationToggleThumb, friend.birthdayNotificationEnabled && styles.notificationToggleThumbOn]} />
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Premium: Favorite Star - Bottom Right Corner */}
       {isPremium && !deleteMode && (
@@ -691,11 +691,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 6,
     paddingHorizontal: 4,
+    marginTop: 4,
     marginBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   birthdayRowText: {
     fontSize: 12,
@@ -703,9 +702,9 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   notificationToggle: {
-    width: 40,
-    height: 20,
-    borderRadius: 10,
+    width: 32,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: '#E0E0E0',
     justifyContent: 'center',
     paddingHorizontal: 2,
@@ -714,9 +713,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   notificationToggleThumb: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: '#FFFFFF',
     alignSelf: 'flex-start',
   },
