@@ -13,7 +13,7 @@ import { Friend, Meeting } from '../types';
 import NotificationModal from './NotificationModal';
 import CancellationModal from './CancellationModal';
 import PhotoUploadModal from './PhotoUploadModal';
-import { getMeetings, saveMeetings, getUser } from '../utils/storage';
+import { getMeetings, saveMeetings, getUser, updateFriend } from '../utils/storage';
 import { saveFriends, getFriends } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
 import { uploadProfilePicture } from '../utils/imageUpload';
@@ -108,17 +108,11 @@ export default function FriendRow({
 
   const handleToggleFavorite = async () => {
     try {
-      const allFriends = await getFriends();
-      const updatedFriends = allFriends.map(f => {
-        if (f.id === friend.id) {
-          return { ...f, isFavorite: !f.isFavorite };
-        }
-        return f;
-      });
-      await saveFriends(updatedFriends);
+      await updateFriend(friend.id, { isFavorite: !friend.isFavorite });
       if (onDataChange) onDataChange();
     } catch (error) {
       console.error('Error toggling favorite:', error);
+      Alert.alert('Error', 'Failed to update favorite status');
     }
   };
 
@@ -141,14 +135,7 @@ export default function FriendRow({
       
       console.log('Photo uploaded successfully:', uploadedUrl);
 
-      const allFriends = await getFriends();
-      const updatedFriends = allFriends.map(f => {
-        if (f.id === friend.id) {
-          return { ...f, profilePictureUri: uploadedUrl };
-        }
-        return f;
-      });
-      await saveFriends(updatedFriends);
+      await updateFriend(friend.id, { profilePictureUri: uploadedUrl });
       
       setIsUploadingPhoto(false);
       if (onDataChange) onDataChange();
@@ -165,17 +152,11 @@ export default function FriendRow({
 
   const handleBirthdayUpdate = async (updates: Partial<Friend>) => {
     try {
-      const allFriends = await getFriends();
-      const updatedFriends = allFriends.map(f => {
-        if (f.id === friend.id) {
-          return { ...f, ...updates };
-        }
-        return f;
-      });
-      await saveFriends(updatedFriends);
+      await updateFriend(friend.id, updates);
       if (onDataChange) onDataChange();
     } catch (error) {
       console.error('Error updating birthday:', error);
+      Alert.alert('Error', 'Failed to update birthday settings');
     }
   };
 

@@ -288,7 +288,44 @@ export const saveFriends = async (friends: Friend[]) => {
     return true;
   } catch (error) {
     console.error('Error saving friends:', error);
-    return false;
+    throw error; // Re-throw so caller knows it failed
+  }
+};
+
+// New function to update a single friend
+export const updateFriend = async (friendId: string, updates: Partial<Friend>) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No user logged in');
+
+    // Convert camelCase to snake_case for database
+    const dbUpdates: any = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.email !== undefined) dbUpdates.email = updates.email;
+    if (updates.friendType !== undefined) dbUpdates.friend_type = updates.friendType;
+    if (updates.isOnline !== undefined) dbUpdates.is_online = updates.isOnline;
+    if (updates.isLocal !== undefined) dbUpdates.is_local = updates.isLocal;
+    if (updates.profilePicture !== undefined) dbUpdates.profile_picture = updates.profilePicture;
+    if (updates.profilePictureUri !== undefined) dbUpdates.profile_picture_uri = updates.profilePictureUri;
+    if (updates.city !== undefined) dbUpdates.city = updates.city;
+    if (updates.notificationFrequency !== undefined) dbUpdates.notification_frequency = updates.notificationFrequency;
+    if (updates.notificationDays !== undefined) dbUpdates.notification_days = updates.notificationDays;
+    if (updates.birthday !== undefined) dbUpdates.birthday = updates.birthday;
+    if (updates.birthdayNotificationEnabled !== undefined) dbUpdates.birthday_notification_enabled = updates.birthdayNotificationEnabled;
+    if (updates.birthdayNotificationTime !== undefined) dbUpdates.birthday_notification_time = updates.birthdayNotificationTime;
+    if (updates.isFavorite !== undefined) dbUpdates.is_favorite = updates.isFavorite;
+
+    const { error } = await supabase
+      .from('friends')
+      .update(dbUpdates)
+      .eq('id', friendId)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating friend:', error);
+    throw error;
   }
 };
 
