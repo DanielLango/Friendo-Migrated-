@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Friend, Meeting } from '../types';
 import { getFriends, getMeetings } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
-import * as FileSystem from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 interface FriendStats {
@@ -84,12 +84,14 @@ export default function StatsScreen() {
         });
       });
 
-      // Save to file
+      // Save to file using the new File API
       const fileName = `friendo_meetings_export_${Date.now()}.csv`;
-      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+      const fileUri = Paths.cache + '/' + fileName;
       
-      // Write the file
-      await FileSystem.writeAsStringAsync(fileUri, csvContent);
+      // Create a File object and write the content
+      const file = new File(fileUri);
+      await file.create();
+      await file.write(csvContent);
 
       // Share the file
       if (await Sharing.isAvailableAsync()) {
