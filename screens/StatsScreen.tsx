@@ -16,6 +16,7 @@ import { getFriends, getMeetings } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
 import { Paths, File } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { Clipboard } from 'react-native';
 
 interface FriendStats {
   friend: Friend;
@@ -69,8 +70,8 @@ export default function StatsScreen() {
         meetingsByYear[year].push(meeting);
       });
 
-      // Create simple TXT content with year-by-year breakdown
-      let txtContent = '=== FRIENDO - YOUR FRIENDSHIP HISTORY ===\n\n';
+      // Create simple summary
+      let summary = '=== YOUR FRIENDSHIP HISTORY ===\n\n';
       
       // Sort years in descending order (newest first)
       const years = Object.keys(meetingsByYear).map(y => parseInt(y)).sort((a, b) => b - a);
@@ -79,11 +80,9 @@ export default function StatsScreen() {
         const yearMeetings = meetingsByYear[year];
         const nonCancelledMeetings = yearMeetings.filter(m => !m.notes?.startsWith('[CANCELLED]'));
         
-        txtContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-        txtContent += `YEAR ${year}\n`;
-        txtContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        txtContent += `Total Meetings: ${nonCancelledMeetings.length}\n`;
-        txtContent += `Cancelled Meetings: ${yearMeetings.length - nonCancelledMeetings.length}\n\n`;
+        summary += `YEAR ${year}\n`;
+        summary += `Total Meetings: ${nonCancelledMeetings.length}\n`;
+        summary += `Cancelled: ${yearMeetings.length - nonCancelledMeetings.length}\n`;
         
         // Calculate friend stats for this year
         const friendStatsForYear: { [friendId: string]: { name: string; count: number } } = {};
@@ -101,40 +100,39 @@ export default function StatsScreen() {
         const sortedFriends = Object.values(friendStatsForYear).sort((a, b) => b.count - a.count);
         
         if (sortedFriends.length > 0) {
-          txtContent += `Top Friends:\n`;
-          sortedFriends.forEach((friend, index) => {
-            txtContent += `  ${index + 1}. ${friend.name} - ${friend.count} meeting${friend.count !== 1 ? 's' : ''}\n`;
+          summary += `Top Friends:\n`;
+          sortedFriends.slice(0, 3).forEach((friend, index) => {
+            summary += `  ${index + 1}. ${friend.name} (${friend.count})\n`;
           });
-          txtContent += `\n`;
         }
         
-        txtContent += `\n`;
+        summary += `\n`;
       });
       
-      txtContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-      txtContent += `Generated on ${new Date().toLocaleDateString()}\n`;
-      txtContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      summary += `Generated: ${new Date().toLocaleDateString()}`;
 
-      // Save to file using the new File API
-      const fileName = `friendo_history_${Date.now()}.txt`;
-      const fileUri = `${Paths.cache}/${fileName}`;
+      // Log to console for easy copying
+      console.log('\n' + summary + '\n');
       
-      const file = new File(fileUri);
-      await file.write(txtContent);
-
-      // Share the file
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri, {
-          mimeType: 'text/plain',
-          dialogTitle: 'Export Friendo History',
-        });
-        Alert.alert('Success', 'Your friendship history has been exported!');
-      } else {
-        Alert.alert('Success', `File saved to: ${fileUri}`);
-      }
+      // Show alert with summary
+      Alert.alert(
+        'Friendship History',
+        summary,
+        [
+          {
+            text: 'Copy to Clipboard',
+            onPress: () => {
+              Clipboard.setString(summary);
+              Alert.alert('Copied!', 'Your friendship history has been copied to clipboard.');
+            }
+          },
+          { text: 'OK' }
+        ]
+      );
+      
     } catch (error) {
       console.error('Error downloading previous years data:', error);
-      Alert.alert('Error', 'Failed to export data. Please try again.');
+      Alert.alert('Error', 'Failed to generate history. Please try again.');
     }
   };
 
