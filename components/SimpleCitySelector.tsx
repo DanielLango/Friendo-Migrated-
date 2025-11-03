@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { useTheme } from '../utils/themeContext';
 
 interface SimpleCitySelectorProps {
   selectedCity: string;
@@ -385,14 +386,14 @@ export default function SimpleCitySelector({
 }: SimpleCitySelectorProps) {
   const [showSelector, setShowSelector] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const { colors } = useTheme();
 
   const handleCitySelect = (city: string) => {
-    onCitySelect(city, city); // Use city name as placeId for simplicity
+    onCitySelect(city, city);
     setShowSelector(false);
     setSearchText('');
   };
 
-  // Filter cities based on search text
   const filteredCities = popularCities.filter(city =>
     city.toLowerCase().includes(searchText.toLowerCase())
   );
@@ -400,24 +401,35 @@ export default function SimpleCitySelector({
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={styles.citySelector}
+        style={[styles.citySelector, {
+          backgroundColor: colors.cardBackground,
+          borderColor: colors.border
+        }]}
         onPress={() => setShowSelector(!showSelector)}
       >
         <Text style={[
           styles.citySelectorText,
-          !selectedCity && styles.placeholderText
+          { color: colors.text },
+          !selectedCity && { color: colors.textTertiary }
         ]}>
           {selectedCity || placeholder}
         </Text>
-        <Text style={styles.dropdownIcon}>{showSelector ? '▲' : '▼'}</Text>
+        <Text style={[styles.dropdownIcon, { color: colors.textSecondary }]}>{showSelector ? '▲' : '▼'}</Text>
       </TouchableOpacity>
 
       {showSelector ? (
-        <View style={styles.cityListContainer}>
-          <View style={styles.searchContainer}>
+        <View style={[styles.cityListContainer, {
+          backgroundColor: colors.cardBackground,
+          borderColor: colors.border
+        }]}>
+          <View style={[styles.searchContainer, { borderBottomColor: colors.borderLight }]}>
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, {
+                backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F8F8F8',
+                color: colors.text
+              }]}
               placeholder="Search cities..."
+              placeholderTextColor={colors.textTertiary}
               value={searchText}
               onChangeText={setSearchText}
               autoFocus={true}
@@ -430,12 +442,14 @@ export default function SimpleCitySelector({
                   key={city}
                   style={[
                     styles.cityOption,
-                    selectedCity === city && styles.cityOptionSelected
+                    { borderBottomColor: colors.borderLight },
+                    selectedCity === city && { backgroundColor: colors.purple }
                   ]}
                   onPress={() => handleCitySelect(city)}
                 >
                   <Text style={[
                     styles.cityOptionText,
+                    { color: colors.text },
                     selectedCity === city && styles.cityOptionTextSelected
                   ]}>
                     {city}
@@ -444,10 +458,10 @@ export default function SimpleCitySelector({
               ))
             ) : (
               <View style={styles.noResultsContainer}>
-                <Text style={styles.noResultsText}>
-                  No cities found matching &quot;{searchText}&quot;
+                <Text style={[styles.noResultsText, { color: colors.textSecondary }]}>
+                  No cities found matching "{searchText}"
                 </Text>
-                <Text style={styles.noResultsSubtext}>
+                <Text style={[styles.noResultsSubtext, { color: colors.textTertiary }]}>
                   Try a different search term
                 </Text>
               </View>
@@ -457,14 +471,17 @@ export default function SimpleCitySelector({
       ) : null}
 
       {selectedCity ? (
-        <View style={styles.selectedCityDisplay}>
+        <View style={[styles.selectedCityDisplay, {
+          backgroundColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.2)' : '#F0F8FF',
+          borderColor: colors.purple
+        }]}>
           <Text style={styles.selectedCityIcon}>📍</Text>
-          <Text style={styles.selectedCityText}>{selectedCity}</Text>
+          <Text style={[styles.selectedCityText, { color: colors.purple }]}>{selectedCity}</Text>
           <TouchableOpacity
             style={styles.clearButton}
             onPress={() => onCitySelect('', '')}
           >
-            <Text style={styles.clearButtonText}>✕</Text>
+            <Text style={[styles.clearButtonText, { color: colors.textSecondary }]}>✕</Text>
           </TouchableOpacity>
         </View>
       ) : null}
@@ -478,25 +495,18 @@ const styles = StyleSheet.create({
   },
   citySelector: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
   },
   citySelectorText: {
     fontSize: 16,
-    color: '#333333',
-  },
-  placeholderText: {
-    color: '#999999',
   },
   dropdownIcon: {
     fontSize: 12,
-    color: '#666666',
   },
   cityListContainer: {
     position: 'absolute',
@@ -504,9 +514,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderRadius: 8,
     maxHeight: 300,
     shadowColor: '#000000',
@@ -518,10 +526,8 @@ const styles = StyleSheet.create({
   searchContainer: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
   },
   searchInput: {
-    backgroundColor: '#F8F8F8',
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -534,14 +540,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  cityOptionSelected: {
-    backgroundColor: '#8000FF',
   },
   cityOptionText: {
     fontSize: 16,
-    color: '#333333',
   },
   cityOptionTextSelected: {
     color: '#FFFFFF',
@@ -552,25 +553,21 @@ const styles = StyleSheet.create({
   },
   noResultsText: {
     fontSize: 16,
-    color: '#666666',
     textAlign: 'center',
     marginBottom: 4,
   },
   noResultsSubtext: {
     fontSize: 14,
-    color: '#999999',
     textAlign: 'center',
   },
   selectedCityDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F8FF',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#8000FF',
   },
   selectedCityIcon: {
     fontSize: 16,
@@ -579,7 +576,6 @@ const styles = StyleSheet.create({
   selectedCityText: {
     flex: 1,
     fontSize: 14,
-    color: '#8000FF',
     fontWeight: '500',
   },
   clearButton: {
@@ -587,6 +583,5 @@ const styles = StyleSheet.create({
   },
   clearButtonText: {
     fontSize: 12,
-    color: '#999999',
   },
 });
