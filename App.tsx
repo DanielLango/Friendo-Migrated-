@@ -16,6 +16,7 @@ import MainScreen from './screens/MainScreen';
 import StatsScreen from './screens/StatsScreen';
 import MeetingCreateScreen from './screens/MeetingCreateScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import BatchNotificationsScreen from './screens/BatchNotificationsScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -29,6 +30,7 @@ export type RootStackParamList = {
   Stats: undefined;
   MeetingCreate: undefined;
   Profile: undefined;
+  BatchNotifications: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -64,6 +66,7 @@ export default function App() {
           <Stack.Screen name="Stats" component={StatsScreen} />
           <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="BatchNotifications" component={BatchNotificationsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
