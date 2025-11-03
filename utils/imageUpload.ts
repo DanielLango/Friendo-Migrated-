@@ -1,6 +1,5 @@
 import { supabase } from './supabase';
 import * as FileSystem from 'expo-file-system';
-import { decode as decodeBase64 } from 'base64-arraybuffer';
 
 /**
  * Upload an image to Supabase Storage
@@ -20,18 +19,30 @@ export const uploadProfilePicture = async (
     const fileName = `${userId}_${Date.now()}.${fileExt}`;
     const filePath = `${userId}/${fileName}`;
 
-    // Read the file as base64
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: 'base64',
-    });
-
-    // Convert base64 to ArrayBuffer
-    const arrayBuffer = decodeBase64(base64);
-
     // Determine content type
     const contentType = fileExt === 'png' ? 'image/png' : 'image/jpeg';
 
     console.log('Uploading to Supabase Storage...', { filePath, contentType });
+
+    // Use the new File API from expo-file-system
+    let arrayBuffer: ArrayBuffer;
+    
+    try {
+      // Try the new API first
+      const file = new FileSystem.File(uri);
+      arrayBuffer = await file.arrayBuffer();
+      console.log('Using new FileSystem API');
+    } catch (newApiError) {
+      console.log('New API failed, falling back to legacy API:', newApiError);
+      
+      // Fallback to legacy API if new one fails
+      const { decode } = await import('base64-arraybuffer');
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: 'base64',
+      });
+      arrayBuffer = decode(base64);
+      console.log('Using legacy FileSystem API');
+    }
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
