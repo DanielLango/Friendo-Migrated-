@@ -495,17 +495,21 @@ export default function FriendRow({
 
       {/* Premium: Birthday - Thin grey italic line between tokens and current info */}
       {isPremium && friend.birthday && (
-        <TouchableOpacity
-          style={styles.birthdayRow}
-          onPress={() => !deleteMode && setShowBirthdaySettings(true)}
-          disabled={deleteMode}
-        >
-          <Text style={styles.birthdayRowText}>Birthday: {friend.birthday}</Text>
-          <Text style={styles.birthdayRowText}>Birthday Notification</Text>
-          <View style={[styles.notificationToggle, friend.birthdayNotificationEnabled && styles.notificationToggleOn]}>
-            <View style={[styles.notificationToggleThumb, friend.birthdayNotificationEnabled && styles.notificationToggleThumbOn]} />
-          </View>
-        </TouchableOpacity>
+        <View style={styles.birthdayContainer}>
+          <TouchableOpacity
+            style={styles.birthdayRow}
+            onPress={() => !deleteMode && setShowBirthdaySettings(true)}
+            disabled={deleteMode}
+          >
+            <Text style={styles.birthdayRowText}>Birthday: {friend.birthday}</Text>
+            <View style={styles.birthdayNotificationSection}>
+              <Text style={styles.birthdayRowText}>Birthday Notification</Text>
+              <View style={[styles.notificationToggle, friend.birthdayNotificationEnabled && styles.notificationToggleOn]}>
+                <View style={[styles.notificationToggleThumb, friend.birthdayNotificationEnabled && styles.notificationToggleThumbOn]} />
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
       )}
 
       {/* Premium: Favorite Star - Bottom Right Corner */}
@@ -671,7 +675,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   favoriteIcon: {
-    fontSize: 24,
+    fontSize: 20,
   },
   typeIndicator: {
     flexDirection: 'row',
@@ -687,19 +691,27 @@ const styles = StyleSheet.create({
     color: '#666666',
     marginRight: 12,
   },
+  birthdayContainer: {
+    marginTop: 4,
+    marginBottom: 8,
+    paddingRight: 40,
+  },
   birthdayRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: 2,
     paddingHorizontal: 4,
-    marginTop: 4,
-    marginBottom: 8,
   },
   birthdayRowText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#999999',
     fontStyle: 'italic',
+  },
+  birthdayNotificationSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   notificationToggle: {
     width: 32,
