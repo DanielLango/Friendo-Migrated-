@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getFriends, getMeetings } from '../utils/storage';
+import { useTheme } from '../utils/themeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -19,6 +20,7 @@ export default function AddFriendsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
   const [pulseAnim] = useState(new Animated.Value(1));
+  const { colors } = useTheme();
   
   const navigation = useNavigation();
 
@@ -27,7 +29,6 @@ export default function AddFriendsScreen() {
       const friends = await getFriends();
       setFriendCount(friends.length);
 
-      // Calculate meetings this year
       const meetings = await getMeetings();
       const currentYear = new Date().getFullYear();
       const yearMeetings = meetings.filter((meeting) => {
@@ -41,7 +42,6 @@ export default function AddFriendsScreen() {
   }, []);
 
   useEffect(() => {
-    // Animate screen entrance
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -55,12 +55,10 @@ export default function AddFriendsScreen() {
       }),
     ]).start();
 
-    // Load existing friends count
     loadFriendsCount();
   }, []);
 
   useEffect(() => {
-    // Pulse animation for continue button when friends are added
     if (friendCount >= 3) {
       Animated.loop(
         Animated.sequence([
@@ -79,7 +77,6 @@ export default function AddFriendsScreen() {
     }
   }, [friendCount, pulseAnim]);
 
-  // Listen for navigation focus to update friend count
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       loadFriendsCount();
@@ -99,7 +96,7 @@ export default function AddFriendsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Animated.View 
         style={[
           styles.content,
@@ -109,37 +106,37 @@ export default function AddFriendsScreen() {
           },
         ]}
       >
-        {/* Header Section */}
         <View style={styles.headerSection}>
-          <View style={styles.iconContainer}>
+          <View style={[styles.iconContainer, { 
+            backgroundColor: `${colors.purple}1A`,
+            borderColor: `${colors.purple}33`
+          }]}>
             <Text style={styles.mainIcon}>👥</Text>
           </View>
-          <Text style={styles.title}>Welcome to Friendo!</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: colors.text }]}>Welcome to Friendo!</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Create and manage your best friend lists, set how often you want to catch up, and set Friendo to gently remind you to keep those friendships alive.
           </Text>
         </View>
 
-        {/* Stats Section */}
         <View style={styles.statsSection}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{friendCount}</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.cardBackground, shadowColor: colors.shadow }]}>
+            <Text style={[styles.statNumber, { color: colors.purple }]}>{friendCount}</Text>
             <View style={styles.statLabelContainer}>
-              <Text style={styles.statLabel}>Friends Added</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Friends Added</Text>
             </View>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{totalMeetings}</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.cardBackground, shadowColor: colors.shadow }]}>
+            <Text style={[styles.statNumber, { color: colors.purple }]}>{totalMeetings}</Text>
             <View style={styles.statLabelContainer}>
-              <Text style={styles.statLabel}>Meetings in 2025</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Meetings in 2025</Text>
             </View>
           </View>
         </View>
 
-        {/* Action Buttons */}
         <View style={styles.actionsSection}>
           <TouchableOpacity 
-            style={styles.primaryButton}
+            style={[styles.primaryButton, { backgroundColor: colors.purple }]}
             onPress={handleManualAdd}
           >
             <View style={styles.buttonContent}>
@@ -152,24 +149,22 @@ export default function AddFriendsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Progress Indicator */}
         {friendCount < 3 && (
           <View style={styles.progressSection}>
-            <View style={styles.progressBar}>
+            <View style={[styles.progressBar, { backgroundColor: colors.borderLight }]}>
               <View 
                 style={[
                   styles.progressFill, 
-                  { width: `${Math.min((friendCount / 3) * 100, 100)}%` }
+                  { width: `${Math.min((friendCount / 3) * 100, 100)}%`, backgroundColor: colors.purple }
                 ]} 
               />
             </View>
-            <Text style={styles.progressText}>
+            <Text style={[styles.progressText, { color: colors.textSecondary }]}>
               Add {3 - friendCount} more to get started
             </Text>
           </View>
         )}
 
-        {/* Continue Button */}
         <Animated.View 
           style={[
             styles.continueSection,
@@ -179,14 +174,16 @@ export default function AddFriendsScreen() {
           <TouchableOpacity 
             style={[
               styles.continueButton,
-              friendCount >= 3 ? styles.continueButtonActive : styles.continueButtonDisabled
+              friendCount >= 3 ? 
+                [styles.continueButtonActive, { backgroundColor: colors.green }] : 
+                [styles.continueButtonDisabled, { backgroundColor: colors.borderLight, borderColor: colors.border }]
             ]}
             onPress={handleContinueToFriendlist}
             disabled={friendCount < 3}
           >
             <Text style={[
               styles.continueButtonText,
-              friendCount >= 3 ? styles.continueButtonTextActive : styles.continueButtonTextDisabled
+              friendCount >= 3 ? styles.continueButtonTextActive : [styles.continueButtonTextDisabled, { color: colors.textDisabled }]
             ]}>
               Continue to Friendlist
             </Text>
@@ -196,16 +193,18 @@ export default function AddFriendsScreen() {
           </TouchableOpacity>
           
           {friendCount < 3 && (
-            <Text style={styles.continueHint}>
+            <Text style={[styles.continueHint, { color: colors.textTertiary }]}>
               Add at least 3 friends to continue
             </Text>
           )}
         </Animated.View>
 
-        {/* Tips Section */}
-        <View style={styles.tipsSection}>
+        <View style={[styles.tipsSection, { 
+          backgroundColor: colors.isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.6)',
+          borderColor: `${colors.purple}1A`
+        }]}>
           <Text style={styles.tipsTitle}>💡 Pro Tips</Text>
-          <Text style={styles.tipsText}>
+          <Text style={[styles.tipsText, { color: colors.textSecondary }]}>
             • Start with your closest friends{'\n'}
             • Include both local and online friends{'\n'}
             • You can always add more later
@@ -219,7 +218,6 @@ export default function AddFriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F4FF',
   },
   content: {
     flex: 1,
@@ -235,12 +233,10 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(128, 0, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: 'rgba(128, 0, 255, 0.2)',
   },
   mainIcon: {
     fontSize: 36,
@@ -248,13 +244,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 20,
@@ -265,12 +259,10 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   statCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -282,7 +274,6 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#8000FF',
     marginBottom: 8,
     textAlign: 'center',
     width: '100%',
@@ -295,7 +286,6 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 14,
-    color: '#666666',
     textAlign: 'center',
     lineHeight: 16,
   },
@@ -303,11 +293,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   primaryButton: {
-    backgroundColor: '#8000FF',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#8000FF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -339,19 +327,16 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#E0D4FF',
     borderRadius: 4,
     marginBottom: 12,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#8000FF',
     borderRadius: 4,
   },
   progressText: {
     fontSize: 14,
-    color: '#666666',
     textAlign: 'center',
     fontWeight: '500',
   },
@@ -367,17 +352,13 @@ const styles = StyleSheet.create({
     minHeight: 60,
   },
   continueButtonActive: {
-    backgroundColor: '#4CAF50',
-    shadowColor: '#4CAF50',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 6,
   },
   continueButtonDisabled: {
-    backgroundColor: '#F0F0F0',
     borderWidth: 2,
-    borderColor: '#E0E0E0',
   },
   continueButtonText: {
     fontSize: 18,
@@ -388,7 +369,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   continueButtonTextDisabled: {
-    color: '#CCCCCC',
   },
   continueButtonIcon: {
     fontSize: 18,
@@ -397,27 +377,22 @@ const styles = StyleSheet.create({
   },
   continueHint: {
     fontSize: 12,
-    color: '#999999',
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',
   },
   tipsSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(128, 0, 255, 0.1)',
   },
   tipsTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 8,
   },
   tipsText: {
     fontSize: 14,
-    color: '#666666',
     lineHeight: 20,
   },
 });

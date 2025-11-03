@@ -17,28 +17,27 @@ import FriendoLogo from '../components/FriendoLogo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveUser, isLoggedIn, getRememberMeCredentials } from '../utils/storage';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../utils/themeContext';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
   const navigation = useNavigation<LoginScreenNavigationProp>();
+  const { colors } = useTheme();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [rememberMe, setRememberMe] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
 
-  // Check if user is already logged in on mount
   React.useEffect(() => {
     checkExistingAuth();
   }, []);
 
   const checkExistingAuth = async () => {
     try {
-      // First check if user has an active session
       const loggedIn = await isLoggedIn();
       if (loggedIn) {
-        // User is already logged in, navigate to appropriate screen
         const skipReflection = await AsyncStorage.getItem('skipReflectionScreen');
         if (skipReflection === 'true') {
           navigation.replace('AddFriends');
@@ -48,14 +47,12 @@ export default function LoginScreen() {
         return;
       }
 
-      // If not logged in, check for saved credentials
       const credentials = await getRememberMeCredentials();
       if (credentials) {
         setEmail(credentials.email);
         setPassword(credentials.password);
         setRememberMe(true);
         
-        // Auto-login with saved credentials
         setIsLoading(true);
         const success = await saveUser(credentials.email, credentials.password, true);
         if (success) {
@@ -66,7 +63,6 @@ export default function LoginScreen() {
             navigation.replace('ReflectOnFriends');
           }
         } else {
-          // If auto-login fails, just show the login form with pre-filled credentials
           setIsLoading(false);
         }
       }
@@ -104,35 +100,38 @@ export default function LoginScreen() {
     }
   };
 
-  // Show loading screen while checking auth
   if (isCheckingAuth) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
           <FriendoLogo />
-          <ActivityIndicator size="large" color="#EC4899" style={{ marginTop: 20 }} />
+          <ActivityIndicator size="large" color={colors.purple} style={{ marginTop: 20 }} />
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
         <View style={styles.logoContainer}>
           <FriendoLogo />
         </View>
         
-        <Text style={styles.title}>Login to Friendo</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Login to Friendo</Text>
         
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           Sign in to start tracking your friendships
         </Text>
         
         <TextInput
-          style={styles.input}
+          style={[styles.input, { 
+            backgroundColor: colors.cardBackground, 
+            borderColor: colors.border,
+            color: colors.text 
+          }]}
           placeholder="Email"
-          placeholderTextColor="#999999"
+          placeholderTextColor={colors.textTertiary}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -141,29 +140,36 @@ export default function LoginScreen() {
         />
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { 
+            backgroundColor: colors.cardBackground, 
+            borderColor: colors.border,
+            color: colors.text 
+          }]}
           placeholder="Password"
-          placeholderTextColor="#999999"
+          placeholderTextColor={colors.textTertiary}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
           editable={!isLoading}
         />
 
-        {/* Remember Me Checkbox */}
         <TouchableOpacity 
           style={styles.rememberMeContainer}
           onPress={() => setRememberMe(!rememberMe)}
           disabled={isLoading}
         >
-          <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+          <View style={[
+            styles.checkbox, 
+            { borderColor: colors.border },
+            rememberMe && { backgroundColor: colors.pink, borderColor: colors.pink }
+          ]}>
             {rememberMe && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
           </View>
-          <Text style={styles.rememberMeText}>Remember me</Text>
+          <Text style={[styles.rememberMeText, { color: colors.text }]}>Remember me</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={styles.loginButton}
+          style={[styles.loginButton, { backgroundColor: colors.purple }]}
           onPress={handleLogin}
           disabled={isLoading}
         >
@@ -172,10 +178,12 @@ export default function LoginScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* Supabase Security Message */}
-        <View style={styles.securityBadge}>
+        <View style={[styles.securityBadge, { 
+          backgroundColor: colors.isDarkMode ? 'rgba(16, 185, 129, 0.1)' : '#F0FDF4',
+          borderColor: colors.isDarkMode ? 'rgba(16, 185, 129, 0.3)' : '#D1FAE5'
+        }]}>
           <Ionicons name="shield-checkmark" size={20} color="#10B981" />
-          <Text style={styles.securityText}>
+          <Text style={[styles.securityText, { color: colors.isDarkMode ? '#34D399' : '#065F46' }]}>
             The app uses Supabase that protects your data — secure and compliant.
           </Text>
         </View>
@@ -196,7 +204,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   content: {
     flex: 1,
@@ -212,24 +219,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
-    color: '#333333',
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 40,
-    color: '#666666',
     lineHeight: 22,
   },
   input: {
-    backgroundColor: '#F5F5F5',
     borderRadius: 8,
     height: 50,
     paddingHorizontal: 15,
     marginBottom: 15,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
   },
   rememberMeContainer: {
     flexDirection: 'row',
@@ -242,23 +245,15 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
-    backgroundColor: '#FFFFFF',
-  },
-  checkboxChecked: {
-    backgroundColor: '#EC4899',
-    borderColor: '#EC4899',
   },
   rememberMeText: {
     fontSize: 15,
-    color: '#333333',
     fontWeight: '500',
   },
   loginButton: {
-    backgroundColor: '#8000FF',
     borderRadius: 8,
     height: 50,
     alignItems: 'center',
@@ -273,17 +268,14 @@ const styles = StyleSheet.create({
   securityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0FDF4',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#D1FAE5',
   },
   securityText: {
     flex: 1,
     fontSize: 13,
-    color: '#065F46',
     lineHeight: 18,
     marginLeft: 10,
     fontWeight: '500',
