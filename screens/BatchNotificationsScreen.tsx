@@ -17,7 +17,7 @@ export default function BatchNotificationsScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<Set<string>>(new Set());
   const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
-  const [selectedTime, setSelectedTime] = useState('11:00');
+  const [selectedTime, setSelectedTime] = useState(new Date()); // Changed from string to Date
   const [selectedDay, setSelectedDay] = useState(0); // For weekly: 0-6 (Sun-Sat)
   const [selectedDate, setSelectedDate] = useState(1); // For monthly: 1-31
   
@@ -53,11 +53,17 @@ export default function BatchNotificationsScreen() {
       return;
     }
 
+    const timeString = selectedTime.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+
     // Here you would save the batch notification settings
     // For now, just show a success message
     Alert.alert(
       'Batch Notifications Set',
-      `Notifications will be sent ${frequency} at ${selectedTime} for ${selectedFriends.size} friend(s).`,
+      `Notifications will be sent ${frequency} at ${timeString} for ${selectedFriends.size} friend(s).`,
       [
         {
           text: 'OK',
@@ -242,7 +248,11 @@ export default function BatchNotificationsScreen() {
             Notifications will be sent {frequency}
             {frequency === 'weekly' && ` on ${weekDays[selectedDay]}`}
             {frequency === 'monthly' && ` on day ${selectedDate}`}
-            {' '}at {selectedTime}
+            {' '}at {selectedTime.toLocaleTimeString('en-US', { 
+              hour: 'numeric', 
+              minute: '2-digit',
+              hour12: true 
+            })}
           </Text>
         </View>
 

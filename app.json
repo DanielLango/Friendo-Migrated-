@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Friendo",
-    "slug": "user-app-6378f569",
+    "name": "PREMIUM feaature trial",
+    "slug": "user-app-5660b894",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -16,7 +16,7 @@
     ],
     "ios": {
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.friendo.app"
+      "bundleIdentifier": "dev.kiki.userapp.5660b894"
     },
     "android": {
       "icon": "./assets/images/icon.png",
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.friendo.app"
+      "package": "dev.kiki.userapp.fggalije"
     },
     "web": {
       "bundler": "metro",

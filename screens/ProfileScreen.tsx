@@ -16,12 +16,21 @@ import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { logout } from '../utils/storage';
 import { isPremiumUser, toggleDebugPremium, getDebugPremiumStatus } from '../utils/premiumFeatures';
 import Paywall from '../components/Paywall';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+type RootStackParamList = {
+  Profile: undefined;
+  BatchNotifications: undefined;
+  // ... other routes
+};
+
+type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;
 
 export default function ProfileScreen() {
   const [isPremium, setIsPremium] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [debugPremium, setDebugPremium] = useState(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
 
   useEffect(() => {
     checkPremiumStatus();
@@ -75,32 +84,19 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleClearMeetings = async () => {
-    Alert.alert(
-      'Clear All Meetings',
-      'This will delete all your meeting data. This action cannot be undone.\n\nAre you sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All Meetings',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const { clearAllMeetings } = await import('../utils/storage');
-              const success = await clearAllMeetings();
-              if (success) {
-                Alert.alert('Success', 'All meetings have been cleared. The meeting count should now show 0.');
-              } else {
-                Alert.alert('Error', 'Failed to clear meetings. Please try again.');
-              }
-            } catch (error) {
-              console.error('Error clearing meetings:', error);
-              Alert.alert('Error', 'Failed to clear meetings. Please try again.');
-            }
-          }
-        }
-      ]
-    );
+  const handleBatchNotifications = () => {
+    if (isPremium) {
+      navigation.navigate('BatchNotifications');
+    } else {
+      Alert.alert(
+        'Premium Feature',
+        'Batch notifications are available for Pro members. Upgrade to Pro to set up notifications for multiple friends at once!',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Upgrade to Pro', onPress: handleUpgradeToPro }
+        ]
+      );
+    }
   };
 
   const handlePaywallSuccess = () => {
@@ -194,9 +190,27 @@ export default function ProfileScreen() {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>ACCOUNT</Text>
           
-          <TouchableOpacity style={styles.menuItem} onPress={handleClearMeetings}>
-            <MaterialIcons name="delete-sweep" size={24} color="#F97316" />
-            <Text style={styles.clearMeetingsText}>Clear All Meetings</Text>
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={handleBatchNotifications}
+          >
+            <MaterialCommunityIcons 
+              name="bell-badge" 
+              size={24} 
+              color={isPremium ? "#8000FF" : "#CCCCCC"} 
+            />
+            <Text style={[
+              styles.menuItemText,
+              !isPremium && styles.menuItemTextDisabled
+            ]}>
+              Batch Notifications
+            </Text>
+            {!isPremium && (
+              <View style={styles.premiumBadge}>
+                <Text style={styles.premiumBadgeText}>Pro</Text>
+              </View>
+            )}
+            <MaterialIcons name="chevron-right" size={24} color="#CCCCCC" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
@@ -394,6 +408,9 @@ const styles = StyleSheet.create({
     color: '#333333',
     marginLeft: 15,
   },
+  menuItemTextDisabled: {
+    color: '#CCCCCC',
+  },
   logoutText: {
     flex: 1,
     fontSize: 16,
@@ -448,5 +465,18 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#8000FF',
     textDecorationLine: 'underline',
+  },
+  premiumBadge: {
+    backgroundColor: '#8000FF',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginLeft: 'auto',
+    marginRight: 8,
+  },
+  premiumBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
