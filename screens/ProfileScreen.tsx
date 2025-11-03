@@ -78,24 +78,24 @@ export default function ProfileScreen() {
   const handleClearMeetings = async () => {
     Alert.alert(
       'Clear All Meetings',
-      'Are you sure you want to delete all your meeting data? This cannot be undone.',
+      'This will delete all your meeting data. This action cannot be undone.\n\nAre you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Clear All',
+          text: 'Clear All Meetings',
           style: 'destructive',
           onPress: async () => {
             try {
               const { clearAllMeetings } = await import('../utils/storage');
               const success = await clearAllMeetings();
               if (success) {
-                Alert.alert('Success', 'All meetings have been cleared.');
+                Alert.alert('Success', 'All meetings have been cleared. The meeting count should now show 0.');
               } else {
-                Alert.alert('Error', 'Failed to clear meetings.');
+                Alert.alert('Error', 'Failed to clear meetings. Please try again.');
               }
             } catch (error) {
               console.error('Error clearing meetings:', error);
-              Alert.alert('Error', 'Failed to clear meetings.');
+              Alert.alert('Error', 'Failed to clear meetings. Please try again.');
             }
           }
         }

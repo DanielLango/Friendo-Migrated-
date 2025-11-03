@@ -15,7 +15,6 @@ export interface Friend {
   birthday?: string; // Premium: Format MM/DD
   birthdayNotificationEnabled?: boolean; // Premium: Birthday notification toggle
   birthdayNotificationTime?: string; // Premium: Time for birthday notification
-  birthdayNotificationDaysBefore?: number; // Premium: Days before to notify
   isFavorite?: boolean; // Premium: Mark as favorite
 }
 

@@ -215,7 +215,7 @@ export const saveFriends = async (friends: Friend[]) => {
       .delete()
       .eq('user_id', user.id);
 
-    // Insert new friends with snake_case column names INCLUDING PREMIUM FIELDS
+    // Insert new friends with snake_case column names
     const friendsWithUserId = friends.map(friend => ({
       id: friend.id,
       user_id: user.id,
@@ -225,16 +225,15 @@ export const saveFriends = async (friends: Friend[]) => {
       isonline: friend.isOnline,
       islocal: friend.isLocal,
       profilepicture: friend.profilePicture,
-      profilepictureuri: friend.profilePictureUri, // Premium
+      profilepictureuri: friend.profilePictureUri,
       city: friend.city,
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
-      birthday: friend.birthday, // Premium
-      birthdaynotificationenabled: friend.birthdayNotificationEnabled, // Premium
-      birthdaynotificationtime: friend.birthdayNotificationTime, // Premium
-      birthdaynotificationdaysbefore: friend.birthdayNotificationDaysBefore, // Premium
-      isfavorite: friend.isFavorite, // Premium
+      birthday: friend.birthday,
+      birthdaynotificationenabled: friend.birthdayNotificationEnabled,
+      birthdaynotificationtime: friend.birthdayNotificationTime,
+      isfavorite: friend.isFavorite,
       created_at: friend.createdAt || Date.now(),
     }));
 
@@ -263,7 +262,7 @@ export const getFriends = async (): Promise<Friend[]> => {
 
     if (error) throw error;
     
-    // Transform snake_case to camelCase INCLUDING PREMIUM FIELDS
+    // Transform snake_case to camelCase
     const friends = (data || []).map(friend => ({
       id: friend.id,
       name: friend.name,
@@ -272,16 +271,15 @@ export const getFriends = async (): Promise<Friend[]> => {
       isOnline: friend.isonline ?? friend.isOnline ?? false,
       isLocal: friend.islocal ?? friend.isLocal ?? false,
       profilePicture: friend.profilepicture || friend.profilePicture,
-      profilePictureUri: friend.profilepictureuri || friend.profilePictureUri, // Premium
+      profilePictureUri: friend.profilepictureuri || friend.profilePictureUri,
       city: friend.city,
       source: friend.source,
       notificationFrequency: friend.notificationfrequency || friend.notificationFrequency || 'monthly',
       notificationDays: friend.notificationdays ?? friend.notificationDays ?? 30,
-      birthday: friend.birthday, // Premium
-      birthdayNotificationEnabled: friend.birthdaynotificationenabled ?? friend.birthdayNotificationEnabled, // Premium
-      birthdayNotificationTime: friend.birthdaynotificationtime || friend.birthdayNotificationTime, // Premium
-      birthdayNotificationDaysBefore: friend.birthdaynotificationdaysbefore ?? friend.birthdayNotificationDaysBefore, // Premium
-      isFavorite: friend.isfavorite ?? friend.isFavorite ?? false, // Premium
+      birthday: friend.birthday,
+      birthdayNotificationEnabled: friend.birthdaynotificationenabled ?? friend.birthdayNotificationEnabled,
+      birthdayNotificationTime: friend.birthdaynotificationtime || friend.birthdayNotificationTime,
+      isFavorite: friend.isfavorite ?? friend.isFavorite ?? false,
       createdAt: friend.created_at || friend.createdAt,
     }));
     
@@ -311,16 +309,15 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       isonline: friend.isOnline,
       islocal: friend.isLocal,
       profilepicture: friend.profilePicture || '👤',
-      profilepictureuri: friend.profilePictureUri || null, // Premium
+      profilepictureuri: friend.profilePictureUri || null,
       city: friend.city || '',
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
-      birthday: friend.birthday || null, // Premium
-      birthdaynotificationenabled: friend.birthdayNotificationEnabled || false, // Premium
-      birthdaynotificationtime: friend.birthdayNotificationTime || null, // Premium
-      birthdaynotificationdaysbefore: friend.birthdayNotificationDaysBefore || null, // Premium
-      isfavorite: friend.isFavorite || false, // Premium
+      birthday: friend.birthday || null,
+      birthdaynotificationenabled: friend.birthdayNotificationEnabled || false,
+      birthdaynotificationtime: friend.birthdayNotificationTime || null,
+      isfavorite: friend.isFavorite || false,
       created_at: Date.now(),
     };
     
@@ -339,7 +336,7 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
     
     console.log('Friend inserted successfully:', data);
     
-    // Transform response back to camelCase INCLUDING PREMIUM FIELDS
+    // Transform response back to camelCase
     const result = {
       id: data.id,
       name: data.name,
@@ -348,16 +345,15 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       isOnline: data.isonline,
       isLocal: data.islocal,
       profilePicture: data.profilepicture,
-      profilePictureUri: data.profilepictureuri, // Premium
+      profilePictureUri: data.profilepictureuri,
       city: data.city,
       source: data.source,
       notificationFrequency: data.notificationfrequency,
       notificationDays: data.notificationdays,
-      birthday: data.birthday, // Premium
-      birthdayNotificationEnabled: data.birthdaynotificationenabled, // Premium
-      birthdayNotificationTime: data.birthdaynotificationtime, // Premium
-      birthdayNotificationDaysBefore: data.birthdaynotificationdaysbefore, // Premium
-      isFavorite: data.isfavorite, // Premium
+      birthday: data.birthday,
+      birthdayNotificationEnabled: data.birthdaynotificationenabled,
+      birthdayNotificationTime: data.birthdaynotificationtime,
+      isFavorite: data.isfavorite,
       createdAt: data.created_at,
     };
     
