@@ -85,18 +85,11 @@ export default function ProfileScreen() {
   };
 
   const handleBatchNotifications = () => {
-    if (isPremium) {
-      navigation.navigate('BatchNotifications');
-    } else {
-      Alert.alert(
-        'Premium Feature',
-        'Batch notifications are available for Pro members. Upgrade to Pro to set up notifications for multiple friends at once!',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Upgrade to Pro', onPress: handleUpgradeToPro }
-        ]
-      );
-    }
+    Alert.alert(
+      'Coming Soon',
+      'Batch notifications feature is coming soon! This will allow Pro members to set up notifications for multiple friends at once.',
+      [{ text: 'OK' }]
+    );
   };
 
   const handlePaywallSuccess = () => {
