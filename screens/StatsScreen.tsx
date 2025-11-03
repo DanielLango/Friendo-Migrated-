@@ -70,8 +70,8 @@ export default function StatsScreen() {
         meetingsByYear[year].push(meeting);
       });
 
-      // Create simple summary
-      let summary = '=== YOUR FRIENDSHIP HISTORY ===\n\n';
+      // Create comprehensive history
+      let summary = '=== YOUR COMPLETE FRIENDSHIP HISTORY ===\n\n';
       
       // Sort years in descending order (newest first)
       const years = Object.keys(meetingsByYear).map(y => parseInt(y)).sort((a, b) => b - a);
@@ -79,20 +79,34 @@ export default function StatsScreen() {
       years.forEach(year => {
         const yearMeetings = meetingsByYear[year];
         const nonCancelledMeetings = yearMeetings.filter(m => !m.notes?.startsWith('[CANCELLED]'));
+        const cancelledMeetings = yearMeetings.filter(m => m.notes?.startsWith('[CANCELLED]'));
         
+        summary += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
         summary += `YEAR ${year}\n`;
+        summary += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
         summary += `Total Meetings: ${nonCancelledMeetings.length}\n`;
-        summary += `Cancelled: ${yearMeetings.length - nonCancelledMeetings.length}\n`;
+        summary += `Cancelled Meetings: ${cancelledMeetings.length}\n\n`;
         
         // Calculate friend stats for this year
-        const friendStatsForYear: { [friendId: string]: { name: string; count: number } } = {};
+        const friendStatsForYear: { [friendId: string]: { name: string; count: number; cancelled: number } } = {};
+        
         nonCancelledMeetings.forEach(meeting => {
           const friend = friends.find(f => f.id === meeting.friendId);
           if (friend) {
             if (!friendStatsForYear[friend.id]) {
-              friendStatsForYear[friend.id] = { name: friend.name, count: 0 };
+              friendStatsForYear[friend.id] = { name: friend.name, count: 0, cancelled: 0 };
             }
             friendStatsForYear[friend.id].count++;
+          }
+        });
+        
+        cancelledMeetings.forEach(meeting => {
+          const friend = friends.find(f => f.id === meeting.friendId);
+          if (friend) {
+            if (!friendStatsForYear[friend.id]) {
+              friendStatsForYear[friend.id] = { name: friend.name, count: 0, cancelled: 0 };
+            }
+            friendStatsForYear[friend.id].cancelled++;
           }
         });
         
@@ -100,33 +114,70 @@ export default function StatsScreen() {
         const sortedFriends = Object.values(friendStatsForYear).sort((a, b) => b.count - a.count);
         
         if (sortedFriends.length > 0) {
-          summary += `Top Friends:\n`;
-          sortedFriends.slice(0, 3).forEach((friend, index) => {
-            summary += `  ${index + 1}. ${friend.name} (${friend.count})\n`;
+          summary += `ALL FRIENDS (${sortedFriends.length}):\n`;
+          sortedFriends.forEach((friend, index) => {
+            const cancelInfo = friend.cancelled > 0 ? ` (${friend.cancelled} cancelled)` : '';
+            summary += `  ${index + 1}. ${friend.name} - ${friend.count} meeting${friend.count !== 1 ? 's' : ''}${cancelInfo}\n`;
           });
+          summary += `\n`;
         }
         
-        summary += `\n`;
+        // List all meetings for this year
+        if (yearMeetings.length > 0) {
+          summary += `ALL MEETINGS (${yearMeetings.length}):\n`;
+          yearMeetings
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .forEach(meeting => {
+              const friend = friends.find(f => f.id === meeting.friendId);
+              const friendName = friend ? friend.name : 'Unknown';
+              const date = new Date(meeting.date).toLocaleDateString();
+              const cancelled = meeting.notes?.startsWith('[CANCELLED]') ? ' [CANCELLED]' : '';
+              summary += `  • ${date} - ${friendName}${cancelled}\n`;
+            });
+          summary += `\n`;
+        }
       });
       
-      summary += `Generated: ${new Date().toLocaleDateString()}`;
+      summary += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      summary += `Generated: ${new Date().toLocaleDateString()}\n`;
+      summary += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
       // Log to console for easy copying
       console.log('\n' + summary + '\n');
       
-      // Show alert with summary
+      // Show instructions first
       Alert.alert(
-        'Friendship History',
-        summary,
+        'Export Your Friendship History',
+        'Your complete friendship history is ready! Tap "Copy to Clipboard" below, then paste it wherever you\'d like - such as your phone\'s Notes app, a document, or share it with friends.',
         [
           {
             text: 'Copy to Clipboard',
             onPress: () => {
               Clipboard.setString(summary);
-              Alert.alert('Copied!', 'Your friendship history has been copied to clipboard.');
+              Alert.alert(
+                'Copied! ✓',
+                'Your friendship history has been copied to your clipboard. You can now paste it into your Notes app or anywhere else you\'d like to save it.',
+                [{ text: 'Got it!' }]
+              );
             }
           },
-          { text: 'OK' }
+          { 
+            text: 'View Summary',
+            onPress: () => {
+              // Show a preview
+              const preview = summary.length > 500 ? summary.substring(0, 500) + '...\n\n[Full history copied to console]' : summary;
+              Alert.alert('Preview', preview, [
+                {
+                  text: 'Copy Full History',
+                  onPress: () => {
+                    Clipboard.setString(summary);
+                    Alert.alert('Copied!', 'Full history copied to clipboard.');
+                  }
+                },
+                { text: 'Close' }
+              ]);
+            }
+          }
         ]
       );
       
