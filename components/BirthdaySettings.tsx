@@ -355,9 +355,9 @@ const styles = StyleSheet.create({
   consentModalContent: {
     borderRadius: 20,
     padding: 20,
-    width: '100%',
+    width: '90%',
     maxWidth: 500,
-    maxHeight: '85%',
+    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   consentContent: {
-    flex: 1,
+    maxHeight: '100%',
   },
   consentHeader: {
     flexDirection: 'row',
