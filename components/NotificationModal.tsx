@@ -13,6 +13,7 @@ import { Friend } from '../types';
 import { notificationService } from '../utils/notificationService';
 import SimpleTimePicker from './SimpleTimePicker';
 import { getFriends, saveFriends } from '../utils/storage';
+import { useTheme } from '../utils/themeContext';
 
 interface NotificationModalProps {
   visible: boolean;
@@ -21,6 +22,7 @@ interface NotificationModalProps {
 }
 
 export default function NotificationModal({ visible, friend, onClose }: NotificationModalProps) {
+  const { colors } = useTheme();
   const [selectedFrequency, setSelectedFrequency] = useState<'days' | 'weekly' | 'monthly'>(friend.notificationFrequency || 'days');
   
   // Set default values based on frequency
@@ -121,11 +123,11 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modal}>
+        <View style={[styles.modal, { backgroundColor: colors.modalBackground }]}>
           <View style={styles.header}>
-            <Text style={styles.title}>Notify me to see {friend.name} in:</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Notify me to see {friend.name} in:</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeButton}>✕</Text>
+              <Text style={[styles.closeButton, { color: colors.textSecondary }]}>✕</Text>
             </TouchableOpacity>
           </View>
 
@@ -134,19 +136,24 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
               style={styles.optionRow}
               onPress={() => setSelectedFrequency('days')}
             >
-              <View style={[styles.radio, selectedFrequency === 'days' && styles.radioSelected]} />
-              <Text style={styles.optionText}>days</Text>
+              <View style={[styles.radio, { borderColor: colors.purple }, selectedFrequency === 'days' && { backgroundColor: colors.purple }]} />
+              <Text style={[styles.optionText, { color: colors.text }]}>days</Text>
               {selectedFrequency === 'days' && (
                 <View style={styles.daysContainer}>
-                  <Text style={styles.everyText}>every</Text>
+                  <Text style={[styles.everyText, { color: colors.textSecondary }]}>every</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { 
+                      borderColor: colors.border,
+                      backgroundColor: colors.cardBackground,
+                      color: colors.text
+                    }]}
                     value={customDays}
                     onChangeText={setCustomDays}
                     keyboardType="numeric"
                     placeholder="7"
+                    placeholderTextColor={colors.textTertiary}
                   />
-                  <Text style={styles.everyText}>days</Text>
+                  <Text style={[styles.everyText, { color: colors.textSecondary }]}>days</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -155,19 +162,24 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
               style={styles.optionRow}
               onPress={() => setSelectedFrequency('weekly')}
             >
-              <View style={[styles.radio, selectedFrequency === 'weekly' && styles.radioSelected]} />
-              <Text style={styles.optionText}>weekly</Text>
+              <View style={[styles.radio, { borderColor: colors.purple }, selectedFrequency === 'weekly' && { backgroundColor: colors.purple }]} />
+              <Text style={[styles.optionText, { color: colors.text }]}>weekly</Text>
               {selectedFrequency === 'weekly' && (
                 <View style={styles.weeklyContainer}>
-                  <Text style={styles.everyText}>every</Text>
+                  <Text style={[styles.everyText, { color: colors.textSecondary }]}>every</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { 
+                      borderColor: colors.border,
+                      backgroundColor: colors.cardBackground,
+                      color: colors.text
+                    }]}
                     value={customDays}
                     onChangeText={setCustomDays}
                     keyboardType="numeric"
                     placeholder="3"
+                    placeholderTextColor={colors.textTertiary}
                   />
-                  <Text style={styles.everyText}>weeks</Text>
+                  <Text style={[styles.everyText, { color: colors.textSecondary }]}>weeks</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -176,38 +188,46 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
               style={styles.optionRow}
               onPress={() => setSelectedFrequency('monthly')}
             >
-              <View style={[styles.radio, selectedFrequency === 'monthly' && styles.radioSelected]} />
-              <Text style={styles.optionText}>monthly</Text>
+              <View style={[styles.radio, { borderColor: colors.purple }, selectedFrequency === 'monthly' && { backgroundColor: colors.purple }]} />
+              <Text style={[styles.optionText, { color: colors.text }]}>monthly</Text>
               {selectedFrequency === 'monthly' && (
                 <View style={styles.monthlyContainer}>
-                  <Text style={styles.everyText}>every</Text>
+                  <Text style={[styles.everyText, { color: colors.textSecondary }]}>every</Text>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, { 
+                      borderColor: colors.border,
+                      backgroundColor: colors.cardBackground,
+                      color: colors.text
+                    }]}
                     value={customDays}
                     onChangeText={setCustomDays}
                     keyboardType="numeric"
                     placeholder="1"
+                    placeholderTextColor={colors.textTertiary}
                   />
-                  <Text style={styles.everyText}>months</Text>
+                  <Text style={[styles.everyText, { color: colors.textSecondary }]}>months</Text>
                 </View>
               )}
             </TouchableOpacity>
           </View>
 
           <View style={styles.timeSection}>
-            <Text style={styles.timeSectionTitle}>🕐 Notification Time</Text>
+            <Text style={[styles.timeSectionTitle, { color: colors.textSecondary }]}>🕐 Notification Time</Text>
             <TouchableOpacity
-              style={styles.timeSelector}
+              style={[styles.timeSelector, { 
+                borderColor: colors.border,
+                backgroundColor: colors.cardBackground
+              }]}
               onPress={() => setShowTimePicker(true)}
             >
-              <Text style={styles.timeSelectorText}>
+              <Text style={[styles.timeSelectorText, { color: colors.text }]}>
                 {formatTime(notificationTime)}
               </Text>
-              <Text style={styles.dropdownIcon}>▼</Text>
+              <Text style={[styles.dropdownIcon, { color: colors.textSecondary }]}>▼</Text>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.purple }]} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Save</Text>
           </TouchableOpacity>
         </View>
@@ -221,11 +241,11 @@ export default function NotificationModal({ visible, friend, onClose }: Notifica
           onRequestClose={() => setShowTimePicker(false)}
         >
           <View style={styles.timePickerOverlay}>
-            <View style={styles.timePickerModal}>
-              <View style={styles.timePickerHeader}>
-                <Text style={styles.timePickerTitle}>Select Time</Text>
+            <View style={[styles.timePickerModal, { backgroundColor: colors.modalBackground }]}>
+              <View style={[styles.timePickerHeader, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.timePickerTitle, { color: colors.text }]}>Select Time</Text>
                 <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                  <Text style={styles.timePickerDoneButton}>Done</Text>
+                  <Text style={[styles.timePickerDoneButton, { color: colors.purple }]}>Done</Text>
                 </TouchableOpacity>
               </View>
               <SimpleTimePicker
@@ -248,7 +268,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modal: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 20,
     width: '85%',
@@ -263,12 +282,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     flex: 1,
   },
   closeButton: {
     fontSize: 18,
-    color: '#666666',
     marginLeft: 10,
   },
   optionsContainer: {
@@ -284,20 +301,17 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#8000FF',
     marginRight: 12,
   },
   radioSelected: {
-    backgroundColor: '#8000FF',
+    // Removed - now handled inline
   },
   optionText: {
     fontSize: 16,
-    color: '#333333',
     marginRight: 10,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -318,7 +332,6 @@ const styles = StyleSheet.create({
   },
   everyText: {
     fontSize: 14,
-    color: '#666666',
     marginHorizontal: 5,
   },
   timeSection: {
@@ -327,28 +340,23 @@ const styles = StyleSheet.create({
   timeSectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666666',
     marginBottom: 10,
   },
   timeSelector: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
   },
   timeSelectorText: {
     fontSize: 16,
-    color: '#333333',
     fontWeight: '500',
   },
   dropdownIcon: {
     fontSize: 10,
-    color: '#666666',
   },
   timePickerOverlay: {
     flex: 1,
@@ -356,7 +364,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   timePickerModal: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 20,
@@ -369,20 +376,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   timePickerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
   },
   timePickerDoneButton: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8000FF',
   },
   saveButton: {
-    backgroundColor: '#8000FF',
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',

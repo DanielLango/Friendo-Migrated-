@@ -505,7 +505,9 @@ export default function FriendRow({
 
       {isPremium && !deleteMode && (
         <TouchableOpacity
-          style={styles.favoriteButton}
+          style={[styles.favoriteButton, { 
+            backgroundColor: colors.isDarkMode ? 'rgba(255, 215, 0, 0.2)' : 'rgba(255, 215, 0, 0.1)'
+          }]}
           onPress={handleToggleFavorite}
         >
           <Text style={styles.favoriteIcon}>
@@ -634,7 +636,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 12,
     right: 12,
-    padding: 4,
+    padding: 8,
+    borderRadius: 20,
     zIndex: 10,
   },
   favoriteIcon: {
