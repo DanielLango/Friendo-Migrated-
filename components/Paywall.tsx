@@ -154,7 +154,7 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
           <View style={styles.featureRow}>
             <Ionicons name="star" size={24} color={PURPLE} />
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>💜 Protect your energy. Track who's reliable.</Text>
+              <Text style={styles.featureTitle}>Protect your energy. Track who's reliable</Text>
               <Text style={styles.featureDescription}>
                 Just tap and hold for 2 seconds to mark who cancelled — color-coded for easy tracking.
               </Text>
@@ -174,7 +174,7 @@ export default function Paywall({ onSuccess, onClose }: PaywallProps) {
           <View style={styles.featureRow}>
             <Ionicons name="star" size={24} color={PURPLE} />
             <View style={styles.featureText}>
-              <Text style={styles.featureTitle}>🎂 Never lose a friend again from birthday forgets.</Text>
+              <Text style={styles.featureTitle}>Never lose a friend again from birthday forgets</Text>
               <Text style={styles.featureDescription}>
                 Add birthdays once, and Friendo will remind you right on time — no awkward belated texts.
               </Text>
