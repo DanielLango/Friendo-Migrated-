@@ -18,6 +18,7 @@ import { getMeetings, saveMeetings, getUser } from '../utils/storage';
 import { saveFriends, getFriends } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
 import { uploadProfilePicture } from '../utils/imageUpload';
+import { useTheme } from '../utils/themeContext';
 
 interface FriendRowProps {
   friend: Friend;
@@ -44,6 +45,7 @@ export default function FriendRow({
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [showBirthdaySettings, setShowBirthdaySettings] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const { colors } = useTheme();
   
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [pressingMeetingId, setPressingMeetingId] = useState<string | null>(null);
@@ -55,7 +57,6 @@ export default function FriendRow({
     console.log(`  - Meeting ${m.id}: date=${m.date}, notes=${m.notes?.substring(0, 50)}`);
   });
   
-  // Filter meetings for current year and update status based on date
   const yearMeetings = meetings
     .filter(meeting => {
       const meetingDate = new Date(meeting.date);
@@ -67,31 +68,25 @@ export default function FriendRow({
       const meetingDate = new Date(meeting.date);
       const now = new Date();
       
-      // Set time to end of day for comparison
       const endOfMeetingDay = new Date(meetingDate);
       endOfMeetingDay.setHours(23, 59, 59, 999);
       
-      // Check if cancelled by looking at notes
       const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
       
-      // If meeting is cancelled, keep it cancelled
       if (isCancelled) {
         console.log(`Meeting ${meeting.id} is CANCELLED`);
         return { ...meeting, status: 'cancelled' as const };
       }
       
-      // If meeting date has passed (after 23:59), mark as met
       if (now > endOfMeetingDay) {
         console.log(`Meeting ${meeting.id} is MET (date passed)`);
         return { ...meeting, status: 'met' as const };
       }
       
-      // Otherwise, it's scheduled
       console.log(`Meeting ${meeting.id} is SCHEDULED (future date)`);
       return { ...meeting, status: 'scheduled' as const };
     })
     .sort((a, b) => {
-      // Sort by date, earliest first
       const dateA = new Date(a.date).getTime();
       const dateB = new Date(b.date).getTime();
       return dateA - dateB;
@@ -133,7 +128,6 @@ export default function FriendRow({
     try {
       setIsUploadingPhoto(true);
       
-      // Upload to Supabase Storage
       const user = await getUser();
       if (!user) {
         Alert.alert('Error', 'You must be logged in to upload photos');
@@ -149,7 +143,6 @@ export default function FriendRow({
       
       console.log('Photo uploaded successfully:', uploadedUrl);
 
-      // Update friend with the uploaded URL
       const allFriends = await getFriends();
       const updatedFriends = allFriends.map(f => {
         if (f.id === friend.id) {
@@ -192,7 +185,7 @@ export default function FriendRow({
     setPressingMeetingId(meetingId);
     longPressTimer.current = setTimeout(() => {
       handleLongPressComplete(meetingId);
-    }, 1000); // Changed from 3000 to 1000 (1 second)
+    }, 1000);
   };
 
   const handleLongPressEnd = () => {
@@ -209,11 +202,9 @@ export default function FriendRow({
 
     handleLongPressEnd();
 
-    // Check if meeting is cancelled by looking at the notes field
     const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
 
     if (isCancelled) {
-      // If already cancelled, offer to erase completely
       Alert.alert(
         'Erase Meeting?',
         'This will permanently delete this meeting from your history. This action cannot be undone.',
@@ -237,15 +228,12 @@ export default function FriendRow({
         ]
       );
     } else {
-      // Check if user is premium
       const isPremium = await isPremiumUser();
       
       if (isPremium) {
-        // Premium users get the "who cancelled" modal
         setSelectedMeetingForCancellation(meeting);
         setShowCancellationModal(true);
       } else {
-        // Free users get the old behavior
         Alert.alert(
           'Mark Meeting as Cancelled?',
           'This will mark the meeting as cancelled. The token will turn red and won\'t count toward your meeting total.',
@@ -353,13 +341,11 @@ export default function FriendRow({
     const status = meeting.status || 'met';
     
     if (status === 'cancelled') {
-      // Check who cancelled (premium feature)
       if (meeting.cancelledBy === 'user') {
-        return styles.cancelledByUserToken; // Pink
+        return styles.cancelledByUserToken;
       } else if (meeting.cancelledBy === 'friend') {
-        return styles.cancelledByFriendToken; // Red
+        return styles.cancelledByFriendToken;
       }
-      // Default red for non-premium or old cancelled meetings
       return styles.cancelledToken;
     } else if (status === 'scheduled') {
       return styles.scheduledToken;
@@ -380,13 +366,20 @@ export default function FriendRow({
 
   return (
     <TouchableOpacity 
-      style={[styles.container, deleteMode && styles.deleteMode]}
+      style={[
+        styles.container,
+        { backgroundColor: colors.cardBackground },
+        deleteMode && [styles.deleteMode, {
+          borderColor: colors.error,
+          backgroundColor: colors.isDarkMode ? 'rgba(239, 68, 68, 0.2)' : '#FFF5F5'
+        }]
+      ]}
       onPress={() => deleteMode && onScheduleNext(friend)}
       disabled={!deleteMode}
     >
       {isUploadingPhoto && (
-        <View style={styles.uploadingOverlay}>
-          <ActivityIndicator size="small" color="#8000FF" />
+        <View style={[styles.uploadingOverlay, { backgroundColor: colors.isDarkMode ? 'rgba(30, 30, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)' }]}>
+          <ActivityIndicator size="small" color={colors.purple} />
         </View>
       )}
       
@@ -396,28 +389,29 @@ export default function FriendRow({
         </View>
       )}
       
-      {/* Friend Info Section */}
       <View style={styles.friendInfo}>
         <TouchableOpacity
-          style={styles.notificationButton}
+          style={[styles.notificationButton, { backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F5F5F5' }]}
           onPress={() => !deleteMode && setShowNotificationModal(true)}
           disabled={deleteMode}
         >
           <Text style={styles.bellIcon}>🔔</Text>
         </TouchableOpacity>
         
-        {/* Premium: Profile Picture */}
         {isPremium && friend.profilePictureUri ? (
           <TouchableOpacity
             style={styles.profilePictureContainer}
             onPress={() => !deleteMode && setShowPhotoUpload(true)}
             disabled={deleteMode}
           >
-            <Image source={{ uri: friend.profilePictureUri }} style={styles.profilePicture} />
+            <Image source={{ uri: friend.profilePictureUri }} style={[styles.profilePicture, { borderColor: colors.purple }]} />
           </TouchableOpacity>
         ) : isPremium ? (
           <TouchableOpacity
-            style={styles.profilePicturePlaceholder}
+            style={[styles.profilePicturePlaceholder, {
+              backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F5F5F5',
+              borderColor: colors.border
+            }]}
             onPress={() => !deleteMode && setShowPhotoUpload(true)}
             disabled={deleteMode}
           >
@@ -427,14 +421,14 @@ export default function FriendRow({
         
         <View style={styles.nameSection}>
           <View style={styles.nameRow}>
-            <Text style={styles.name} numberOfLines={1}>{friend.name}</Text>
+            <Text style={[styles.name, { color: colors.purple }]} numberOfLines={1}>{friend.name}</Text>
             
             {!deleteMode && (
               <TouchableOpacity
-                style={styles.scheduleButton}
+                style={[styles.scheduleButton, { borderColor: colors.green }]}
                 onPress={() => onScheduleNext(friend)}
               >
-                <Text style={styles.scheduleText}>Schedule next</Text>
+                <Text style={[styles.scheduleText, { color: colors.green }]}>Schedule next</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -442,17 +436,16 @@ export default function FriendRow({
             <Text style={styles.typeIcon}>
               {friend.friendType === 'online' ? '🌐' : '📡'}
             </Text>
-            <Text style={styles.typeText}>
+            <Text style={[styles.typeText, { color: colors.textSecondary }]}>
               {friend.friendType === 'online' ? 'Online' : 'Local'}
             </Text>
           </View>
         </View>
       </View>
 
-      {/* Meetings Section */}
       <View style={styles.meetingsSection}>
         {displayMeetings.length === 0 ? (
-          <Text style={styles.noMeetingsText}>No meetings this year</Text>
+          <Text style={[styles.noMeetingsText, { color: colors.textTertiary }]}>No meetings this year</Text>
         ) : (
           <>
             <View style={styles.meetingsContainer}>
@@ -473,7 +466,7 @@ export default function FriendRow({
               ))}
               {hasMoreMeetings && !showAllMeetings && (
                 <TouchableOpacity
-                  style={styles.moreToken}
+                  style={[styles.moreToken, { backgroundColor: colors.orange }]}
                   onPress={() => !deleteMode && setShowAllMeetings(true)}
                   disabled={deleteMode}
                 >
@@ -486,14 +479,13 @@ export default function FriendRow({
                 onPress={() => !deleteMode && setShowAllMeetings(false)}
                 disabled={deleteMode}
               >
-                <Text style={styles.showLessText}>Show less</Text>
+                <Text style={[styles.showLessText, { color: colors.purple }]}>Show less</Text>
               </TouchableOpacity>
             )}
           </>
         )}
       </View>
 
-      {/* Premium: Birthday - Thin grey italic line between tokens and current info */}
       {isPremium && friend.birthday && (
         <View style={styles.birthdayContainer}>
           <TouchableOpacity
@@ -501,18 +493,24 @@ export default function FriendRow({
             onPress={() => !deleteMode && setShowBirthdaySettings(true)}
             disabled={deleteMode}
           >
-            <Text style={styles.birthdayRowText}>Birthday: {friend.birthday}</Text>
+            <Text style={[styles.birthdayRowText, { color: colors.textTertiary }]}>Birthday: {friend.birthday}</Text>
             <View style={styles.birthdayNotificationSection}>
-              <Text style={styles.birthdayRowText}>Birthday Notification</Text>
-              <View style={[styles.notificationToggle, friend.birthdayNotificationEnabled && styles.notificationToggleOn]}>
-                <View style={[styles.notificationToggleThumb, friend.birthdayNotificationEnabled && styles.notificationToggleThumbOn]} />
+              <Text style={[styles.birthdayRowText, { color: colors.textTertiary }]}>Birthday Notification</Text>
+              <View style={[
+                styles.notificationToggle,
+                { backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#E0E0E0' },
+                friend.birthdayNotificationEnabled && { backgroundColor: colors.green }
+              ]}>
+                <View style={[
+                  styles.notificationToggleThumb,
+                  friend.birthdayNotificationEnabled && styles.notificationToggleThumbOn
+                ]} />
               </View>
             </View>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Premium: Favorite Star - Bottom Right Corner */}
       {isPremium && !deleteMode && (
         <TouchableOpacity
           style={styles.favoriteButton}
@@ -541,7 +539,6 @@ export default function FriendRow({
         onClose={() => setShowNotificationModal(false)}
       />
 
-      {/* Premium: Photo Upload Modal */}
       {isPremium && (
         <PhotoUploadModal
           visible={showPhotoUpload}
@@ -551,15 +548,14 @@ export default function FriendRow({
         />
       )}
 
-      {/* Premium: Birthday Settings Modal */}
       {isPremium && showBirthdaySettings && (
-        <View style={styles.birthdaySettingsModal}>
+        <View style={[styles.birthdaySettingsModal, { backgroundColor: colors.cardBackground }]}>
           <BirthdaySettings
             friend={friend}
             onUpdate={handleBirthdayUpdate}
           />
           <TouchableOpacity
-            style={styles.closeBirthdayButton}
+            style={[styles.closeBirthdayButton, { backgroundColor: colors.purple }]}
             onPress={() => setShowBirthdaySettings(false)}
           >
             <Text style={styles.closeBirthdayButtonText}>Close</Text>
@@ -572,7 +568,6 @@ export default function FriendRow({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 12,
@@ -586,8 +581,6 @@ const styles = StyleSheet.create({
   },
   deleteMode: {
     borderWidth: 2,
-    borderColor: '#FF4444',
-    backgroundColor: '#FFF5F5',
   },
   deleteOverlay: {
     position: 'absolute',
@@ -607,7 +600,6 @@ const styles = StyleSheet.create({
   notificationButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: '#F5F5F5',
     marginRight: 12,
   },
   bellIcon: {
@@ -621,18 +613,15 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: '#8000FF',
   },
   profilePicturePlaceholder: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderStyle: 'dashed',
   },
   profilePicturePlaceholderText: {
@@ -650,20 +639,17 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#8000FF',
     flex: 1,
     marginRight: 8,
   },
   scheduleButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#4CAF50',
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   scheduleText: {
-    color: '#4CAF50',
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -688,7 +674,6 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 14,
-    color: '#666666',
     marginRight: 12,
   },
   birthdayContainer: {
@@ -705,7 +690,6 @@ const styles = StyleSheet.create({
   },
   birthdayRowText: {
     fontSize: 11,
-    color: '#999999',
     fontStyle: 'italic',
   },
   birthdayNotificationSection: {
@@ -717,12 +701,8 @@ const styles = StyleSheet.create({
     width: 32,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#E0E0E0',
     justifyContent: 'center',
     paddingHorizontal: 2,
-  },
-  notificationToggleOn: {
-    backgroundColor: '#4CAF50',
   },
   notificationToggleThumb: {
     width: 14,
@@ -767,7 +747,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   cancelledByUserToken: {
-    backgroundColor: '#FF69B4', // Pink
+    backgroundColor: '#FF69B4',
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -775,7 +755,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   cancelledByFriendToken: {
-    backgroundColor: '#FF4444', // Red
+    backgroundColor: '#FF4444',
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -792,7 +772,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   moreToken: {
-    backgroundColor: '#FF9800',
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -806,13 +785,11 @@ const styles = StyleSheet.create({
   },
   showLessText: {
     fontSize: 12,
-    color: '#8000FF',
     marginTop: 4,
     textAlign: 'center',
   },
   noMeetingsText: {
     fontSize: 12,
-    color: '#999999',
     fontStyle: 'italic',
   },
   birthdaySettingsModal: {
@@ -821,13 +798,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     zIndex: 100,
   },
   closeBirthdayButton: {
-    backgroundColor: '#8000FF',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
@@ -844,7 +819,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 12,

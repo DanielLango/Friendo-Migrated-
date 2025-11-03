@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { venueCategories, getPartnerVenues } from '../utils/venueTypes';
+import { useTheme } from '../utils/themeContext';
 
 interface VenueCategorySelectorProps {
   selectedCategory: string;
@@ -13,6 +14,7 @@ export default function VenueCategorySelector({
   onCategorySelect,
   selectedCity 
 }: VenueCategorySelectorProps) {
+  const { colors } = useTheme();
   
   const handleCategorySelect = (categoryId: string) => {
     onCategorySelect(categoryId);
@@ -29,7 +31,14 @@ export default function VenueCategorySelector({
               key={category.id}
               style={[
                 styles.categoryOption,
-                selectedCategory === category.id && styles.categoryOptionSelected
+                {
+                  backgroundColor: colors.cardBackground,
+                  borderColor: colors.border
+                },
+                selectedCategory === category.id && {
+                  backgroundColor: colors.purple,
+                  borderColor: colors.purple
+                }
               ]}
               onPress={() => handleCategorySelect(category.id)}
             >
@@ -38,19 +47,21 @@ export default function VenueCategorySelector({
                 <View style={styles.categoryInfo}>
                   <Text style={[
                     styles.categoryName,
+                    { color: colors.text },
                     selectedCategory === category.id && styles.categoryNameSelected
                   ]}>
                     {category.name}
                   </Text>
                   <Text style={[
                     styles.categoryDescription,
+                    { color: colors.textSecondary },
                     selectedCategory === category.id && styles.categoryDescriptionSelected
                   ]}>
                     {category.description}
                   </Text>
                 </View>
                 {partnerCount > 0 ? (
-                  <View style={styles.partnerBadge}>
+                  <View style={[styles.partnerBadge, { backgroundColor: colors.green }]}>
                     <Text style={styles.partnerBadgeText}>
                       {partnerCount} partner{partnerCount !== 1 ? 's' : ''}
                     </Text>
@@ -74,15 +85,9 @@ const styles = StyleSheet.create({
   },
   categoryOption: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  categoryOptionSelected: {
-    backgroundColor: '#8000FF',
-    borderColor: '#8000FF',
   },
   categoryHeader: {
     flexDirection: 'row',
@@ -98,7 +103,6 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 2,
   },
   categoryNameSelected: {
@@ -106,13 +110,11 @@ const styles = StyleSheet.create({
   },
   categoryDescription: {
     fontSize: 14,
-    color: '#666666',
   },
   categoryDescriptionSelected: {
     color: 'rgba(255, 255, 255, 0.8)',
   },
   partnerBadge: {
-    backgroundColor: '#4CAF50',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,

@@ -134,6 +134,21 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleDarkModeToggle = () => {
+    if (!isPremium) {
+      Alert.alert(
+        'Premium Feature',
+        'Dark mode is available for Pro members. Upgrade to Pro to enable dark mode!',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Upgrade to Pro', onPress: handleUpgradeToPro }
+        ]
+      );
+    } else {
+      toggleTheme();
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
@@ -193,18 +208,37 @@ export default function ProfileScreen() {
         <View style={[styles.sectionContainer, { backgroundColor: colors.cardBackground }]}>
           <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>ACCOUNT</Text>
           
-          {/* Dark Mode Toggle */}
-          <View style={[styles.menuItem, { borderBottomColor: colors.borderLight }]}>
-            <MaterialIcons name="dark-mode" size={24} color={colors.purple} />
-            <Text style={[styles.menuItemText, { color: colors.text }]}>Dark Mode</Text>
-            <Switch
-              value={isDarkMode}
-              onValueChange={toggleTheme}
-              trackColor={{ false: colors.border, true: colors.purple }}
-              thumbColor={colors.white}
-              ios_backgroundColor={colors.border}
+          {/* Dark Mode Toggle - Premium Only */}
+          <TouchableOpacity 
+            style={[styles.menuItem, { borderBottomColor: colors.borderLight }]}
+            onPress={handleDarkModeToggle}
+          >
+            <MaterialIcons 
+              name="dark-mode" 
+              size={24} 
+              color={isPremium ? colors.purple : colors.textDisabled} 
             />
-          </View>
+            <Text style={[
+              styles.menuItemText,
+              { color: isPremium ? colors.text : colors.textDisabled }
+            ]}>
+              Dark Mode
+            </Text>
+            {!isPremium && (
+              <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
+                <Text style={styles.premiumBadgeText}>Pro</Text>
+              </View>
+            )}
+            {isPremium && (
+              <Switch
+                value={isDarkMode}
+                onValueChange={toggleTheme}
+                trackColor={{ false: colors.border, true: colors.purple }}
+                thumbColor={colors.white}
+                ios_backgroundColor={colors.border}
+              />
+            )}
+          </TouchableOpacity>
 
           <TouchableOpacity 
             style={[styles.menuItem, { borderBottomColor: colors.borderLight }]} 
