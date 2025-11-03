@@ -67,9 +67,7 @@ export default function ManualAddScreen() {
     }
 
     try {
-      setIsUploading(true);
-      
-      // Check friend limit
+      // Check friend limit FIRST before any uploads
       const friends = await getFriends();
       const maxFriends = isPremium ? 1000 : 50;
       
@@ -79,33 +77,46 @@ export default function ManualAddScreen() {
           `You can only add up to ${maxFriends} friends${!isPremium ? '. Upgrade to Premium for up to 1000 friends!' : '.'}`,
           [{ text: 'OK' }]
         );
-        setIsUploading(false);
         return;
       }
       
-      // Upload profile picture if provided
+      // Upload profile picture if provided (but don't block on failure)
       let uploadedImageUrl: string | undefined = undefined;
       if (profilePictureUri) {
-        const user = await getUser();
-        if (user) {
-          console.log('Uploading profile picture...');
-          uploadedImageUrl = await uploadProfilePicture(profilePictureUri, user.id);
-          if (!uploadedImageUrl) {
-            Alert.alert('Warning', 'Failed to upload profile picture. Friend will be added without it.');
-          } else {
-            console.log('Profile picture uploaded:', uploadedImageUrl);
+        try {
+          setIsUploading(true);
+          const user = await getUser();
+          if (user) {
+            console.log('Uploading profile picture...');
+            uploadedImageUrl = await uploadProfilePicture(profilePictureUri, user.id);
+            if (uploadedImageUrl) {
+              console.log('Profile picture uploaded:', uploadedImageUrl);
+            } else {
+              console.warn('Profile picture upload returned null');
+            }
           }
+        } catch (uploadError) {
+          console.error('Profile picture upload failed:', uploadError);
+          // Continue without the profile picture instead of failing completely
+          Alert.alert(
+            'Photo Upload Failed',
+            'The profile picture could not be uploaded, but your friend will still be added. You can try uploading the photo again later.',
+            [{ text: 'OK' }]
+          );
+        } finally {
+          setIsUploading(false);
         }
       }
       
-      await addFriend({
+      // Add friend (this should always succeed even if photo upload failed)
+      const addedFriend = await addFriend({
         name: fullName.trim(),
         email: '',
         friendType: isOnline && isLocal ? 'both' : isOnline ? 'online' : 'local',
         isOnline,
         isLocal,
         profilePicture: '👤',
-        profilePictureUri: uploadedImageUrl, // Use the uploaded URL
+        profilePictureUri: uploadedImageUrl, // Will be undefined if upload failed
         city: '',
         source: 'manual',
         notificationFrequency: 'monthly',
@@ -114,7 +125,9 @@ export default function ManualAddScreen() {
         birthdayNotificationEnabled,
       });
 
-      setIsUploading(false);
+      if (!addedFriend) {
+        throw new Error('Failed to add friend to database');
+      }
 
       // Check if we should show the paywall (once per day)
       const shouldShow = await shouldShowPaywall();

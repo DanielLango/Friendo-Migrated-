@@ -54,7 +54,8 @@ export const uploadProfilePicture = async (
 
     if (error) {
       console.error('Upload error:', error);
-      throw new Error(`Upload failed: ${error.message}`);
+      // Return null instead of throwing to allow graceful degradation
+      return null;
     }
 
     console.log('Upload successful:', data);
@@ -68,10 +69,8 @@ export const uploadProfilePicture = async (
     return urlData.publicUrl;
   } catch (error) {
     console.error('Error uploading image:', error);
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error('Failed to upload image');
+    // Return null instead of throwing to allow graceful degradation
+    return null;
   }
 };
 
