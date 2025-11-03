@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { getFriends, addFriend, getUser } from '../utils/storage';
 import { uploadProfilePicture } from '../utils/imageUpload';
 import Paywall from '../components/Paywall';
-import BirthdaySettings from '../components/BirthdaySettings';
+import BirthdaySettingsInline from '../components/BirthdaySettingsInline';
 import PhotoUploadModal from '../components/PhotoUploadModal';
 import { shouldShowPaywall, markPaywallShown } from '../utils/paywallUtils';
 import { isPremiumUser } from '../utils/premiumFeatures';
@@ -258,23 +258,6 @@ export default function ManualAddScreen() {
                 </View>
               )}
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.birthdayButton, {
-                backgroundColor: colors.cardBackground,
-                borderColor: colors.border
-              }]}
-              onPress={() => setShowBirthdaySettings(true)}
-            >
-              <Text style={styles.birthdayButtonIcon}>🎂</Text>
-              <View style={styles.birthdayButtonContent}>
-                <Text style={[styles.birthdayButtonLabel, { color: colors.text }]}>Birthday</Text>
-                <Text style={[styles.birthdayButtonValue, { color: colors.textSecondary }]}>
-                  {birthday || 'Not set'}
-                </Text>
-              </View>
-              <Text style={[styles.birthdayButtonArrow, { color: colors.textSecondary }]}>›</Text>
-            </TouchableOpacity>
           </View>
         )}
 
@@ -303,8 +286,7 @@ export default function ManualAddScreen() {
         </View>
 
         {isPremium && (
-          <BirthdaySettings
-            visible={showBirthdaySettings}
+          <BirthdaySettingsInline
             friend={{
               id: 'temp',
               name: fullName || 'Friend',
@@ -324,7 +306,6 @@ export default function ManualAddScreen() {
                 setBirthdayNotificationEnabled(updates.birthdayNotificationEnabled);
               }
             }}
-            onClose={() => setShowBirthdaySettings(false)}
           />
         )}
 
