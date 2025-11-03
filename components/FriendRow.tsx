@@ -179,6 +179,18 @@ export default function FriendRow({
     }
   };
 
+  const handleToggleBirthdayNotification = async () => {
+    if (deleteMode) return;
+    
+    try {
+      const newValue = !friend.birthdayNotificationEnabled;
+      await handleBirthdayUpdate({ birthdayNotificationEnabled: newValue });
+    } catch (error) {
+      console.error('Error toggling birthday notification:', error);
+      Alert.alert('Error', 'Failed to update birthday notification');
+    }
+  };
+
   const handleLongPressStart = (meetingId: string) => {
     setPressingMeetingId(meetingId);
     longPressTimer.current = setTimeout(() => {
@@ -488,7 +500,12 @@ export default function FriendRow({
         <View style={styles.birthdayContainer}>
           <View style={styles.birthdayRow}>
             <Text style={[styles.birthdayRowText, { color: colors.textTertiary }]}>Birthday: {friend.birthday}</Text>
-            <View style={styles.birthdayNotificationSection}>
+            <TouchableOpacity 
+              style={styles.birthdayNotificationSection}
+              onPress={handleToggleBirthdayNotification}
+              disabled={deleteMode}
+              activeOpacity={0.7}
+            >
               <Text style={[styles.birthdayRowText, { color: colors.textTertiary }]}>Birthday Notification</Text>
               <View style={[
                 styles.notificationToggle,
@@ -500,7 +517,7 @@ export default function FriendRow({
                   friend.birthdayNotificationEnabled && styles.notificationToggleThumbOn
                 ]} />
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       )}
