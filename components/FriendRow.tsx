@@ -13,7 +13,6 @@ import { Friend, Meeting } from '../types';
 import NotificationModal from './NotificationModal';
 import CancellationModal from './CancellationModal';
 import PhotoUploadModal from './PhotoUploadModal';
-import BirthdaySettings from './BirthdaySettings';
 import { getMeetings, saveMeetings, getUser } from '../utils/storage';
 import { saveFriends, getFriends } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
@@ -515,15 +514,6 @@ export default function FriendRow({
             {friend.isFavorite ? '⭐' : '☆'}
           </Text>
         </TouchableOpacity>
-      )}
-
-      {isPremium && showBirthdaySettings && (
-        <BirthdaySettings
-          visible={true}
-          friend={friend}
-          onUpdate={handleBirthdayUpdate}
-          onClose={() => setShowBirthdaySettings(false)}
-        />
       )}
 
       <CancellationModal
