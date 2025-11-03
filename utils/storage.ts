@@ -11,6 +11,8 @@ const KEYS = {
   USER: '@friendo_user',
   LOGGED_IN: '@friendo_logged_in',
   REMEMBER_ME: '@friendo_remember_me',
+  FRIEND_CONSENT_ACCEPTED: '@friendo_friend_consent_accepted',
+  PHOTO_CONSENT_ACCEPTED: '@friendo_photo_consent_accepted',
 };
 
 // Secure storage keys
@@ -82,6 +84,47 @@ export const clearRememberMeCredentials = async () => {
     return true;
   } catch (error) {
     console.error('Error clearing remember me credentials:', error);
+    return false;
+  }
+};
+
+// Consent operations
+export const getFriendConsentAccepted = async (): Promise<boolean> => {
+  try {
+    const value = await AsyncStorage.getItem(KEYS.FRIEND_CONSENT_ACCEPTED);
+    return value === 'true';
+  } catch (error) {
+    console.error('Error getting friend consent:', error);
+    return false;
+  }
+};
+
+export const setFriendConsentAccepted = async (accepted: boolean): Promise<boolean> => {
+  try {
+    await AsyncStorage.setItem(KEYS.FRIEND_CONSENT_ACCEPTED, accepted ? 'true' : 'false');
+    return true;
+  } catch (error) {
+    console.error('Error setting friend consent:', error);
+    return false;
+  }
+};
+
+export const getPhotoConsentAccepted = async (): Promise<boolean> => {
+  try {
+    const value = await AsyncStorage.getItem(KEYS.PHOTO_CONSENT_ACCEPTED);
+    return value === 'true';
+  } catch (error) {
+    console.error('Error getting photo consent:', error);
+    return false;
+  }
+};
+
+export const setPhotoConsentAccepted = async (accepted: boolean): Promise<boolean> => {
+  try {
+    await AsyncStorage.setItem(KEYS.PHOTO_CONSENT_ACCEPTED, accepted ? 'true' : 'false');
+    return true;
+  } catch (error) {
+    console.error('Error setting photo consent:', error);
     return false;
   }
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,11 @@ import {
   Switch,
   Modal,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Friend } from '../types';
+import { getFriendConsentAccepted, setFriendConsentAccepted } from '../utils/storage';
+import { useTheme } from '../utils/themeContext';
 
 interface BirthdaySettingsProps {
   friend: Friend;
@@ -16,6 +19,7 @@ interface BirthdaySettingsProps {
 }
 
 export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsProps) {
+  const [showConsentModal, setShowConsentModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<number>(
     friend.birthday ? parseInt(friend.birthday.split('/')[0]) : 1
@@ -23,6 +27,9 @@ export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsP
   const [selectedDay, setSelectedDay] = useState<number>(
     friend.birthday ? parseInt(friend.birthday.split('/')[1]) : 1
   );
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+  const { colors } = useTheme();
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -32,6 +39,29 @@ export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsP
   const getDaysInMonth = (month: number) => {
     const daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     return daysInMonth[month - 1];
+  };
+
+  const handleBirthdayClick = async () => {
+    const hasConsent = await getFriendConsentAccepted();
+    if (!hasConsent) {
+      setShowConsentModal(true);
+    } else {
+      setShowDatePicker(true);
+    }
+  };
+
+  const handleConsentContinue = async () => {
+    if (!consentAccepted) {
+      Alert.alert('Consent Required', 'Please accept the consent to continue.');
+      return;
+    }
+    
+    if (dontShowAgain) {
+      await setFriendConsentAccepted(true);
+    }
+    
+    setShowConsentModal(false);
+    setShowDatePicker(true);
   };
 
   const handleSaveBirthday = () => {
@@ -50,37 +80,120 @@ export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsP
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.isDarkMode ? 'rgba(255, 193, 7, 0.2)' : '#FFF9E6' }]}>
         <Text style={styles.headerIcon}>🎂</Text>
-        <Text style={styles.headerText}>Birthday</Text>
+        <Text style={[styles.headerText, { color: colors.text }]}>Birthday</Text>
       </View>
 
       <TouchableOpacity
-        style={styles.birthdaySelector}
-        onPress={() => setShowDatePicker(true)}
+        style={[styles.birthdaySelector, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+        onPress={handleBirthdayClick}
       >
-        <Text style={styles.birthdayLabel}>Birthday Date</Text>
-        <Text style={styles.birthdayValue}>
+        <Text style={[styles.birthdayLabel, { color: colors.textSecondary }]}>Birthday Date</Text>
+        <Text style={[styles.birthdayValue, { color: colors.text }]}>
           {friend.birthday || '__/__'}
         </Text>
       </TouchableOpacity>
 
       {friend.birthday && (
-        <View style={styles.notificationToggle}>
+        <View style={[styles.notificationToggle, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <View style={styles.notificationInfo}>
-            <Text style={styles.notificationLabel}>Birthday Notification</Text>
-            <Text style={styles.notificationSubtext}>
+            <Text style={[styles.notificationLabel, { color: colors.text }]}>Birthday Notification</Text>
+            <Text style={[styles.notificationSubtext, { color: colors.textSecondary }]}>
               Get reminded on their birthday
             </Text>
           </View>
           <Switch
             value={friend.birthdayNotificationEnabled || false}
             onValueChange={handleToggleNotification}
-            trackColor={{ false: '#E0E0E0', true: '#8000FF' }}
-            thumbColor="#FFFFFF"
+            trackColor={{ false: colors.border, true: colors.purple }}
+            thumbColor={colors.white}
           />
         </View>
       )}
+
+      {/* Friend Consent Modal */}
+      <Modal
+        visible={showConsentModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowConsentModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.consentModalContent, { backgroundColor: colors.modalBackground }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Friend Consent Confirmation</Text>
+              <TouchableOpacity onPress={() => setShowConsentModal(false)}>
+                <Text style={[styles.modalClose, { color: colors.textSecondary }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.consentContent}>
+              <View style={styles.consentHeader}>
+                <Text style={styles.consentIcon}>🔷</Text>
+                <Text style={[styles.consentTitle, { color: colors.text }]}>Before Adding Birthday</Text>
+              </View>
+
+              <Text style={[styles.consentText, { color: colors.text }]}>
+                Please confirm that:
+              </Text>
+
+              <View style={[styles.consentList, { backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F8F9FA' }]}>
+                <Text style={[styles.consentItem, { color: colors.textSecondary }]}>
+                  • You have their explicit permission to store this information in Friendo.
+                </Text>
+                <Text style={[styles.consentItem, { color: colors.textSecondary }]}>
+                  • You understand this data is for your personal use only and is not shared with others.
+                </Text>
+                <Text style={[styles.consentItem, { color: colors.textSecondary }]}>
+                  • You will remove it if your friend withdraws consent.
+                </Text>
+                <Text style={[styles.consentItem, { color: colors.textSecondary }]}>
+                  • The data will be stored securely and can be deleted at any time.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.checkboxContainer, {
+                  backgroundColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.2)' : '#F0F4FF',
+                  borderColor: colors.purple
+                }]}
+                onPress={() => setConsentAccepted(!consentAccepted)}
+              >
+                <View style={[styles.checkbox, { borderColor: colors.purple }, consentAccepted && { backgroundColor: colors.purple }]}>
+                  {consentAccepted && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text style={[styles.checkboxLabel, { color: colors.text }]}>
+                  I confirm that I have my friend's explicit consent and accept responsibility for compliance.
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.checkboxContainer, {
+                  backgroundColor: colors.isDarkMode ? 'rgba(255, 193, 7, 0.2)' : '#FFF9E6',
+                  borderColor: colors.orange
+                }]}
+                onPress={() => setDontShowAgain(!dontShowAgain)}
+              >
+                <View style={[styles.checkbox, { borderColor: colors.orange }, dontShowAgain && { backgroundColor: colors.orange }]}>
+                  {dontShowAgain && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text style={[styles.checkboxLabel, { color: colors.text }]}>
+                  I hereby acknowledge this, therefore this message does not need to appear again.
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.continueButton, { backgroundColor: consentAccepted ? colors.purple : colors.textDisabled }]}
+                onPress={handleConsentContinue}
+                disabled={!consentAccepted}
+              >
+                <Text style={styles.continueButtonText}>Continue</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* Birthday Date Picker Modal */}
       <Modal
@@ -90,64 +203,68 @@ export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsP
         onRequestClose={() => setShowDatePicker(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Birthday</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.modalBackground }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Select Birthday</Text>
               <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <Text style={[styles.modalClose, { color: colors.textSecondary }]}>✕</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.pickerContainer}>
               <View style={styles.pickerColumn}>
-                <Text style={styles.pickerLabel}>Month</Text>
-                <View style={styles.pickerScroll}>
+                <Text style={[styles.pickerLabel, { color: colors.textSecondary }]}>Month</Text>
+                <ScrollView style={[styles.pickerScroll, { borderColor: colors.border }]} nestedScrollEnabled>
                   {months.map((month, index) => (
                     <TouchableOpacity
                       key={month}
                       style={[
                         styles.pickerItem,
-                        selectedMonth === index + 1 && styles.pickerItemSelected
+                        { borderBottomColor: colors.borderLight },
+                        selectedMonth === index + 1 && { backgroundColor: colors.purple }
                       ]}
                       onPress={() => setSelectedMonth(index + 1)}
                     >
                       <Text style={[
                         styles.pickerItemText,
+                        { color: colors.text },
                         selectedMonth === index + 1 && styles.pickerItemTextSelected
                       ]}>
                         {month}
                       </Text>
                     </TouchableOpacity>
                   ))}
-                </View>
+                </ScrollView>
               </View>
 
               <View style={styles.pickerColumn}>
-                <Text style={styles.pickerLabel}>Day</Text>
-                <View style={styles.pickerScroll}>
+                <Text style={[styles.pickerLabel, { color: colors.textSecondary }]}>Day</Text>
+                <ScrollView style={[styles.pickerScroll, { borderColor: colors.border }]} nestedScrollEnabled>
                   {Array.from({ length: getDaysInMonth(selectedMonth) }, (_, i) => i + 1).map(day => (
                     <TouchableOpacity
                       key={day}
                       style={[
                         styles.pickerItem,
-                        selectedDay === day && styles.pickerItemSelected
+                        { borderBottomColor: colors.borderLight },
+                        selectedDay === day && { backgroundColor: colors.purple }
                       ]}
                       onPress={() => setSelectedDay(day)}
                     >
                       <Text style={[
                         styles.pickerItemText,
+                        { color: colors.text },
                         selectedDay === day && styles.pickerItemTextSelected
                       ]}>
                         {day}
                       </Text>
                     </TouchableOpacity>
                   ))}
-                </View>
+                </ScrollView>
               </View>
             </View>
 
             <TouchableOpacity
-              style={styles.saveButton}
+              style={[styles.saveButton, { backgroundColor: colors.purple }]}
               onPress={handleSaveBirthday}
             >
               <Text style={styles.saveButtonText}>Save Birthday</Text>
@@ -161,17 +278,17 @@ export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsP
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFF9E6',
     borderRadius: 12,
     padding: 16,
     marginVertical: 12,
     borderWidth: 1,
-    borderColor: '#FFE082',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+    borderRadius: 8,
+    padding: 8,
   },
   headerIcon: {
     fontSize: 20,
@@ -180,33 +297,30 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
   },
   birthdaySelector: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+    borderWidth: 1,
   },
   birthdayLabel: {
     fontSize: 14,
-    color: '#666666',
   },
   birthdayValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
   },
   notificationToggle: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 12,
+    borderWidth: 1,
   },
   notificationInfo: {
     flex: 1,
@@ -214,12 +328,10 @@ const styles = StyleSheet.create({
   notificationLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333333',
     marginBottom: 2,
   },
   notificationSubtext: {
     fontSize: 12,
-    color: '#666666',
     fontStyle: 'italic',
   },
   modalOverlay: {
@@ -228,26 +340,102 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
     maxHeight: '70%',
+  },
+  consentModalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
   },
   modalClose: {
     fontSize: 24,
-    color: '#666666',
+  },
+  consentContent: {
+    flex: 1,
+  },
+  consentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  consentIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  consentTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  consentText: {
+    fontSize: 16,
+    marginBottom: 16,
+    lineHeight: 22,
+  },
+  consentList: {
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  consentItem: {
+    fontSize: 14,
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderRadius: 6,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  checkmark: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  checkboxLabel: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  continueButton: {
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  continueButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   pickerContainer: {
     flexDirection: 'row',
@@ -260,7 +448,6 @@ const styles = StyleSheet.create({
   pickerLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666666',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -268,19 +455,13 @@ const styles = StyleSheet.create({
     maxHeight: 200,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
   },
   pickerItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  pickerItemSelected: {
-    backgroundColor: '#8000FF',
   },
   pickerItemText: {
     fontSize: 14,
-    color: '#333333',
     textAlign: 'center',
   },
   pickerItemTextSelected: {
@@ -288,7 +469,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: '#8000FF',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
