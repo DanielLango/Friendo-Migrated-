@@ -43,7 +43,6 @@ export default function FriendRow({
   const [selectedMeetingForCancellation, setSelectedMeetingForCancellation] = useState<Meeting | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
-  const [showBirthdaySettings, setShowBirthdaySettings] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const { colors } = useTheme();
   
@@ -488,11 +487,7 @@ export default function FriendRow({
 
       {isPremium && friend.birthday && (
         <View style={styles.birthdayContainer}>
-          <TouchableOpacity
-            style={styles.birthdayRow}
-            onPress={() => !deleteMode && setShowBirthdaySettings(true)}
-            disabled={deleteMode}
-          >
+          <View style={styles.birthdayRow}>
             <Text style={[styles.birthdayRowText, { color: colors.textTertiary }]}>Birthday: {friend.birthday}</Text>
             <View style={styles.birthdayNotificationSection}>
               <Text style={[styles.birthdayRowText, { color: colors.textTertiary }]}>Birthday Notification</Text>
@@ -507,7 +502,7 @@ export default function FriendRow({
                 ]} />
               </View>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
       )}
 
