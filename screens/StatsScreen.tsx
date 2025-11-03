@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Friend, Meeting } from '../types';
@@ -15,7 +16,6 @@ import { getFriends, getMeetings } from '../utils/storage';
 import { isPremiumUser } from '../utils/premiumFeatures';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { Alert } from 'react-native';
 
 interface FriendStats {
   friend: Friend;
@@ -86,7 +86,7 @@ export default function StatsScreen() {
 
       // Save to file
       const fileName = `friendo_meetings_export_${Date.now()}.csv`;
-      const fileUri = FileSystem.documentDirectory + fileName;
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
       
       await FileSystem.writeAsStringAsync(fileUri, csvContent, {
         encoding: FileSystem.EncodingType.UTF8,
