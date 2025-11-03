@@ -12,14 +12,16 @@ import { useNavigation } from '@react-navigation/native';
 import { Friend } from '../types';
 import { getFriends } from '../utils/storage';
 import SimpleTimePicker from '../components/SimpleTimePicker';
+import { useTheme } from '../utils/themeContext';
 
 export default function BatchNotificationsScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<Set<string>>(new Set());
   const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
-  const [selectedTime, setSelectedTime] = useState(new Date()); // Changed from string to Date
-  const [selectedDay, setSelectedDay] = useState(0); // For weekly: 0-6 (Sun-Sat)
-  const [selectedDate, setSelectedDate] = useState(1); // For monthly: 1-31
+  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(1);
+  const { colors } = useTheme();
   
   const navigation = useNavigation();
 
@@ -59,8 +61,6 @@ export default function BatchNotificationsScreen() {
       hour12: true 
     });
 
-    // Here you would save the batch notification settings
-    // For now, just show a success message
     Alert.alert(
       'Batch Notifications Set',
       `Notifications will be sent ${frequency} at ${timeString} for ${selectedFriends.size} friend(s).`,
@@ -76,26 +76,29 @@ export default function BatchNotificationsScreen() {
   const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, {
+        backgroundColor: colors.cardBackground,
+        borderBottomColor: colors.border
+      }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>← Back</Text>
+          <Text style={[styles.backButton, { color: colors.purple }]}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Batch Notifications</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Batch Notifications</Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Select Friends</Text>
-          <Text style={styles.sectionSubtitle}>
+        <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Select Friends</Text>
+          <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
             Choose which friends to include in this batch notification
           </Text>
           
           {friends.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No friends added yet</Text>
-              <Text style={styles.emptyStateSubtext}>Add friends first to use batch notifications</Text>
+              <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>No friends added yet</Text>
+              <Text style={[styles.emptyStateSubtext, { color: colors.textTertiary }]}>Add friends first to use batch notifications</Text>
             </View>
           ) : (
             <View style={styles.friendsList}>
@@ -104,17 +107,24 @@ export default function BatchNotificationsScreen() {
                   key={friend.id}
                   style={[
                     styles.friendItem,
-                    selectedFriends.has(friend.id) && styles.friendItemSelected
+                    { 
+                      backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F8F9FA',
+                      borderColor: selectedFriends.has(friend.id) ? colors.purple : 'transparent'
+                    },
+                    selectedFriends.has(friend.id) && {
+                      backgroundColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.2)' : '#F3EDFF'
+                    }
                   ]}
                   onPress={() => toggleFriendSelection(friend.id)}
                 >
                   <View style={styles.friendInfo}>
-                    <Text style={styles.friendName}>{friend.name}</Text>
-                    <Text style={styles.friendType}>{friend.friendType}</Text>
+                    <Text style={[styles.friendName, { color: colors.text }]}>{friend.name}</Text>
+                    <Text style={[styles.friendType, { color: colors.textSecondary }]}>{friend.friendType}</Text>
                   </View>
                   <View style={[
                     styles.checkbox,
-                    selectedFriends.has(friend.id) && styles.checkboxChecked
+                    { borderColor: colors.purple },
+                    selectedFriends.has(friend.id) && { backgroundColor: colors.purple }
                   ]}>
                     {selectedFriends.has(friend.id) && (
                       <Text style={styles.checkmark}>✓</Text>
@@ -126,18 +136,26 @@ export default function BatchNotificationsScreen() {
           )}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Frequency</Text>
+        <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Frequency</Text>
           <View style={styles.frequencyButtons}>
             <TouchableOpacity
               style={[
                 styles.frequencyButton,
-                frequency === 'daily' && styles.frequencyButtonActive
+                { 
+                  backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F8F9FA',
+                  borderColor: colors.border
+                },
+                frequency === 'daily' && { 
+                  backgroundColor: colors.purple,
+                  borderColor: colors.purple
+                }
               ]}
               onPress={() => setFrequency('daily')}
             >
               <Text style={[
                 styles.frequencyButtonText,
+                { color: colors.textSecondary },
                 frequency === 'daily' && styles.frequencyButtonTextActive
               ]}>
                 Daily
@@ -147,12 +165,20 @@ export default function BatchNotificationsScreen() {
             <TouchableOpacity
               style={[
                 styles.frequencyButton,
-                frequency === 'weekly' && styles.frequencyButtonActive
+                { 
+                  backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F8F9FA',
+                  borderColor: colors.border
+                },
+                frequency === 'weekly' && { 
+                  backgroundColor: colors.purple,
+                  borderColor: colors.purple
+                }
               ]}
               onPress={() => setFrequency('weekly')}
             >
               <Text style={[
                 styles.frequencyButtonText,
+                { color: colors.textSecondary },
                 frequency === 'weekly' && styles.frequencyButtonTextActive
               ]}>
                 Weekly
@@ -162,12 +188,20 @@ export default function BatchNotificationsScreen() {
             <TouchableOpacity
               style={[
                 styles.frequencyButton,
-                frequency === 'monthly' && styles.frequencyButtonActive
+                { 
+                  backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F8F9FA',
+                  borderColor: colors.border
+                },
+                frequency === 'monthly' && { 
+                  backgroundColor: colors.purple,
+                  borderColor: colors.purple
+                }
               ]}
               onPress={() => setFrequency('monthly')}
             >
               <Text style={[
                 styles.frequencyButtonText,
+                { color: colors.textSecondary },
                 frequency === 'monthly' && styles.frequencyButtonTextActive
               ]}>
                 Monthly
@@ -177,8 +211,8 @@ export default function BatchNotificationsScreen() {
         </View>
 
         {frequency === 'weekly' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Day of Week</Text>
+          <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Day of Week</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.dayButtons}>
                 {weekDays.map((day, index) => (
@@ -186,12 +220,20 @@ export default function BatchNotificationsScreen() {
                     key={day}
                     style={[
                       styles.dayButton,
-                      selectedDay === index && styles.dayButtonActive
+                      { 
+                        backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F8F9FA',
+                        borderColor: colors.border
+                      },
+                      selectedDay === index && { 
+                        backgroundColor: colors.purple,
+                        borderColor: colors.purple
+                      }
                     ]}
                     onPress={() => setSelectedDay(index)}
                   >
                     <Text style={[
                       styles.dayButtonText,
+                      { color: colors.textSecondary },
                       selectedDay === index && styles.dayButtonTextActive
                     ]}>
                       {day.slice(0, 3)}
@@ -204,22 +246,30 @@ export default function BatchNotificationsScreen() {
         )}
 
         {frequency === 'monthly' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Day of Month</Text>
+          <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Day of Month</Text>
             <View style={styles.dateSelector}>
-              <Text style={styles.dateSelectorLabel}>Day:</Text>
+              <Text style={[styles.dateSelectorLabel, { color: colors.text }]}>Day:</Text>
               <View style={styles.dateButtons}>
                 {[1, 5, 10, 15, 20, 25].map((date) => (
                   <TouchableOpacity
                     key={date}
                     style={[
                       styles.dateButton,
-                      selectedDate === date && styles.dateButtonActive
+                      { 
+                        backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F8F9FA',
+                        borderColor: colors.border
+                      },
+                      selectedDate === date && { 
+                        backgroundColor: colors.purple,
+                        borderColor: colors.purple
+                      }
                     ]}
                     onPress={() => setSelectedDate(date)}
                   >
                     <Text style={[
                       styles.dateButtonText,
+                      { color: colors.textSecondary },
                       selectedDate === date && styles.dateButtonTextActive
                     ]}>
                       {date}
@@ -231,20 +281,23 @@ export default function BatchNotificationsScreen() {
           </View>
         )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Time</Text>
+        <View style={[styles.section, { backgroundColor: colors.cardBackground }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Time</Text>
           <SimpleTimePicker
             value={selectedTime}
             onChange={setSelectedTime}
           />
         </View>
 
-        <View style={styles.summarySection}>
-          <Text style={styles.summaryTitle}>Summary</Text>
-          <Text style={styles.summaryText}>
+        <View style={[styles.summarySection, {
+          backgroundColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.2)' : '#F3EDFF',
+          borderColor: colors.purple
+        }]}>
+          <Text style={[styles.summaryTitle, { color: colors.text }]}>Summary</Text>
+          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
             {selectedFriends.size} friend(s) selected
           </Text>
-          <Text style={styles.summaryText}>
+          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
             Notifications will be sent {frequency}
             {frequency === 'weekly' && ` on ${weekDays[selectedDay]}`}
             {frequency === 'monthly' && ` on day ${selectedDate}`}
@@ -259,7 +312,8 @@ export default function BatchNotificationsScreen() {
         <TouchableOpacity 
           style={[
             styles.saveButton,
-            selectedFriends.size === 0 && styles.saveButtonDisabled
+            { backgroundColor: colors.green },
+            selectedFriends.size === 0 && { backgroundColor: colors.textDisabled }
           ]} 
           onPress={handleSave}
           disabled={selectedFriends.size === 0}
@@ -274,7 +328,6 @@ export default function BatchNotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   header: {
     flexDirection: 'row',
@@ -282,19 +335,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   backButton: {
     fontSize: 16,
-    color: '#8000FF',
     fontWeight: '600',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
   },
   placeholder: {
     width: 50,
@@ -304,18 +353,15 @@ const styles = StyleSheet.create({
   },
   section: {
     padding: 20,
-    backgroundColor: '#FFFFFF',
     marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 8,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#666666',
     marginBottom: 16,
   },
   emptyState: {
@@ -324,12 +370,10 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#666666',
     marginBottom: 8,
   },
   emptyStateSubtext: {
     fontSize: 12,
-    color: '#999999',
   },
   friendsList: {
     gap: 8,
@@ -339,14 +383,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: '#F8F9FA',
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  friendItemSelected: {
-    backgroundColor: '#F3EDFF',
-    borderColor: '#8000FF',
   },
   friendInfo: {
     flex: 1,
@@ -354,24 +392,18 @@ const styles = StyleSheet.create({
   friendName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
     marginBottom: 2,
   },
   friendType: {
     fontSize: 12,
-    color: '#666666',
   },
   checkbox: {
     width: 24,
     height: 24,
     borderWidth: 2,
-    borderColor: '#8000FF',
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#8000FF',
   },
   checkmark: {
     color: '#FFFFFF',
@@ -386,20 +418,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#F8F9FA',
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
     alignItems: 'center',
-  },
-  frequencyButtonActive: {
-    backgroundColor: '#8000FF',
-    borderColor: '#8000FF',
   },
   frequencyButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666666',
   },
   frequencyButtonTextActive: {
     color: '#FFFFFF',
@@ -411,19 +436,12 @@ const styles = StyleSheet.create({
   dayButton: {
     paddingVertical: 10,
     paddingHorizontal: 16,
-    backgroundColor: '#F8F9FA',
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
-  },
-  dayButtonActive: {
-    backgroundColor: '#8000FF',
-    borderColor: '#8000FF',
   },
   dayButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666666',
   },
   dayButtonTextActive: {
     color: '#FFFFFF',
@@ -435,7 +453,6 @@ const styles = StyleSheet.create({
   dateSelectorLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
     marginRight: 12,
   },
   dateButtons: {
@@ -447,53 +464,38 @@ const styles = StyleSheet.create({
   dateButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#F8F9FA',
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
-  },
-  dateButtonActive: {
-    backgroundColor: '#8000FF',
-    borderColor: '#8000FF',
   },
   dateButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666666',
   },
   dateButtonTextActive: {
     color: '#FFFFFF',
   },
   summarySection: {
     padding: 20,
-    backgroundColor: '#F3EDFF',
     marginHorizontal: 20,
     marginVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#8000FF',
   },
   summaryTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 8,
   },
   summaryText: {
     fontSize: 14,
-    color: '#666666',
     marginBottom: 4,
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 20,
     marginVertical: 20,
     alignItems: 'center',
-  },
-  saveButtonDisabled: {
-    backgroundColor: '#CCCCCC',
   },
   saveButtonText: {
     fontSize: 16,

@@ -17,10 +17,12 @@ import {
   syncWhatsAppContacts, 
   syncLinkedInContacts 
 } from '../utils/contactSyncUtils';
+import { useTheme } from '../utils/themeContext';
 
 export default function SyncScreen() {
   const [selectedFriends, setSelectedFriends] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const { colors } = useTheme();
   const navigation = useNavigation();
 
   const handleSourcePress = async (source: any) => {
@@ -74,9 +76,9 @@ export default function SyncScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.content}>
-        <Text style={styles.instructionText}>
+        <Text style={[styles.instructionText, { color: colors.text }]}>
           Click the logos below to sync-in your contact lists so that you can just select them from there.
         </Text>
 
@@ -86,35 +88,41 @@ export default function SyncScreen() {
               key={source.id}
               style={[
                 styles.iconButton, 
-                { borderColor: source.color },
+                { 
+                  borderColor: source.color,
+                  backgroundColor: colors.cardBackground
+                },
                 isLoading && styles.iconButtonDisabled
               ]}
               onPress={() => handleSourcePress(source)}
               disabled={isLoading}
             >
               <Text style={styles.iconEmoji}>{source.icon}</Text>
-              <Text style={styles.iconLabel}>{source.name}</Text>
+              <Text style={[styles.iconLabel, { color: colors.text }]}>{source.name}</Text>
               {isLoading && (
-                <Text style={styles.loadingText}>...</Text>
+                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>...</Text>
               )}
             </TouchableOpacity>
           ))}
         </View>
 
         <TouchableOpacity 
-          style={styles.manualButton}
+          style={[styles.manualButton, { backgroundColor: colors.purple }]}
           onPress={handleManualAdd}
         >
           <Text style={styles.manualButtonText}>Add more friends manually</Text>
         </TouchableOpacity>
 
-        <Text style={styles.counterText}>
+        <Text style={[styles.counterText, { color: colors.purple }]}>
           Number of Friends Selected so far: {selectedFriends}/50
         </Text>
 
-        <View style={styles.infoContainer}>
-          <Text style={styles.infoTitle}>🔒 Privacy & Security</Text>
-          <Text style={styles.infoText}>
+        <View style={[styles.infoContainer, {
+          backgroundColor: colors.isDarkMode ? 'rgba(128, 0, 255, 0.1)' : '#F8F4FF',
+          borderColor: colors.isDarkMode ? 'rgba(128, 0, 255, 0.3)' : '#E0D4FF'
+        }]}>
+          <Text style={[styles.infoTitle, { color: colors.text }]}>🔒 Privacy & Security</Text>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
             • We only access basic profile information{'\n'}
             • Your contacts are stored securely{'\n'}
             • You can remove synced data anytime{'\n'}
@@ -129,7 +137,6 @@ export default function SyncScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   content: {
     flex: 1,
@@ -138,7 +145,6 @@ const styles = StyleSheet.create({
   },
   instructionText: {
     fontSize: 16,
-    color: '#333333',
     textAlign: 'center',
     marginBottom: 30,
     lineHeight: 22,
@@ -157,7 +163,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 15,
-    backgroundColor: '#FAFAFA',
   },
   iconButtonDisabled: {
     opacity: 0.6,
@@ -168,17 +173,14 @@ const styles = StyleSheet.create({
   },
   iconLabel: {
     fontSize: 10,
-    color: '#333333',
     textAlign: 'center',
     fontWeight: '500',
   },
   loadingText: {
     fontSize: 12,
-    color: '#666666',
     marginTop: 2,
   },
   manualButton: {
-    backgroundColor: '#8000FF',
     borderRadius: 8,
     paddingVertical: 15,
     alignItems: 'center',
@@ -191,27 +193,22 @@ const styles = StyleSheet.create({
   },
   counterText: {
     fontSize: 16,
-    color: '#A94EFF',
     textAlign: 'center',
     fontWeight: '500',
     marginBottom: 30,
   },
   infoContainer: {
-    backgroundColor: '#F8F4FF',
     borderRadius: 12,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#E0D4FF',
   },
   infoTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 10,
   },
   infoText: {
     fontSize: 14,
-    color: '#666666',
     lineHeight: 20,
   },
 });
