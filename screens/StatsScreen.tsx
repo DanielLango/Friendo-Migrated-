@@ -69,38 +69,68 @@ export default function StatsScreen() {
         meetingsByYear[year].push(meeting);
       });
 
-      // Create CSV content
-      let csvContent = 'Year,Friend Name,Date,Activity,Venue,City,Notes,Status\n';
+      // Create simple TXT content with year-by-year breakdown
+      let txtContent = '=== FRIENDO - YOUR FRIENDSHIP HISTORY ===\n\n';
       
-      Object.keys(meetingsByYear).sort().forEach(year => {
-        meetingsByYear[parseInt(year)].forEach(meeting => {
+      // Sort years in descending order (newest first)
+      const years = Object.keys(meetingsByYear).map(y => parseInt(y)).sort((a, b) => b - a);
+      
+      years.forEach(year => {
+        const yearMeetings = meetingsByYear[year];
+        const nonCancelledMeetings = yearMeetings.filter(m => !m.notes?.startsWith('[CANCELLED]'));
+        
+        txtContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        txtContent += `YEAR ${year}\n`;
+        txtContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        txtContent += `Total Meetings: ${nonCancelledMeetings.length}\n`;
+        txtContent += `Cancelled Meetings: ${yearMeetings.length - nonCancelledMeetings.length}\n\n`;
+        
+        // Calculate friend stats for this year
+        const friendStatsForYear: { [friendId: string]: { name: string; count: number } } = {};
+        nonCancelledMeetings.forEach(meeting => {
           const friend = friends.find(f => f.id === meeting.friendId);
-          const friendName = friend ? friend.name : 'Unknown';
-          const status = meeting.status || 'met';
-          const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
-          const actualStatus = isCancelled ? 'cancelled' : status;
-          
-          csvContent += `${year},"${friendName}","${meeting.date}","${meeting.activity}","${meeting.venue}","${meeting.city || ''}","${meeting.notes || ''}","${actualStatus}"\n`;
+          if (friend) {
+            if (!friendStatsForYear[friend.id]) {
+              friendStatsForYear[friend.id] = { name: friend.name, count: 0 };
+            }
+            friendStatsForYear[friend.id].count++;
+          }
         });
+        
+        // Sort friends by meeting count
+        const sortedFriends = Object.values(friendStatsForYear).sort((a, b) => b.count - a.count);
+        
+        if (sortedFriends.length > 0) {
+          txtContent += `Top Friends:\n`;
+          sortedFriends.forEach((friend, index) => {
+            txtContent += `  ${index + 1}. ${friend.name} - ${friend.count} meeting${friend.count !== 1 ? 's' : ''}\n`;
+          });
+          txtContent += `\n`;
+        }
+        
+        txtContent += `\n`;
       });
+      
+      txtContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      txtContent += `Generated on ${new Date().toLocaleDateString()}\n`;
+      txtContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
       // Save to file using the new File API
-      const fileName = `friendo_meetings_export_${Date.now()}.csv`;
+      const fileName = `friendo_history_${Date.now()}.txt`;
       const fileUri = Paths.cache + '/' + fileName;
       
       // Create a File object and write the content
       const file = new File(fileUri);
       await file.create();
-      await file.write(csvContent);
+      await file.write(txtContent);
 
       // Share the file
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, {
-          mimeType: 'text/csv',
-          dialogTitle: 'Export Friendo Meetings Data',
-          UTI: 'public.comma-separated-values-text'
+          mimeType: 'text/plain',
+          dialogTitle: 'Export Friendo History',
         });
-        Alert.alert('Success', 'Meeting data exported successfully!');
+        Alert.alert('Success', 'Your friendship history has been exported!');
       } else {
         Alert.alert('Success', `File saved to: ${fileUri}`);
       }
