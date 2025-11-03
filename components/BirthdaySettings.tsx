@@ -116,10 +116,10 @@ export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsP
       <Modal
         visible={showConsentModal}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setShowConsentModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.consentModalOverlay}>
           <View style={[styles.consentModalContent, { backgroundColor: colors.modalBackground }]}>
             <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>Friend Consent Confirmation</Text>
@@ -128,7 +128,7 @@ export default function BirthdaySettings({ friend, onUpdate }: BirthdaySettingsP
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.consentContent}>
+            <ScrollView style={styles.consentContent} showsVerticalScrollIndicator={false}>
               <View style={styles.consentHeader}>
                 <Text style={styles.consentIcon}>🔷</Text>
                 <Text style={[styles.consentTitle, { color: colors.text }]}>Before Adding Birthday</Text>
@@ -339,6 +339,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
+  consentModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   modalContent: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -346,10 +353,11 @@ const styles = StyleSheet.create({
     maxHeight: '70%',
   },
   consentModalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 20,
     padding: 20,
-    maxHeight: '80%',
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '85%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -431,6 +439,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginTop: 10,
+    marginBottom: 20,
   },
   continueButtonText: {
     fontSize: 16,

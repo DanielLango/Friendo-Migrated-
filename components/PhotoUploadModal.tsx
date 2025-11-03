@@ -30,6 +30,7 @@ export default function PhotoUploadModal({
   const [photoConsentAccepted, setPhotoConsentAcceptedState] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showConsentModal, setShowConsentModal] = useState(false);
   const { colors } = useTheme();
 
   useEffect(() => {
@@ -42,8 +43,10 @@ export default function PhotoUploadModal({
     const hasConsent = await getPhotoConsentAccepted();
     if (hasConsent) {
       setStep('upload');
+      setShowConsentModal(false);
     } else {
       setStep('photo-consent');
+      setShowConsentModal(true);
     }
   };
 
@@ -52,6 +55,7 @@ export default function PhotoUploadModal({
     setPhotoConsentAcceptedState(false);
     setDontShowAgain(false);
     setSelectedImage(null);
+    setShowConsentModal(false);
     onClose();
   };
 
@@ -65,6 +69,7 @@ export default function PhotoUploadModal({
       await setPhotoConsentAccepted(true);
     }
     
+    setShowConsentModal(false);
     setStep('upload');
   };
 
@@ -103,28 +108,24 @@ export default function PhotoUploadModal({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={handleClose}
-    >
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { 
-          backgroundColor: colors.cardBackground,
-          borderBottomColor: colors.border
-        }]}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {step === 'photo-consent' ? 'Photo Upload Consent' : 'Upload Photo'}
-          </Text>
-          <TouchableOpacity onPress={handleClose}>
-            <Text style={[styles.closeButton, { color: colors.textSecondary }]}>✕</Text>
-          </TouchableOpacity>
-        </View>
+    <>
+      {/* Photo Consent Modal */}
+      <Modal
+        visible={visible && showConsentModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleClose}
+      >
+        <View style={styles.consentModalOverlay}>
+          <View style={[styles.consentModalContent, { backgroundColor: colors.modalBackground }]}>
+            <View style={[styles.consentModalHeader, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.consentModalTitle, { color: colors.text }]}>Photo Upload Consent</Text>
+              <TouchableOpacity onPress={handleClose}>
+                <Text style={[styles.modalClose, { color: colors.textSecondary }]}>✕</Text>
+              </TouchableOpacity>
+            </View>
 
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-          {step === 'photo-consent' && (
-            <View style={styles.consentSection}>
+            <ScrollView style={styles.consentScrollContent} showsVerticalScrollIndicator={false}>
               <View style={styles.consentHeader}>
                 <Text style={styles.consentIcon}>🔷</Text>
                 <Text style={[styles.consentTitle, { color: colors.text }]}>Photo Upload Consent</Text>
@@ -186,10 +187,30 @@ export default function PhotoUploadModal({
               >
                 <Text style={styles.continueButtonText}>Continue to Upload</Text>
               </TouchableOpacity>
-            </View>
-          )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
-          {step === 'upload' && (
+      {/* Upload Photo Modal */}
+      <Modal
+        visible={visible && !showConsentModal && step === 'upload'}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handleClose}
+      >
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+          <View style={[styles.header, { 
+            backgroundColor: colors.cardBackground,
+            borderBottomColor: colors.border
+          }]}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Upload Photo</Text>
+            <TouchableOpacity onPress={handleClose}>
+              <Text style={[styles.closeButton, { color: colors.textSecondary }]}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
             <View style={styles.uploadSection}>
               <Text style={[styles.uploadTitle, { color: colors.text }]}>Upload Photo for {friendName}</Text>
               
@@ -225,10 +246,10 @@ export default function PhotoUploadModal({
                 </TouchableOpacity>
               )}
             </View>
-          )}
-        </ScrollView>
-      </View>
-    </Modal>
+          </ScrollView>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -257,13 +278,42 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 20,
   },
-  consentSection: {
+  consentModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  consentModalContent: {
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '85%',
+  },
+  consentModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+  },
+  consentModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  modalClose: {
+    fontSize: 24,
+  },
+  consentScrollContent: {
     flex: 1,
   },
   consentHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   consentIcon: {
     fontSize: 24,
@@ -281,7 +331,7 @@ const styles = StyleSheet.create({
   consentList: {
     borderRadius: 12,
     padding: 16,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   consentItem: {
     fontSize: 14,
@@ -322,6 +372,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginTop: 10,
+    marginBottom: 20,
   },
   continueButtonText: {
     fontSize: 16,
