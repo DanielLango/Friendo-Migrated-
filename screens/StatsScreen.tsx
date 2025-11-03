@@ -17,6 +17,7 @@ import { isPremiumUser } from '../utils/premiumFeatures';
 import { Paths, File } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Clipboard } from 'react-native';
+import { useTheme } from '../utils/themeContext';
 
 interface FriendStats {
   friend: Friend;
@@ -41,6 +42,7 @@ export default function StatsScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
   const [isPremium, setIsPremium] = useState(false);
+  const { colors } = useTheme();
   
   const navigation = useNavigation();
   const currentYear = new Date().getFullYear();
@@ -60,7 +62,6 @@ export default function StatsScreen() {
       const meetings = await getMeetings();
       const friends = await getFriends();
       
-      // Group meetings by year
       const meetingsByYear: { [year: number]: Meeting[] } = {};
       meetings.forEach(meeting => {
         const year = new Date(meeting.date).getFullYear();
@@ -70,10 +71,8 @@ export default function StatsScreen() {
         meetingsByYear[year].push(meeting);
       });
 
-      // Create comprehensive history
       let summary = '=== YOUR COMPLETE FRIENDSHIP HISTORY ===\n\n';
       
-      // Sort years in descending order (newest first)
       const years = Object.keys(meetingsByYear).map(y => parseInt(y)).sort((a, b) => b - a);
       
       years.forEach(year => {
@@ -87,7 +86,6 @@ export default function StatsScreen() {
         summary += `Total Meetings: ${nonCancelledMeetings.length}\n`;
         summary += `Cancelled Meetings: ${cancelledMeetings.length}\n\n`;
         
-        // Calculate friend stats for this year
         const friendStatsForYear: { [friendId: string]: { name: string; count: number; cancelled: number } } = {};
         
         nonCancelledMeetings.forEach(meeting => {
@@ -110,7 +108,6 @@ export default function StatsScreen() {
           }
         });
         
-        // Sort friends by meeting count
         const sortedFriends = Object.values(friendStatsForYear).sort((a, b) => b.count - a.count);
         
         if (sortedFriends.length > 0) {
@@ -122,7 +119,6 @@ export default function StatsScreen() {
           summary += `\n`;
         }
         
-        // List all meetings for this year
         if (yearMeetings.length > 0) {
           summary += `ALL MEETINGS (${yearMeetings.length}):\n`;
           yearMeetings
@@ -142,10 +138,8 @@ export default function StatsScreen() {
       summary += `Generated: ${new Date().toLocaleDateString()}\n`;
       summary += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
-      // Log to console for easy copying
       console.log('\n' + summary + '\n');
       
-      // Show instructions first
       Alert.alert(
         'Export Your Friendship History',
         'Your complete friendship history is ready! Tap "Copy to Clipboard" below, then paste it wherever you\'d like - such as your phone\'s Notes app, a document, or share it with friends.',
@@ -164,7 +158,6 @@ export default function StatsScreen() {
           { 
             text: 'View Summary',
             onPress: () => {
-              // Show a preview
               const preview = summary.length > 500 ? summary.substring(0, 500) + '...\n\n[Full history copied to console]' : summary;
               Alert.alert('Preview', preview, [
                 {
@@ -209,7 +202,6 @@ export default function StatsScreen() {
       const friends = await getFriends();
       const meetings = await getMeetings();
       
-      // Filter for current year AND exclude cancelled meetings
       const yearMeetings = meetings.filter((meeting) => {
         const isCurrentYear = new Date(meeting.date).getFullYear() === currentYear;
         const isCancelled = meeting.notes?.startsWith('[CANCELLED]');
@@ -218,7 +210,6 @@ export default function StatsScreen() {
 
       setTotalMeetings(yearMeetings.length);
 
-      // Calculate friend stats
       const stats = friends.map((friend) => {
         const friendMeetings = yearMeetings.filter((meeting) => meeting.friendId === friend.id);
         const lastMeeting = friendMeetings.length > 0 
@@ -235,7 +226,6 @@ export default function StatsScreen() {
       stats.sort((a, b) => b.meetingCount - a.meetingCount);
       setFriendStats(stats);
 
-      // Calculate monthly breakdown
       const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
@@ -256,7 +246,6 @@ export default function StatsScreen() {
 
       setMonthlyBreakdown(monthlyData);
 
-      // Find most active month
       const mostActive = monthlyData.reduce((prev, current) => 
         prev.meetingCount > current.meetingCount ? prev : current
       );
@@ -287,18 +276,18 @@ export default function StatsScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
+      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContent}>
           <Text style={styles.loadingEmoji}>✨</Text>
-          <Text style={styles.loadingText}>Analyzing your friendships...</Text>
-          <Text style={styles.loadingSubtext}>Creating your {currentYear} In a Nutshell</Text>
+          <Text style={[styles.loadingText, { color: colors.text }]}>Analyzing your friendships...</Text>
+          <Text style={[styles.loadingSubtext, { color: colors.textSecondary }]}>Creating your {currentYear} In a Nutshell</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <Animated.View 
           style={[
@@ -309,69 +298,72 @@ export default function StatsScreen() {
             },
           ]}
         >
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity 
-              style={styles.backButton}
+              style={[styles.backButton, {
+                backgroundColor: colors.isDarkMode ? 'rgba(30, 30, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)'
+              }]}
               onPress={() => navigation.goBack()}
             >
-              <Text style={styles.backButtonText}>← Back</Text>
+              <Text style={[styles.backButtonText, { color: colors.purple }]}>← Back</Text>
             </TouchableOpacity>
             <View style={styles.titleContainer}>
               <Text style={styles.sparkles}>✨</Text>
-              <Text style={styles.title}>Your {currentYear}</Text>
-              <Text style={styles.subtitle}>Friendship In a Nutshell</Text>
+              <Text style={[styles.title, { color: colors.text }]}>Your {currentYear}</Text>
+              <Text style={[styles.subtitle, { color: colors.purple }]}>Friendship In a Nutshell</Text>
               <Text style={styles.sparkles}>✨</Text>
             </View>
           </View>
 
-          {/* Main Stats Cards */}
           <View style={styles.statsGrid}>
-            <View style={[styles.statCard, styles.purpleGradient]}>
+            <View style={[styles.statCard, { backgroundColor: colors.purple }]}>
               <Text style={styles.statEmoji}>💜</Text>
               <Text style={styles.statNumber}>{friendStats.length}</Text>
               <Text style={styles.statLabel}>Total Friends</Text>
             </View>
 
-            <View style={[styles.statCard, styles.greenGradient]}>
+            <View style={[styles.statCard, { backgroundColor: colors.green }]}>
               <Text style={styles.statEmoji}>📅</Text>
               <Text style={styles.statNumber}>{totalMeetings}</Text>
               <Text style={styles.statLabel}>Meetings in {currentYear}</Text>
             </View>
 
-            <View style={[styles.statCard, styles.pinkGradient]}>
+            <View style={[styles.statCard, { backgroundColor: colors.pink }]}>
               <Text style={styles.statEmoji}>📊</Text>
               <Text style={styles.statNumber}>{averageMeetingsPerFriend}</Text>
               <Text style={styles.statLabel}>Avg. per Friend</Text>
             </View>
           </View>
 
-          {/* Most Active Month */}
           {mostActiveMonth && (
-            <View style={styles.highlightCard}>
+            <View style={[styles.highlightCard, {
+              backgroundColor: colors.isDarkMode ? 'rgba(255, 165, 0, 0.2)' : 'rgba(255, 165, 0, 0.1)',
+              borderColor: colors.isDarkMode ? 'rgba(255, 165, 0, 0.4)' : 'rgba(255, 165, 0, 0.3)'
+            }]}>
               <Text style={styles.highlightEmoji}>🔥</Text>
-              <Text style={styles.highlightTitle}>
+              <Text style={[styles.highlightTitle, { color: colors.text }]}>
                 Your most social month was {mostActiveMonth.monthName}
               </Text>
-              <Text style={styles.highlightSubtitle}>
-                You had {mostActiveMonth.meetingCount} meeting{mostActiveMonth.meetingCount !== 1 ? 's' : ''} - that\'s the spirit!
+              <Text style={[styles.highlightSubtitle, { color: colors.textSecondary }]}>
+                You had {mostActiveMonth.meetingCount} meeting{mostActiveMonth.meetingCount !== 1 ? 's' : ''} - that's the spirit!
               </Text>
             </View>
           )}
 
-          {/* Top Friends Leaderboard */}
-          <View style={styles.leaderboardCard}>
+          <View style={[styles.leaderboardCard, {
+            backgroundColor: colors.isDarkMode ? 'rgba(30, 30, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)'
+          }]}>
             <View style={styles.leaderboardHeader}>
               <Text style={styles.trophyEmoji}>🏆</Text>
-              <Text style={styles.leaderboardTitle}>
+              <Text style={[styles.leaderboardTitle, { color: colors.text }]}>
                 Top Friends by Meetings in {currentYear}
               </Text>
             </View>
             
             {friendStats.length === 0 ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>No meetings logged yet this year</Text>
-                <Text style={styles.emptyStateSubtext}>Start logging meetings to see your top friends!</Text>
+                <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>No meetings logged yet this year</Text>
+                <Text style={[styles.emptyStateSubtext, { color: colors.textTertiary }]}>Start logging meetings to see your top friends!</Text>
               </View>
             ) : (
               <View style={styles.friendsList}>
@@ -384,7 +376,13 @@ export default function StatsScreen() {
                       key={friend.friend.id}
                       style={[
                         styles.friendItem,
-                        isTop3 ? styles.friendItemTop3 : styles.friendItemRegular
+                        isTop3 ? [styles.friendItemTop3, {
+                          backgroundColor: colors.isDarkMode ? 'rgba(255, 215, 0, 0.2)' : 'rgba(255, 215, 0, 0.1)',
+                          borderColor: colors.isDarkMode ? 'rgba(255, 215, 0, 0.4)' : 'rgba(255, 215, 0, 0.3)'
+                        }] : [styles.friendItemRegular, {
+                          backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F5F5F5',
+                          borderColor: colors.border
+                        }]
                       ]}
                     >
                       <View style={styles.friendLeft}>
@@ -398,13 +396,16 @@ export default function StatsScreen() {
                           <Text style={styles.rankText}>{getRankEmoji(position)}</Text>
                         </View>
                         <View style={styles.friendInfo}>
-                          <Text style={styles.friendName}>{friend.friend.name}</Text>
+                          <Text style={[styles.friendName, { color: colors.text }]}>{friend.friend.name}</Text>
                           <View style={styles.friendMeta}>
-                            <View style={styles.friendTypeBadge}>
-                              <Text style={styles.friendTypeText}>{friend.friend.friendType}</Text>
+                            <View style={[styles.friendTypeBadge, {
+                              backgroundColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.2)' : 'rgba(128, 0, 255, 0.1)',
+                              borderColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.4)' : 'rgba(128, 0, 255, 0.3)'
+                            }]}>
+                              <Text style={[styles.friendTypeText, { color: colors.purple }]}>{friend.friend.friendType}</Text>
                             </View>
                             {friend.lastMeeting && (
-                              <Text style={styles.lastMeetingText}>
+                              <Text style={[styles.lastMeetingText, { color: colors.textSecondary }]}>
                                 Last met: {new Date(friend.lastMeeting).toLocaleDateString()}
                               </Text>
                             )}
@@ -412,8 +413,8 @@ export default function StatsScreen() {
                         </View>
                       </View>
                       <View style={styles.friendRight}>
-                        <Text style={styles.meetingCount}>{friend.meetingCount}</Text>
-                        <Text style={styles.meetingLabel}>
+                        <Text style={[styles.meetingCount, { color: colors.text }]}>{friend.meetingCount}</Text>
+                        <Text style={[styles.meetingLabel, { color: colors.textSecondary }]}>
                           meeting{friend.meetingCount !== 1 ? 's' : ''}
                         </Text>
                       </View>
@@ -424,11 +425,18 @@ export default function StatsScreen() {
             )}
           </View>
 
-          {/* Download Previous Years Data - Always visible, greyed out for free users */}
           <TouchableOpacity
             style={[
               styles.downloadButton,
-              !isPremium && styles.downloadButtonDisabled
+              {
+                backgroundColor: colors.cardBackground,
+                borderColor: colors.purple
+              },
+              !isPremium && {
+                backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F5F5F5',
+                borderColor: colors.textDisabled,
+                opacity: 0.6
+              }
             ]}
             onPress={isPremium ? handleDownloadPreviousYears : undefined}
             disabled={!isPremium}
@@ -442,21 +450,23 @@ export default function StatsScreen() {
             <View style={styles.downloadButtonTextContainer}>
               <Text style={[
                 styles.downloadButtonText,
-                !isPremium && styles.downloadButtonTextDisabled
+                { color: colors.purple },
+                !isPremium && { color: colors.textTertiary }
               ]}>
                 Download previous years data
               </Text>
               {!isPremium && (
-                <Text style={styles.downloadButtonSubtext}>
+                <Text style={[styles.downloadButtonSubtext, { color: colors.textTertiary }]}>
                   Premium feature only
                 </Text>
               )}
             </View>
           </TouchableOpacity>
 
-          {/* Monthly Chart */}
-          <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Your {currentYear} Friendship Journey</Text>
+          <View style={[styles.chartCard, {
+            backgroundColor: colors.isDarkMode ? 'rgba(30, 30, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)'
+          }]}>
+            <Text style={[styles.chartTitle, { color: colors.text }]}>Your {currentYear} Friendship Journey</Text>
             <View style={styles.chartContainer}>
               {monthlyBreakdown.map((month) => {
                 const maxMeetings = Math.max(...monthlyBreakdown.map(m => m.meetingCount));
@@ -468,7 +478,7 @@ export default function StatsScreen() {
                       <View
                         style={[
                           styles.bar,
-                          { height: Math.max(height, 4) }
+                          { height: Math.max(height, 4), backgroundColor: colors.purple }
                         ]}
                       >
                         {month.meetingCount > 0 && (
@@ -476,41 +486,47 @@ export default function StatsScreen() {
                         )}
                       </View>
                     </View>
-                    <Text style={styles.monthLabel}>
+                    <Text style={[styles.monthLabel, { color: colors.textSecondary }]}>
                       {month.monthName.slice(0, 3)}
                     </Text>
                   </View>
                 );
               })}
             </View>
-            <Text style={styles.chartFooter}>
+            <Text style={[styles.chartFooter, { color: colors.textSecondary }]}>
               Total meetings across all months: {totalMeetings}
             </Text>
           </View>
 
-          {/* Friendship Memo Preview */}
-          <View style={styles.memoCard}>
+          <View style={[styles.memoCard, {
+            backgroundColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.2)' : 'rgba(128, 0, 255, 0.1)',
+            borderColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.4)' : 'rgba(128, 0, 255, 0.3)'
+          }]}>
             <Text style={styles.memoEmoji}>📝</Text>
-            <Text style={styles.memoTitle}>Friendship Memo</Text>
-            <Text style={styles.memoSubtitle}>
+            <Text style={[styles.memoTitle, { color: colors.text }]}>Friendship Memo</Text>
+            <Text style={[styles.memoSubtitle, { color: colors.textSecondary }]}>
               Feature coming soon! Create yearly notes and memories with your friends.
             </Text>
-            <View style={styles.comingSoonBadge}>
-              <Text style={styles.comingSoonText}>Coming Soon</Text>
+            <View style={[styles.comingSoonBadge, {
+              backgroundColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.3)' : 'rgba(255, 255, 255, 0.5)',
+              borderColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.5)' : 'rgba(128, 0, 255, 0.3)'
+            }]}>
+              <Text style={[styles.comingSoonText, { color: colors.purple }]}>Coming Soon</Text>
             </View>
           </View>
 
-          {/* All Time Stats */}
-          <View style={styles.allTimeCard}>
-            <Text style={styles.allTimeTitle}>All-Time Friendship Stats</Text>
+          <View style={[styles.allTimeCard, {
+            backgroundColor: colors.isDarkMode ? 'rgba(30, 30, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)'
+          }]}>
+            <Text style={[styles.allTimeTitle, { color: colors.text }]}>All-Time Friendship Stats</Text>
             <View style={styles.allTimeStats}>
               <View style={styles.allTimeStat}>
-                <Text style={styles.allTimeNumber}>{totalMeetings}</Text>
-                <Text style={styles.allTimeLabel}>Total Meetings Ever</Text>
+                <Text style={[styles.allTimeNumber, { color: colors.text }]}>{totalMeetings}</Text>
+                <Text style={[styles.allTimeLabel, { color: colors.textSecondary }]}>Total Meetings Ever</Text>
               </View>
               <View style={styles.allTimeStat}>
-                <Text style={styles.allTimeNumber}>{averageMeetingsPerFriend}</Text>
-                <Text style={styles.allTimeLabel}>Avg. All-Time per Friend</Text>
+                <Text style={[styles.allTimeNumber, { color: colors.text }]}>{averageMeetingsPerFriend}</Text>
+                <Text style={[styles.allTimeLabel, { color: colors.textSecondary }]}>Avg. All-Time per Friend</Text>
               </View>
             </View>
           </View>
@@ -523,11 +539,9 @@ export default function StatsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F4FF',
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8F4FF',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -540,12 +554,10 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 18,
-    color: '#333333',
     marginBottom: 8,
   },
   loadingSubtext: {
     fontSize: 14,
-    color: '#666666',
   },
   scrollView: {
     flex: 1,
@@ -563,13 +575,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     top: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 20,
   },
   backButtonText: {
-    color: '#8000FF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -583,13 +593,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333333',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#8000FF',
     textAlign: 'center',
     marginBottom: 5,
   },
@@ -604,15 +612,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     alignItems: 'center',
-  },
-  purpleGradient: {
-    backgroundColor: '#8000FF',
-  },
-  greenGradient: {
-    backgroundColor: '#4CAF50',
-  },
-  pinkGradient: {
-    backgroundColor: '#FF0080',
   },
   statEmoji: {
     fontSize: 32,
@@ -630,13 +629,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   highlightCard: {
-    backgroundColor: 'rgba(255, 165, 0, 0.1)',
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     marginBottom: 30,
     borderWidth: 1,
-    borderColor: 'rgba(255, 165, 0, 0.3)',
   },
   highlightEmoji: {
     fontSize: 32,
@@ -645,17 +642,14 @@ const styles = StyleSheet.create({
   highlightTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
     textAlign: 'center',
     marginBottom: 8,
   },
   highlightSubtitle: {
     fontSize: 14,
-    color: '#666666',
     textAlign: 'center',
   },
   leaderboardCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 16,
     padding: 20,
     marginBottom: 30,
@@ -673,7 +667,6 @@ const styles = StyleSheet.create({
   leaderboardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
   },
   emptyState: {
     alignItems: 'center',
@@ -681,12 +674,10 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#666666',
     marginBottom: 8,
   },
   emptyStateSubtext: {
     fontSize: 12,
-    color: '#999999',
   },
   friendsList: {
     gap: 15,
@@ -699,14 +690,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   friendItemTop3: {
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
     borderWidth: 2,
-    borderColor: 'rgba(255, 215, 0, 0.3)',
   },
   friendItemRegular: {
-    backgroundColor: '#F5F5F5',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
   },
   friendLeft: {
     flexDirection: 'row',
@@ -743,7 +730,6 @@ const styles = StyleSheet.create({
   friendName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 4,
   },
   friendMeta: {
@@ -752,21 +738,17 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   friendTypeBadge: {
-    backgroundColor: 'rgba(128, 0, 255, 0.1)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(128, 0, 255, 0.3)',
   },
   friendTypeText: {
     fontSize: 10,
-    color: '#8000FF',
     fontWeight: '600',
   },
   lastMeetingText: {
     fontSize: 10,
-    color: '#666666',
   },
   friendRight: {
     alignItems: 'center',
@@ -774,14 +756,11 @@ const styles = StyleSheet.create({
   meetingCount: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333333',
   },
   meetingLabel: {
     fontSize: 10,
-    color: '#666666',
   },
   chartCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 16,
     padding: 20,
     marginBottom: 30,
@@ -789,7 +768,6 @@ const styles = StyleSheet.create({
   chartTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -811,7 +789,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   bar: {
-    backgroundColor: '#8000FF',
     width: 20,
     borderRadius: 10,
     justifyContent: 'flex-start',
@@ -825,23 +802,19 @@ const styles = StyleSheet.create({
   },
   monthLabel: {
     fontSize: 10,
-    color: '#666666',
     textAlign: 'center',
   },
   chartFooter: {
     fontSize: 12,
-    color: '#666666',
     textAlign: 'center',
     marginTop: 10,
   },
   memoCard: {
-    backgroundColor: 'rgba(128, 0, 255, 0.1)',
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     marginBottom: 30,
     borderWidth: 1,
-    borderColor: 'rgba(128, 0, 255, 0.3)',
   },
   memoEmoji: {
     fontSize: 32,
@@ -850,37 +823,30 @@ const styles = StyleSheet.create({
   memoTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 8,
   },
   memoSubtitle: {
     fontSize: 14,
-    color: '#666666',
     textAlign: 'center',
     marginBottom: 15,
   },
   comingSoonBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: 'rgba(128, 0, 255, 0.3)',
   },
   comingSoonText: {
     fontSize: 12,
-    color: '#8000FF',
     fontWeight: '600',
   },
   allTimeCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 16,
     padding: 20,
   },
   allTimeTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -894,16 +860,13 @@ const styles = StyleSheet.create({
   allTimeNumber: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 5,
   },
   allTimeLabel: {
     fontSize: 12,
-    color: '#666666',
     textAlign: 'center',
   },
   downloadButton: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -911,12 +874,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#8000FF',
-  },
-  downloadButtonDisabled: {
-    backgroundColor: '#F5F5F5',
-    borderColor: '#CCCCCC',
-    opacity: 0.6,
   },
   downloadButtonIcon: {
     fontSize: 20,
@@ -931,15 +888,9 @@ const styles = StyleSheet.create({
   downloadButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8000FF',
-  },
-  downloadButtonTextDisabled: {
-    color: '#999999',
-    fontStyle: 'italic',
   },
   downloadButtonSubtext: {
     fontSize: 11,
-    color: '#999999',
     fontStyle: 'italic',
     marginTop: 2,
   },

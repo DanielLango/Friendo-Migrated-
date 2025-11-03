@@ -17,6 +17,7 @@ import { getFriends, getMeetings, deleteFriend, deleteMeetingsByFriendId, logout
 import { shouldShowPaywall, markPaywallShown } from '../utils/paywallUtils';
 import { isPremiumUser } from '../utils/premiumFeatures';
 import { cleanupOrphanedMeetings, getDatabaseDiagnostics } from '../utils/dataRecovery';
+import { useTheme } from '../utils/themeContext';
 
 export default function MainScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -25,6 +26,7 @@ export default function MainScreen() {
   const [sortMode, setSortMode] = useState<'default' | 'name' | 'tokens'>('default');
   const [showPaywall, setShowPaywall] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const { colors } = useTheme();
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -43,16 +45,13 @@ export default function MainScreen() {
   }, [navigation]);
 
   const checkPaywallStatus = async () => {
-    // Check if user is premium
     const premium = await isPremiumUser();
     setIsPremium(premium);
 
-    // Only show paywall if not premium AND it hasn't been shown before
     if (!premium) {
       const shouldShow = await shouldShowPaywall();
       if (shouldShow) {
         setShowPaywall(true);
-        // Mark as shown immediately to prevent showing again
         await markPaywallShown();
       }
     }
@@ -131,7 +130,6 @@ export default function MainScreen() {
         return !(meetingYear === currentYear && (status === 'met' || status === 'cancelled'));
       });
       
-      // Save updated meetings
       const { saveMeetings } = await import('../utils/storage');
       await saveMeetings(updatedMeetings);
       await loadData();
@@ -292,13 +290,10 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'You have orphaned meetings (meetings 
       meetingCount: getFriendMeetingCount(friend.id)
     }));
 
-    // Premium: Favorites jump to top in default view
     if (sortMode === 'default' && isPremium) {
       return [...friendsWithMeetings].sort((a, b) => {
-        // Favorites first
         if (a.isFavorite && !b.isFavorite) return -1;
         if (!a.isFavorite && b.isFavorite) return 1;
-        // Then by creation date
         return (a.createdAt || 0) - (b.createdAt || 0);
       });
     }
@@ -346,8 +341,7 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'You have orphaned meetings (meetings 
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Paywall Modal */}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Modal
         visible={showPaywall}
         animationType="slide"
@@ -360,27 +354,34 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'You have orphaned meetings (meetings 
         />
       </Modal>
 
-      <View style={styles.header}>
+      <View style={[styles.header, {
+        backgroundColor: colors.cardBackground,
+        borderBottomColor: colors.border
+      }]}>
         <View style={styles.headerTop}>
           <View style={styles.sortContainer}>
-            <Text style={styles.sortLabel}>Sorting</Text>
+            <Text style={[styles.sortLabel, { color: colors.textSecondary }]}>Sorting</Text>
             <TouchableOpacity 
-              style={styles.sortButton}
+              style={[styles.sortButton, { 
+                backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F0F0F0'
+              }]}
               onPress={cycleSortMode}
             >
-              <Text style={styles.sortButtonText}>{getSortLabel()}</Text>
+              <Text style={[styles.sortButtonText, { color: colors.textSecondary }]}>{getSortLabel()}</Text>
             </TouchableOpacity>
           </View>
           
           <View style={styles.centerContent}>
-            <Text style={styles.title}>Friendo</Text>
-            <Text style={styles.subtitle}>Your Friends ({friends.length})</Text>
+            <Text style={[styles.title, { color: colors.purple }]}>Friendo</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Your Friends ({friends.length})</Text>
           </View>
           
           <View style={styles.deleteContainer}>
-            <Text style={styles.deleteLabel}>Delete</Text>
+            <Text style={[styles.deleteLabel, { color: colors.textSecondary }]}>Delete</Text>
             <TouchableOpacity 
-              style={styles.deleteButton}
+              style={[styles.deleteButton, { 
+                backgroundColor: colors.isDarkMode ? '#2A2A2A' : '#F0F0F0'
+              }]}
               onPress={() => setDeleteMode(!deleteMode)}
             >
               <Text style={styles.deleteButtonText}>🗑️</Text>
@@ -390,10 +391,13 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'You have orphaned meetings (meetings 
       </View>
 
       {deleteMode && (
-        <View style={styles.deleteModeHeader}>
-          <Text style={styles.deleteModeText}>Tap a friend to delete them</Text>
+        <View style={[styles.deleteModeHeader, {
+          backgroundColor: colors.isDarkMode ? 'rgba(239, 68, 68, 0.2)' : '#FFE6E6',
+          borderBottomColor: colors.isDarkMode ? 'rgba(239, 68, 68, 0.4)' : '#FFB3B3'
+        }]}>
+          <Text style={[styles.deleteModeText, { color: colors.error }]}>Tap a friend to delete them</Text>
           <TouchableOpacity onPress={() => setDeleteMode(false)}>
-            <Text style={styles.cancelDeleteText}>Cancel</Text>
+            <Text style={[styles.cancelDeleteText, { color: colors.purple }]}>Cancel</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -407,17 +411,20 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'You have orphaned meetings (meetings 
         showsVerticalScrollIndicator={false}
       />
 
-      <View style={styles.bottomNavigation}>
+      <View style={[styles.bottomNavigation, {
+        backgroundColor: colors.cardBackground,
+        borderTopColor: colors.border
+      }]}>
         <TouchableOpacity style={styles.navButton} onPress={handleStats}>
-          <Text style={styles.navButtonText}>📊 Stats</Text>
+          <Text style={[styles.navButtonText, { color: colors.purple }]}>📊 Stats</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.navButton} onPress={handleAddMore}>
-          <Text style={styles.navButtonText}>➕ Add More</Text>
+          <Text style={[styles.navButtonText, { color: colors.purple }]}>➕ Add More</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.navButton} onPress={handleProfile}>
-          <Text style={styles.navButtonText}>👤 Profile</Text>
+          <Text style={[styles.navButtonText, { color: colors.purple }]}>👤 Profile</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -427,14 +434,11 @@ ${diagnostics.orphanedMeetingsCount > 0 ? 'You have orphaned meetings (meetings 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   header: {
     paddingHorizontal: 20,
     paddingVertical: 20,
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   headerTop: {
     flexDirection: 'row',
@@ -452,24 +456,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#8000FF',
     marginBottom: 5,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
   },
   sortContainer: {
     alignItems: 'center',
   },
   sortLabel: {
     fontSize: 10,
-    color: '#666666',
     marginBottom: 4,
     fontWeight: '500',
   },
   sortButton: {
-    backgroundColor: '#F0F0F0',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -479,19 +479,16 @@ const styles = StyleSheet.create({
   sortButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666666',
   },
   deleteContainer: {
     alignItems: 'center',
   },
   deleteLabel: {
     fontSize: 10,
-    color: '#666666',
     marginBottom: 4,
     fontWeight: '500',
   },
   deleteButton: {
-    backgroundColor: '#F0F0F0',
     borderRadius: 8,
     padding: 8,
     minWidth: 40,
@@ -501,23 +498,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   deleteModeHeader: {
-    backgroundColor: '#FFE6E6',
     paddingHorizontal: 20,
     paddingVertical: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#FFB3B3',
   },
   deleteModeText: {
     fontSize: 14,
-    color: '#CC0000',
     fontWeight: '500',
   },
   cancelDeleteText: {
     fontSize: 14,
-    color: '#8000FF',
     fontWeight: '600',
   },
   friendsList: {
@@ -529,8 +522,6 @@ const styles = StyleSheet.create({
   bottomNavigation: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    backgroundColor: '#FFFFFF',
     paddingVertical: 8,
   },
   navButton: {
@@ -542,6 +533,5 @@ const styles = StyleSheet.create({
   navButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8000FF',
   },
 });

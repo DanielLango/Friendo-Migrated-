@@ -23,6 +23,7 @@ import { createMeetingEvent, createAndDownloadMeetingICS } from '../utils/calend
 import { addMeeting } from '../utils/storage';
 import Paywall from '../components/Paywall';
 import { shouldShowPaywall, markPaywallShown } from '../utils/paywallUtils';
+import { useTheme } from '../utils/themeContext';
 
 export default function MeetingCreateScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -37,25 +38,28 @@ export default function MeetingCreateScreen() {
   const [activityConfirmed, setActivityConfirmed] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const { colors } = useTheme();
   
   const navigation = useNavigation();
   const route = useRoute();
   
   const friend = (route.params as any)?.friend as Friend;
 
-  // Add validation for friend data
   if (!friend) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, {
+          backgroundColor: colors.cardBackground,
+          borderBottomColor: colors.border
+        }]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backButton}>← Back</Text>
+            <Text style={[styles.backButton, { color: colors.purple }]}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Error</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Error</Text>
           <View style={styles.placeholder} />
         </View>
         <View style={[styles.content, { justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={{ fontSize: 16, color: '#666666', textAlign: 'center' }}>
+          <Text style={{ fontSize: 16, color: colors.textSecondary, textAlign: 'center' }}>
             Friend information not found. Please go back and try again.
           </Text>
         </View>
@@ -73,13 +77,13 @@ export default function MeetingCreateScreen() {
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
-    setSelectedVenue(''); // Reset venue when category changes
+    setSelectedVenue('');
   };
 
   const handleCitySelect = (city: string, placeId: string) => {
     setSelectedCity(city);
     setCityPlaceId(placeId);
-    setSelectedVenue(''); // Reset venue when city changes
+    setSelectedVenue('');
   };
 
   const handleCreateMeeting = async () => {
@@ -111,11 +115,9 @@ export default function MeetingCreateScreen() {
       
       console.log('Creating meeting with data:', meetingData);
       
-      // Create meeting in local storage
       await addMeeting(meetingData);
       console.log('Meeting created successfully');
 
-      // Reschedule notification based on friend's notification settings
       try {
         if (friend.notificationDays) {
           await notificationService.rescheduleNotificationAfterMeeting(
@@ -126,20 +128,16 @@ export default function MeetingCreateScreen() {
         }
       } catch (notificationError) {
         console.error('Notification error:', notificationError);
-        // Don't fail the whole operation for notification errors
       }
 
-      // Check if we should show the paywall (once per day)
       const shouldShow = await shouldShowPaywall();
       if (shouldShow) {
         await markPaywallShown();
         setShowPaywall(true);
-        return; // Don't show success alert yet
+        return;
       }
 
-      // Handle calendar options (only if not showing paywall)
       if (calendarOption === 'device') {
-        // Add to device calendar
         const success = await createMeetingEvent(
           friend,
           selectedDate,
@@ -154,7 +152,6 @@ export default function MeetingCreateScreen() {
         }
         navigation.goBack();
       } else if (calendarOption === 'manual') {
-        // Download ICS file
         const success = await createAndDownloadMeetingICS(
           friend,
           selectedDate,
@@ -188,7 +185,6 @@ export default function MeetingCreateScreen() {
 
   const selectedCategoryData = getVenueCategory(selectedCategory);
 
-  // Show paywall modal if needed
   if (showPaywall) {
     return (
       <Modal visible={true} animationType="slide" presentationStyle="fullScreen">
@@ -198,23 +194,29 @@ export default function MeetingCreateScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, {
+        backgroundColor: colors.cardBackground,
+        borderBottomColor: colors.border
+      }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>← Back</Text>
+          <Text style={[styles.backButton, { color: colors.purple }]}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Schedule with {friend?.name}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Schedule with {friend?.name}</Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📅 Select Date</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>📅 Select Date</Text>
           <TouchableOpacity
-            style={styles.dateSelector}
+            style={[styles.dateSelector, {
+              backgroundColor: colors.cardBackground,
+              borderColor: colors.border
+            }]}
             onPress={() => setShowDatePicker(true)}
           >
-            <Text style={styles.dateSelectorText}>
+            <Text style={[styles.dateSelectorText, { color: colors.text }]}>
               {selectedDate.toLocaleDateString('en-US', { 
                 weekday: 'short', 
                 month: 'short', 
@@ -227,7 +229,7 @@ export default function MeetingCreateScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📍 Select City</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>📍 Select City</Text>
           <SimpleCitySelector
             selectedCity={selectedCity}
             onCitySelect={handleCitySelect}
@@ -237,7 +239,7 @@ export default function MeetingCreateScreen() {
 
         {selectedCity && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🎯 Type of Activity</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>🎯 Type of Activity</Text>
             <VenueCategorySelector
               selectedCategory={selectedCategory}
               onCategorySelect={handleCategorySelect}
@@ -245,30 +247,36 @@ export default function MeetingCreateScreen() {
             />
             
             {selectedCategory && (
-              <View style={styles.partnershipSection}>
+              <View style={[styles.partnershipSection, {
+                backgroundColor: colors.isDarkMode ? '#1E1E1E' : '#F8F9FA',
+                borderColor: colors.border
+              }]}>
                 <View style={styles.partnershipHeader}>
                   <Text style={styles.partnershipIcon}>🏪</Text>
                   <View style={styles.partnershipHeaderText}>
-                    <Text style={styles.partnershipTitle}>
+                    <Text style={[styles.partnershipTitle, { color: colors.text }]}>
                       Highlighted Advertisement Partners
                     </Text>
-                    <Text style={styles.partnershipSubtitle}>
+                    <Text style={[styles.partnershipSubtitle, { color: colors.textSecondary }]}>
                       No partner venues yet in {selectedCity}
                     </Text>
-                    <Text style={styles.partnershipSubtitle}>
-                      We\'re working on partnerships with local restaurants in your area!
+                    <Text style={[styles.partnershipSubtitle, { color: colors.textSecondary }]}>
+                      We're working on partnerships with local restaurants in your area!
                     </Text>
                   </View>
                 </View>
                 
                 <View style={styles.partnershipBoxes}>
-                  <View style={styles.partnershipBox}>
-                    <Text style={styles.partnershipBoxTitle}>Want to be featured on this list?</Text>
-                    <Text style={styles.partnershipBoxText}>
+                  <View style={[styles.partnershipBox, {
+                    backgroundColor: colors.cardBackground,
+                    borderColor: colors.border
+                  }]}>
+                    <Text style={[styles.partnershipBoxTitle, { color: colors.text }]}>Want to be featured on this list?</Text>
+                    <Text style={[styles.partnershipBoxText, { color: colors.textSecondary }]}>
                       Submit your venue here — get your business on our upcoming list of top 5 spots locals are recommended to in each city.
                     </Text>
                     <TouchableOpacity 
-                      style={styles.partnershipButton}
+                      style={[styles.partnershipButton, { backgroundColor: colors.purple }]}
                       onPress={() => {
                         const url = 'https://www.ambrozitestudios.com/contact-4';
                         Linking.openURL(url).catch(err => {
@@ -281,13 +289,16 @@ export default function MeetingCreateScreen() {
                     </TouchableOpacity>
                   </View>
                   
-                  <View style={styles.partnershipBox}>
-                    <Text style={styles.partnershipBoxTitle}>Want to help promote great local spots?</Text>
-                    <Text style={styles.partnershipBoxText}>
+                  <View style={[styles.partnershipBox, {
+                    backgroundColor: colors.cardBackground,
+                    borderColor: colors.border
+                  }]}>
+                    <Text style={[styles.partnershipBoxTitle, { color: colors.text }]}>Want to help promote great local spots?</Text>
+                    <Text style={[styles.partnershipBoxText, { color: colors.textSecondary }]}>
                       Join our soon-starting affiliate program and earn small commissions by helping great venues get discovered.
                     </Text>
                     <TouchableOpacity 
-                      style={styles.partnershipButton}
+                      style={[styles.partnershipButton, { backgroundColor: colors.purple }]}
                       onPress={() => {
                         const url = 'https://www.ambrozitestudios.com/contact-4';
                         Linking.openURL(url).catch(err => {
@@ -304,16 +315,25 @@ export default function MeetingCreateScreen() {
                 <TouchableOpacity 
                   style={[
                     styles.activityConfirmButton,
-                    activityConfirmed && styles.activityConfirmButtonActive
+                    {
+                      backgroundColor: colors.cardBackground,
+                      borderColor: colors.border
+                    },
+                    activityConfirmed && { 
+                      backgroundColor: colors.purple,
+                      borderColor: colors.purple
+                    }
                   ]}
                   onPress={() => setActivityConfirmed(!activityConfirmed)}
                 >
                   <Text style={[
                     styles.activityConfirmIcon,
+                    { color: colors.textSecondary },
                     activityConfirmed && styles.activityConfirmIconActive
                   ]}>📍</Text>
                   <Text style={[
                     styles.activityConfirmText,
+                    { color: colors.textSecondary },
                     activityConfirmed && styles.activityConfirmTextActive
                   ]}>
                     Select "{getVenueCategory(selectedCategory)?.name || selectedCategory}" as meeting type
@@ -326,11 +346,14 @@ export default function MeetingCreateScreen() {
 
         {selectedCategoryData && selectedCategory === 'park' && (
           <View style={styles.section}>
-            <View style={styles.parkInfo}>
+            <View style={[styles.parkInfo, {
+              backgroundColor: colors.isDarkMode ? 'rgba(128, 0, 255, 0.2)' : '#F0F8FF',
+              borderColor: colors.purple
+            }]}>
               <Text style={styles.parkInfoIcon}>🌳</Text>
               <View style={styles.parkInfoText}>
-                <Text style={styles.parkInfoTitle}>Park Activity Selected</Text>
-                <Text style={styles.parkInfoSubtext}>
+                <Text style={[styles.parkInfoTitle, { color: colors.purple }]}>Park Activity Selected</Text>
+                <Text style={[styles.parkInfoSubtext, { color: colors.textSecondary }]}>
                   Perfect for outdoor meetups! You can choose the specific park when you meet.
                 </Text>
               </View>
@@ -339,13 +362,19 @@ export default function MeetingCreateScreen() {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📅 Calendar Options</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>📅 Calendar Options</Text>
           
-          {/* Primary Option - Device Calendar */}
           <TouchableOpacity
             style={[
               styles.primaryCalendarButton,
-              calendarOption === 'device' && styles.primaryCalendarButtonActive
+              {
+                backgroundColor: colors.cardBackground,
+                borderColor: colors.border
+              },
+              calendarOption === 'device' && { 
+                backgroundColor: colors.purple,
+                borderColor: colors.purple
+              }
             ]}
             onPress={() => setCalendarOption(calendarOption === 'device' ? null : 'device')}
           >
@@ -353,12 +382,14 @@ export default function MeetingCreateScreen() {
             <View style={styles.primaryCalendarContent}>
               <Text style={[
                 styles.primaryCalendarTitle,
+                { color: colors.text },
                 calendarOption === 'device' && styles.primaryCalendarTitleActive
               ]}>
                 Add to My Calendar
               </Text>
               <Text style={[
                 styles.primaryCalendarSubtext,
+                { color: colors.textSecondary },
                 calendarOption === 'device' && styles.primaryCalendarSubtextActive
               ]}>
                 Uses your phone's calendar app
@@ -366,51 +397,65 @@ export default function MeetingCreateScreen() {
             </View>
             <View style={[
               styles.radioButton,
+              { borderColor: colors.purple },
               calendarOption === 'device' && styles.radioButtonActive
             ]}>
               {calendarOption === 'device' && <View style={styles.radioButtonInner} />}
             </View>
           </TouchableOpacity>
 
-          {/* Secondary Option - Manual Import */}
-          <View style={styles.manualImportContainer}>
-            <Text style={styles.manualImportHeader}>📄 MANUAL IMPORT</Text>
+          <View style={[styles.manualImportContainer, {
+            backgroundColor: colors.isDarkMode ? '#1E1E1E' : '#F8F9FA',
+            borderColor: colors.border
+          }]}>
+            <Text style={[styles.manualImportHeader, { color: colors.textSecondary }]}>📄 MANUAL IMPORT</Text>
             <TouchableOpacity
               style={[
                 styles.manualImportButton,
-                calendarOption === 'manual' && styles.manualImportButtonActive
+                {
+                  backgroundColor: colors.cardBackground,
+                  borderColor: colors.border
+                },
+                calendarOption === 'manual' && {
+                  borderColor: colors.purple,
+                  backgroundColor: colors.isDarkMode ? 'rgba(168, 85, 247, 0.2)' : '#F8F4FF'
+                }
               ]}
               onPress={() => setCalendarOption(calendarOption === 'manual' ? null : 'manual')}
             >
               <View style={[
                 styles.checkbox,
-                calendarOption === 'manual' && styles.checkboxChecked
+                { borderColor: colors.purple },
+                calendarOption === 'manual' && { backgroundColor: colors.purple }
               ]}>
                 {calendarOption === 'manual' && <Text style={styles.checkmark}>✓</Text>}
               </View>
               <View style={styles.manualImportContent}>
-                <Text style={styles.manualImportTitle}>Download .ics file</Text>
-                <Text style={styles.manualImportSubtext}>Works with any calendar app</Text>
+                <Text style={[styles.manualImportTitle, { color: colors.text }]}>Download .ics file</Text>
+                <Text style={[styles.manualImportSubtext, { color: colors.textSecondary }]}>Works with any calendar app</Text>
               </View>
             </TouchableOpacity>
           </View>
 
-          {/* What to do now instructions - Collapsible */}
           <TouchableOpacity 
-            style={styles.instructionsHeader}
+            style={[styles.instructionsHeader, {
+              backgroundColor: colors.isDarkMode ? 'rgba(59, 130, 246, 0.2)' : '#F0F4FF',
+              borderColor: colors.isDarkMode ? 'rgba(59, 130, 246, 0.4)' : '#D0DCFF'
+            }]}
             onPress={() => setShowInstructions(!showInstructions)}
             activeOpacity={0.7}
           >
             <View style={styles.instructionsHeaderContent}>
-              <Text style={styles.instructionsHeaderTitle}>
+              <Text style={[styles.instructionsHeaderTitle, { color: colors.text }]}>
                 What to do now?
               </Text>
-              <Text style={styles.instructionsHeaderSubtitle}>
+              <Text style={[styles.instructionsHeaderSubtitle, { color: colors.textSecondary }]}>
                 (In case you selected a calendar option)
               </Text>
             </View>
             <Text style={[
               styles.instructionsDropdownIcon,
+              { color: colors.purple },
               showInstructions && styles.instructionsDropdownIconOpen
             ]}>
               ▼
@@ -418,33 +463,36 @@ export default function MeetingCreateScreen() {
           </TouchableOpacity>
 
           {showInstructions && (
-            <View style={styles.instructionsBox}>
+            <View style={[styles.instructionsBox, {
+              backgroundColor: colors.isDarkMode ? 'rgba(59, 130, 246, 0.2)' : '#F0F4FF',
+              borderColor: colors.isDarkMode ? 'rgba(59, 130, 246, 0.4)' : '#D0DCFF'
+            }]}>
               <View style={styles.instructionsList}>
-                <Text style={styles.instructionText}>
+                <Text style={[styles.instructionText, { color: colors.text }]}>
                   After tapping 'Schedule Meetup':{'\n'}1.) In case you selected the Add to my calendar option, open your smartphone's default calendar app, and navigate to the day you selected for the meetup.{'\n'}2.) in case you selected Download .ics file navigate to the folder you downloaded it and open it.
                 </Text>
 
-                <Text style={styles.instructionsSubheading}>
+                <Text style={[styles.instructionsSubheading, { color: colors.text }]}>
                   Once the meeting invite is in front of you in your calendar:
                 </Text>
 
                 <View style={styles.instructionItem}>
-                  <Text style={styles.bulletPoint}>•</Text>
-                  <Text style={styles.instructionText}>
+                  <Text style={[styles.bulletPoint, { color: colors.purple }]}>•</Text>
+                  <Text style={[styles.instructionText, { color: colors.text }]}>
                     Edit the event time in the calendar as needed.
                   </Text>
                 </View>
 
                 <View style={styles.instructionItem}>
-                  <Text style={styles.bulletPoint}>•</Text>
-                  <Text style={styles.instructionText}>
+                  <Text style={[styles.bulletPoint, { color: colors.purple }]}>•</Text>
+                  <Text style={[styles.instructionText, { color: colors.text }]}>
                     Under Invitee, you can add an email if you want. Your default calendar app will then send the invitation to that email.
                   </Text>
                 </View>
 
                 <View style={styles.instructionItem}>
-                  <Text style={styles.bulletPoint}>•</Text>
-                  <Text style={styles.instructionText}>
+                  <Text style={[styles.bulletPoint, { color: colors.purple }]}>•</Text>
+                  <Text style={[styles.instructionText, { color: colors.text }]}>
                     Feel free to change any other details about your meeting.
                   </Text>
                 </View>
@@ -452,30 +500,37 @@ export default function MeetingCreateScreen() {
             </View>
           )}
 
-          {/* Pro Tip */}
-          <View style={styles.proTipBox}>
+          <View style={[styles.proTipBox, {
+            backgroundColor: colors.isDarkMode ? 'rgba(245, 124, 0, 0.2)' : '#FFF9E6',
+            borderColor: colors.isDarkMode ? 'rgba(245, 124, 0, 0.4)' : '#FFE082'
+          }]}>
             <Text style={styles.proTipIcon}>💡</Text>
-            <Text style={styles.proTipText}>
-              <Text style={styles.proTipBold}>Pro Tip:</Text> You can also log past meetings or ones initiated by your friends, so your history and Met/Scheduled tokens stay accurate.
+            <Text style={[styles.proTipText, { color: colors.text }]}>
+              <Text style={[styles.proTipBold, { color: colors.orange }]}>Pro Tip:</Text> You can also log past meetings or ones initiated by your friends, so your history and Met/Scheduled tokens stay accurate.
             </Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📝 What's the plan? Fill it in here!</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>📝 What's the plan? Fill it in here!</Text>
           <View style={styles.notesHints}>
-            <Text style={styles.notesHint}>
+            <Text style={[styles.notesHint, { color: colors.textTertiary }]}>
               • Click outside the box once filled
             </Text>
-            <Text style={styles.notesHint}>
+            <Text style={[styles.notesHint, { color: colors.textTertiary }]}>
               • Add any details about the meeting
             </Text>
           </View>
           <TextInput
-            style={styles.notesInput}
+            style={[styles.notesInput, {
+              backgroundColor: colors.cardBackground,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
             value={meetingNotes}
             onChangeText={setMeetingNotes}
             placeholder="Add any details about the meeting... (e.g., 'Looking forward to catching up!' or 'Let's discuss the project')"
+            placeholderTextColor={colors.textTertiary}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
@@ -483,7 +538,11 @@ export default function MeetingCreateScreen() {
         </View>
 
         <TouchableOpacity 
-          style={[styles.createButton, isCreating && styles.createButtonDisabled]} 
+          style={[
+            styles.createButton,
+            { backgroundColor: colors.green },
+            isCreating && { backgroundColor: colors.textDisabled }
+          ]} 
           onPress={handleCreateMeeting}
           disabled={isCreating}
         >
@@ -493,7 +552,6 @@ export default function MeetingCreateScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Date Picker Modal - Using custom picker */}
       {showDatePicker && (
         <Modal
           visible={showDatePicker}
@@ -502,11 +560,11 @@ export default function MeetingCreateScreen() {
           onRequestClose={() => setShowDatePicker(false)}
         >
           <View style={styles.datePickerModalOverlay}>
-            <View style={styles.datePickerModalContent}>
-              <View style={styles.datePickerHeader}>
-                <Text style={styles.datePickerTitle}>Select Date</Text>
+            <View style={[styles.datePickerModalContent, { backgroundColor: colors.modalBackground }]}>
+              <View style={[styles.datePickerHeader, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.datePickerTitle, { color: colors.text }]}>Select Date</Text>
                 <TouchableOpacity onPress={handleDatePickerDone}>
-                  <Text style={styles.datePickerDoneButton}>Done</Text>
+                  <Text style={[styles.datePickerDoneButton, { color: colors.purple }]}>Done</Text>
                 </TouchableOpacity>
               </View>
               <SimpleDatePicker
@@ -522,11 +580,9 @@ export default function MeetingCreateScreen() {
   );
 }
 
-// I'll include the styles in the next message due to length...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
@@ -535,16 +591,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   backButton: {
     fontSize: 16,
-    color: '#8000FF',
   },
   title: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     flex: 1,
     textAlign: 'center',
   },
@@ -561,12 +614,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 15,
   },
   dateSelector: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -576,20 +627,16 @@ const styles = StyleSheet.create({
   },
   dateSelectorText: {
     fontSize: 16,
-    color: '#333333',
   },
   dropdownIcon: {
     fontSize: 12,
-    color: '#666666',
   },
   parkInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F8FF',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#8000FF',
   },
   parkInfoIcon: {
     fontSize: 32,
@@ -601,21 +648,17 @@ const styles = StyleSheet.create({
   parkInfoTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#8000FF',
     marginBottom: 4,
   },
   parkInfoSubtext: {
     fontSize: 14,
-    color: '#666666',
     lineHeight: 18,
   },
   partnershipSection: {
     marginTop: 20,
-    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E9ECEF',
   },
   partnershipHeader: {
     flexDirection: 'row',
@@ -633,38 +676,31 @@ const styles = StyleSheet.create({
   partnershipTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 4,
   },
   partnershipSubtitle: {
     fontSize: 14,
-    color: '#666666',
     lineHeight: 18,
   },
   partnershipBoxes: {
     gap: 12,
   },
   partnershipBox: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
   },
   partnershipBoxTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333333',
     marginBottom: 6,
   },
   partnershipBoxText: {
     fontSize: 13,
-    color: '#666666',
     lineHeight: 16,
     marginBottom: 10,
   },
   partnershipButton: {
-    backgroundColor: '#8000FF',
     borderRadius: 6,
     paddingVertical: 8,
     paddingHorizontal: 16,
@@ -676,7 +712,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activityConfirmButton: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -685,16 +720,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 16,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
-  },
-  activityConfirmButtonActive: {
-    backgroundColor: '#8000FF',
-    borderColor: '#8000FF',
   },
   activityConfirmIcon: {
     fontSize: 16,
     marginRight: 8,
-    color: '#666666',
   },
   activityConfirmIconActive: {
     color: '#FFFFFF',
@@ -702,26 +731,19 @@ const styles = StyleSheet.create({
   activityConfirmText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666666',
     textAlign: 'center',
   },
   activityConfirmTextActive: {
     color: '#FFFFFF',
   },
   primaryCalendarButton: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     paddingVertical: 20,
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#E0E0E0',
     marginBottom: 20,
-  },
-  primaryCalendarButtonActive: {
-    backgroundColor: '#8000FF',
-    borderColor: '#8000FF',
   },
   primaryCalendarIcon: {
     fontSize: 32,
@@ -733,7 +755,6 @@ const styles = StyleSheet.create({
   primaryCalendarTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 4,
   },
   primaryCalendarTitleActive: {
@@ -741,7 +762,6 @@ const styles = StyleSheet.create({
   },
   primaryCalendarSubtext: {
     fontSize: 14,
-    color: '#666666',
   },
   primaryCalendarSubtextActive: {
     color: '#E8D5FF',
@@ -751,7 +771,6 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#8000FF',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,
@@ -766,32 +785,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   manualImportContainer: {
-    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
   },
   manualImportHeader: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#666666',
     letterSpacing: 1,
     marginBottom: 12,
   },
   manualImportButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  manualImportButtonActive: {
-    borderColor: '#8000FF',
-    backgroundColor: '#F8F4FF',
   },
   manualImportContent: {
     flex: 1,
@@ -800,24 +810,18 @@ const styles = StyleSheet.create({
   manualImportTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333333',
     marginBottom: 2,
   },
   manualImportSubtext: {
     fontSize: 13,
-    color: '#666666',
   },
   checkbox: {
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#8000FF',
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#8000FF',
   },
   checkmark: {
     color: '#FFFFFF',
@@ -825,29 +829,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   instructionsBox: {
-    backgroundColor: '#F0F4FF',
     borderRadius: 12,
     padding: 16,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#D0DCFF',
-  },
-  instructionsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 4,
-  },
-  instructionsSubtitle: {
-    fontSize: 13,
-    color: '#666666',
-    fontStyle: 'italic',
-    marginBottom: 12,
   },
   instructionsSubheading: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333333',
     marginTop: 8,
     marginBottom: 8,
   },
@@ -860,7 +849,6 @@ const styles = StyleSheet.create({
   },
   bulletPoint: {
     fontSize: 16,
-    color: '#8000FF',
     marginRight: 8,
     marginTop: 2,
     fontWeight: 'bold',
@@ -868,22 +856,18 @@ const styles = StyleSheet.create({
   instructionText: {
     flex: 1,
     fontSize: 14,
-    color: '#333333',
     lineHeight: 20,
   },
   notesInput: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 12,
     fontSize: 16,
     minHeight: 100,
-    backgroundColor: '#FAFAFA',
   },
   notesHint: {
     fontSize: 11,
-    color: '#999999',
     fontStyle: 'italic',
     marginBottom: 2,
   },
@@ -891,14 +875,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   createButton: {
-    backgroundColor: '#4CAF50',
     borderRadius: 8,
     paddingVertical: 15,
     alignItems: 'center',
     marginVertical: 30,
-  },
-  createButtonDisabled: {
-    backgroundColor: '#CCCCCC',
   },
   createButtonText: {
     color: '#FFFFFF',
@@ -911,7 +891,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   datePickerModalContent: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 20,
@@ -924,25 +903,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   datePickerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
   },
   datePickerDoneButton: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8000FF',
   },
   proTipBox: {
-    backgroundColor: '#FFF9E6',
     borderRadius: 12,
     padding: 16,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#FFE082',
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
@@ -954,20 +928,16 @@ const styles = StyleSheet.create({
   proTipText: {
     flex: 1,
     fontSize: 14,
-    color: '#333333',
     lineHeight: 20,
   },
   proTipBold: {
     fontWeight: 'bold',
-    color: '#F57C00',
   },
   instructionsHeader: {
-    backgroundColor: '#F0F4FF',
     borderRadius: 12,
     padding: 16,
     marginTop: 20,
     borderWidth: 1,
-    borderColor: '#D0DCFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -978,17 +948,14 @@ const styles = StyleSheet.create({
   instructionsHeaderTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 4,
   },
   instructionsHeaderSubtitle: {
     fontSize: 14,
-    color: '#666666',
     fontStyle: 'italic',
   },
   instructionsDropdownIcon: {
     fontSize: 16,
-    color: '#8000FF',
     fontWeight: 'bold',
     marginLeft: 12,
   },
