@@ -75,6 +75,34 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleClearMeetings = async () => {
+    Alert.alert(
+      'Clear All Meetings',
+      'Are you sure you want to delete all your meeting data? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { clearAllMeetings } = await import('../utils/storage');
+              const success = await clearAllMeetings();
+              if (success) {
+                Alert.alert('Success', 'All meetings have been cleared.');
+              } else {
+                Alert.alert('Error', 'Failed to clear meetings.');
+              }
+            } catch (error) {
+              console.error('Error clearing meetings:', error);
+              Alert.alert('Error', 'Failed to clear meetings.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handlePaywallSuccess = () => {
     setShowPaywall(false);
     checkPremiumStatus();
@@ -165,6 +193,12 @@ export default function ProfileScreen() {
         {/* Account Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>ACCOUNT</Text>
+          
+          <TouchableOpacity style={styles.menuItem} onPress={handleClearMeetings}>
+            <MaterialIcons name="delete-sweep" size={24} color="#F97316" />
+            <Text style={styles.clearMeetingsText}>Clear All Meetings</Text>
+          </TouchableOpacity>
+          
           <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <MaterialIcons name="logout" size={24} color="#EF4444" />
             <Text style={styles.logoutText}>Log Out</Text>
@@ -364,6 +398,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#EF4444',
+    marginLeft: 15,
+    fontWeight: '500',
+  },
+  clearMeetingsText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#F97316',
     marginLeft: 15,
     fontWeight: '500',
   },

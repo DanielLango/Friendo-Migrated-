@@ -295,29 +295,36 @@ export const getFriends = async (): Promise<Friend[]> => {
 
 export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
   try {
+    console.log('=== ADD FRIEND START ===');
+    console.log('Friend data to add:', friend);
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('No user logged in');
+    
+    console.log('User ID:', user.id);
 
     const newFriend = {
       user_id: user.id,
       name: friend.name,
-      email: friend.email,
+      email: friend.email || '',
       friendtype: friend.friendType,
       isonline: friend.isOnline,
       islocal: friend.isLocal,
-      profilepicture: friend.profilePicture,
-      profilepictureuri: friend.profilePictureUri, // Premium
-      city: friend.city,
+      profilepicture: friend.profilePicture || '👤',
+      profilepictureuri: friend.profilePictureUri || null, // Premium
+      city: friend.city || '',
       source: friend.source,
       notificationfrequency: friend.notificationFrequency,
       notificationdays: friend.notificationDays,
-      birthday: friend.birthday, // Premium
-      birthdaynotificationenabled: friend.birthdayNotificationEnabled, // Premium
-      birthdaynotificationtime: friend.birthdayNotificationTime, // Premium
-      birthdaynotificationdaysbefore: friend.birthdayNotificationDaysBefore, // Premium
-      isfavorite: friend.isFavorite, // Premium
+      birthday: friend.birthday || null, // Premium
+      birthdaynotificationenabled: friend.birthdayNotificationEnabled || false, // Premium
+      birthdaynotificationtime: friend.birthdayNotificationTime || null, // Premium
+      birthdaynotificationdaysbefore: friend.birthdayNotificationDaysBefore || null, // Premium
+      isfavorite: friend.isFavorite || false, // Premium
       created_at: Date.now(),
     };
+    
+    console.log('Formatted friend for Supabase:', newFriend);
 
     const { data, error } = await supabase
       .from('friends')
@@ -325,10 +332,15 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
+    
+    console.log('Friend inserted successfully:', data);
     
     // Transform response back to camelCase INCLUDING PREMIUM FIELDS
-    return {
+    const result = {
       id: data.id,
       name: data.name,
       email: data.email,
@@ -348,6 +360,11 @@ export const addFriend = async (friend: Omit<Friend, 'id' | 'createdAt'>) => {
       isFavorite: data.isfavorite, // Premium
       createdAt: data.created_at,
     };
+    
+    console.log('Returning friend:', result);
+    console.log('=== ADD FRIEND END ===');
+    
+    return result;
   } catch (error) {
     console.error('Error adding friend:', error);
     return null;
