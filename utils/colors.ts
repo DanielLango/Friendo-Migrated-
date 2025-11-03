@@ -45,6 +45,9 @@ export const lightTheme = {
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
+  
+  // Theme indicator
+  isDarkMode: false,
 };
 
 // Dark Theme Colors
@@ -94,6 +97,9 @@ export const darkTheme = {
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
+  
+  // Theme indicator
+  isDarkMode: true,
 };
 
 export type Theme = typeof lightTheme;

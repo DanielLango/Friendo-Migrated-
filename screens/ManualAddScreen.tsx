@@ -20,6 +20,7 @@ import BirthdaySettings from '../components/BirthdaySettings';
 import PhotoUploadModal from '../components/PhotoUploadModal';
 import { shouldShowPaywall, markPaywallShown } from '../utils/paywallUtils';
 import { isPremiumUser } from '../utils/premiumFeatures';
+import { useTheme } from '../utils/themeContext';
 
 export default function ManualAddScreen() {
   const [fullName, setFullName] = useState('');
@@ -33,6 +34,7 @@ export default function ManualAddScreen() {
   const [profilePictureUri, setProfilePictureUri] = useState<string | undefined>(undefined);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const { colors } = useTheme();
   
   const navigation = useNavigation();
 
@@ -67,7 +69,6 @@ export default function ManualAddScreen() {
     }
 
     try {
-      // Check friend limit FIRST before any uploads
       const friends = await getFriends();
       const maxFriends = isPremium ? 1000 : 50;
       
@@ -80,7 +81,6 @@ export default function ManualAddScreen() {
         return;
       }
       
-      // Upload profile picture if provided (but don't block on failure)
       let uploadedImageUrl: string | undefined = undefined;
       if (profilePictureUri) {
         try {
@@ -97,7 +97,6 @@ export default function ManualAddScreen() {
           }
         } catch (uploadError) {
           console.error('Profile picture upload failed:', uploadError);
-          // Continue without the profile picture instead of failing completely
           Alert.alert(
             'Photo Upload Failed',
             'The profile picture could not be uploaded, but your friend will still be added. You can try uploading the photo again later.',
@@ -108,7 +107,6 @@ export default function ManualAddScreen() {
         }
       }
       
-      // Add friend (this should always succeed even if photo upload failed)
       const addedFriend = await addFriend({
         name: fullName.trim(),
         email: '',
@@ -116,7 +114,7 @@ export default function ManualAddScreen() {
         isOnline,
         isLocal,
         profilePicture: '👤',
-        profilePictureUri: uploadedImageUrl, // Will be undefined if upload failed
+        profilePictureUri: uploadedImageUrl,
         city: '',
         source: 'manual',
         notificationFrequency: 'monthly',
@@ -129,13 +127,11 @@ export default function ManualAddScreen() {
         throw new Error('Failed to add friend to database');
       }
 
-      // Check if we should show the paywall (once per day)
       const shouldShow = await shouldShowPaywall();
       if (shouldShow) {
         await markPaywallShown();
         setShowPaywall(true);
       } else {
-        // Show success message if not showing paywall
         Alert.alert('Success', 'Friend added successfully!', [
           { 
             text: 'Add Another', 
@@ -190,7 +186,6 @@ export default function ManualAddScreen() {
     navigation.goBack();
   };
 
-  // Show paywall modal if needed
   if (showPaywall) {
     return (
       <Modal visible={true} animationType="slide" presentationStyle="fullScreen">
@@ -200,40 +195,50 @@ export default function ManualAddScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {isUploading && (
         <View style={styles.uploadingOverlay}>
-          <ActivityIndicator size="large" color="#8000FF" />
+          <ActivityIndicator size="large" color={colors.purple} />
           <Text style={styles.uploadingText}>Uploading...</Text>
         </View>
       )}
       
-      <View style={styles.header}>
+      <View style={[styles.header, { 
+        backgroundColor: colors.cardBackground,
+        borderBottomColor: colors.border 
+      }]}>
         <TouchableOpacity onPress={handleCancel}>
-          <Text style={styles.backButton}>← Back</Text>
+          <Text style={[styles.backButton, { color: colors.purple }]}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Add Friend Manually</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Add Friend Manually</Text>
         <View style={styles.placeholder} />
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Nickname of your friend</Text>
-          <Text style={styles.sublabel}>How you like to call the person</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Nickname of your friend</Text>
+          <Text style={[styles.sublabel, { color: colors.textSecondary }]}>How you like to call the person</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { 
+              backgroundColor: colors.cardBackground,
+              borderColor: colors.border,
+              color: colors.text
+            }]}
             placeholder="e.g., Alex, Johnny, Sarah..."
+            placeholderTextColor={colors.textTertiary}
             value={fullName}
             onChangeText={setFullName}
           />
         </View>
 
-        {/* Premium: Photo Upload */}
         {isPremium && (
-          <View style={styles.premiumSection}>
+          <View style={[styles.premiumSection, {
+            backgroundColor: colors.isDarkMode ? 'rgba(255, 215, 0, 0.1)' : '#FFF9E6',
+            borderColor: colors.isDarkMode ? 'rgba(255, 215, 0, 0.3)' : '#FFD700'
+          }]}>
             <View style={styles.premiumHeader}>
               <Text style={styles.premiumIcon}>⭐</Text>
-              <Text style={styles.premiumLabel}>Premium Feature</Text>
+              <Text style={[styles.premiumLabel, { color: colors.isDarkMode ? '#FCD34D' : '#F59E0B' }]}>Premium Feature</Text>
             </View>
             
             <TouchableOpacity
@@ -243,9 +248,12 @@ export default function ManualAddScreen() {
               {profilePictureUri ? (
                 <Image source={{ uri: profilePictureUri }} style={styles.profileImage} />
               ) : (
-                <View style={styles.photoPlaceholder}>
+                <View style={[styles.photoPlaceholder, { 
+                  backgroundColor: colors.borderLight,
+                  borderColor: colors.border
+                }]}>
                   <Text style={styles.photoPlaceholderIcon}>📷</Text>
-                  <Text style={styles.photoPlaceholderText}>Set Photo</Text>
+                  <Text style={[styles.photoPlaceholderText, { color: colors.textSecondary }]}>Set Photo</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -253,30 +261,29 @@ export default function ManualAddScreen() {
         )}
 
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Friend Type:</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Friend Type:</Text>
           
           <TouchableOpacity 
             style={styles.checkboxContainer}
             onPress={() => setIsOnline(!isOnline)}
           >
-            <View style={[styles.checkbox, isOnline && styles.checkboxChecked]}>
+            <View style={[styles.checkbox, { borderColor: colors.purple }, isOnline && { backgroundColor: colors.purple }]}>
               {isOnline && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Online friend</Text>
+            <Text style={[styles.checkboxLabel, { color: colors.text }]}>Online friend</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.checkboxContainer}
             onPress={() => setIsLocal(!isLocal)}
           >
-            <View style={[styles.checkbox, isLocal && styles.checkboxChecked]}>
+            <View style={[styles.checkbox, { borderColor: colors.purple }, isLocal && { backgroundColor: colors.purple }]}>
               {isLocal && <Text style={styles.checkmark}>✓</Text>}
             </View>
-            <Text style={styles.checkboxLabel}>Local friend</Text>
+            <Text style={[styles.checkboxLabel, { color: colors.text }]}>Local friend</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Premium: Birthday Settings */}
         {isPremium && (
           <BirthdaySettings
             friend={{
@@ -302,27 +309,28 @@ export default function ManualAddScreen() {
         )}
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+          <TouchableOpacity style={[styles.cancelButton, { 
+            borderColor: colors.border,
+            backgroundColor: colors.cardBackground
+          }]} onPress={handleCancel}>
+            <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Cancel</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={styles.addButton} 
+            style={[styles.addButton, { backgroundColor: colors.purple }]} 
             onPress={handleAdd}
           >
             <Text style={styles.addButtonText}>Add</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Privacy Disclaimer */}
         <View style={styles.disclaimerContainer}>
-          <Text style={styles.disclaimerText}>
+          <Text style={[styles.disclaimerText, { color: colors.textSecondary }]}>
             This app is for your personal use only. Please avoid entering sensitive or real personal data about others unless you have their permission.
           </Text>
         </View>
       </ScrollView>
 
-      {/* Photo Upload Modal */}
       <PhotoUploadModal
         visible={showPhotoUpload}
         friendName={fullName || 'Friend'}
@@ -336,7 +344,6 @@ export default function ManualAddScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
@@ -345,16 +352,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   backButton: {
     fontSize: 16,
-    color: '#8000FF',
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
   },
   placeholder: {
     width: 50,
@@ -370,12 +374,10 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -387,7 +389,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 15,
   },
   checkboxContainer: {
@@ -399,14 +400,10 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#8000FF',
     borderRadius: 4,
     marginRight: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: '#8000FF',
   },
   checkmark: {
     color: '#FFFFFF',
@@ -415,11 +412,9 @@ const styles = StyleSheet.create({
   },
   checkboxLabel: {
     fontSize: 16,
-    color: '#333333',
   },
   sublabel: {
     fontSize: 14,
-    color: '#999999',
     marginBottom: 8,
     fontStyle: 'italic',
   },
@@ -431,7 +426,6 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
     borderRadius: 8,
     paddingVertical: 15,
     alignItems: 'center',
@@ -439,11 +433,9 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 16,
-    color: '#666666',
   },
   addButton: {
     flex: 1,
-    backgroundColor: '#8000FF',
     borderRadius: 8,
     paddingVertical: 15,
     alignItems: 'center',
@@ -460,18 +452,15 @@ const styles = StyleSheet.create({
   },
   disclaimerText: {
     fontSize: 12,
-    color: '#666666',
     textAlign: 'center',
     lineHeight: 16,
     fontStyle: 'italic',
   },
   premiumSection: {
-    backgroundColor: '#FFF9E6',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#FFD700',
   },
   premiumHeader: {
     flexDirection: 'row',
@@ -485,7 +474,6 @@ const styles = StyleSheet.create({
   premiumLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F59E0B',
   },
   photoUploadButton: {
     alignItems: 'center',
@@ -502,11 +490,9 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#F0F0F0',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#E0E0E0',
     borderStyle: 'dashed',
   },
   photoPlaceholderIcon: {
@@ -515,7 +501,6 @@ const styles = StyleSheet.create({
   },
   photoPlaceholderText: {
     fontSize: 12,
-    color: '#666666',
   },
   uploadingOverlay: {
     position: 'absolute',

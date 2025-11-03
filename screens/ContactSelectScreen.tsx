@@ -13,24 +13,24 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { mockSyncedContacts } from '../utils/mockData';
 import { SyncedContact } from '../types';
 import { getFriends, addFriend } from '../utils/storage';
+import { useTheme } from '../utils/themeContext';
 
 export default function ContactSelectScreen() {
   const [contacts, setContacts] = useState<SyncedContact[]>([]);
   const [selectedCount, setSelectedCount] = useState(0);
   const [currentFriendCount, setCurrentFriendCount] = useState(0);
+  const { colors } = useTheme();
   const navigation = useNavigation();
   const route = useRoute();
   
   const source = (route.params as any)?.source || 'facebook';
 
   useEffect(() => {
-    // Load contacts for the selected source
     const sourceContacts = mockSyncedContacts[source] || [];
     setContacts(sourceContacts);
   }, [source]);
 
   useEffect(() => {
-    // Get current friend count
     const fetchFriendCount = async () => {
       try {
         const friends = await getFriends();
@@ -48,7 +48,6 @@ export default function ContactSelectScreen() {
         if (contact.id === contactId) {
           const newSelected = !contact.selected;
           
-          // Check if adding this contact would exceed the limit
           if (newSelected && (currentFriendCount + selectedCount + 1) > 50) {
             Alert.alert(
               'Friend Limit Reached',
@@ -70,7 +69,6 @@ export default function ContactSelectScreen() {
     const selectedContacts = contacts.filter(contact => contact.selected);
     
     try {
-      // Double-check the limit before saving
       const friends = await getFriends();
       const totalCount = friends.length + selectedContacts.length;
       
@@ -83,7 +81,6 @@ export default function ContactSelectScreen() {
         return;
       }
       
-      // Save selected friends to storage
       for (const contact of selectedContacts) {
         await addFriend({
           name: contact.name,
@@ -105,34 +102,40 @@ export default function ContactSelectScreen() {
   };
 
   const renderContact = ({ item }: { item: SyncedContact }) => (
-    <View style={styles.contactItem}>
+    <View style={[styles.contactItem, { 
+      backgroundColor: colors.cardBackground,
+      borderBottomColor: colors.borderLight
+    }]}>
       <Text style={styles.profilePicture}>{item.profilePicture}</Text>
       <View style={styles.contactInfo}>
-        <Text style={styles.contactName}>{item.name}</Text>
-        <Text style={styles.contactCity}>{item.city}</Text>
+        <Text style={[styles.contactName, { color: colors.text }]}>{item.name}</Text>
+        <Text style={[styles.contactCity, { color: colors.textSecondary }]}>{item.city}</Text>
       </View>
       <Switch
         value={item.selected}
         onValueChange={() => toggleContact(item.id)}
-        trackColor={{ false: '#E0E0E0', true: '#8000FF' }}
+        trackColor={{ false: colors.border, true: colors.purple }}
         thumbColor={item.selected ? '#FFFFFF' : '#FFFFFF'}
       />
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { 
+        backgroundColor: colors.cardBackground,
+        borderBottomColor: colors.border
+      }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>← Back</Text>
+          <Text style={[styles.backButton, { color: colors.purple }]}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Select Friends</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Select Friends</Text>
         <TouchableOpacity onPress={handleContinue}>
-          <Text style={styles.continueButton}>Continue</Text>
+          <Text style={[styles.continueButton, { color: colors.purple }]}>Continue</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.counterText}>
+      <Text style={[styles.counterText, { color: colors.purple }]}>
         Selected: {selectedCount}/50
       </Text>
 
@@ -149,7 +152,6 @@ export default function ContactSelectScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
@@ -158,25 +160,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   backButton: {
     fontSize: 16,
-    color: '#8000FF',
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
   },
   continueButton: {
     fontSize: 16,
-    color: '#8000FF',
     fontWeight: 'bold',
   },
   counterText: {
     fontSize: 16,
-    color: '#A94EFF',
     textAlign: 'center',
     paddingVertical: 15,
     fontWeight: '500',
@@ -190,7 +187,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
   },
   profilePicture: {
     fontSize: 40,
@@ -202,11 +198,9 @@ const styles = StyleSheet.create({
   contactName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
     marginBottom: 2,
   },
   contactCity: {
     fontSize: 14,
-    color: '#666666',
   },
 });
