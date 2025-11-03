@@ -288,9 +288,9 @@ const styles = StyleSheet.create({
   consentModalContent: {
     borderRadius: 20,
     padding: 20,
-    width: '100%',
+    width: '90%',
     maxWidth: 500,
-    maxHeight: '85%',
+    maxHeight: '80%',
   },
   consentModalHeader: {
     flexDirection: 'row',
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   consentScrollContent: {
-    flex: 1,
+    maxHeight: '100%',
   },
   consentHeader: {
     flexDirection: 'row',
