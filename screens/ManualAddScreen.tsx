@@ -34,6 +34,7 @@ export default function ManualAddScreen() {
   const [profilePictureUri, setProfilePictureUri] = useState<string | undefined>(undefined);
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showBirthdaySettings, setShowBirthdaySettings] = useState(false);
   const { colors } = useTheme();
   
   const navigation = useNavigation();
@@ -257,6 +258,23 @@ export default function ManualAddScreen() {
                 </View>
               )}
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.birthdayButton, {
+                backgroundColor: colors.cardBackground,
+                borderColor: colors.border
+              }]}
+              onPress={() => setShowBirthdaySettings(true)}
+            >
+              <Text style={styles.birthdayButtonIcon}>🎂</Text>
+              <View style={styles.birthdayButtonContent}>
+                <Text style={[styles.birthdayButtonLabel, { color: colors.text }]}>Birthday</Text>
+                <Text style={[styles.birthdayButtonValue, { color: colors.textSecondary }]}>
+                  {birthday || 'Not set'}
+                </Text>
+              </View>
+              <Text style={[styles.birthdayButtonArrow, { color: colors.textSecondary }]}>›</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -286,6 +304,7 @@ export default function ManualAddScreen() {
 
         {isPremium && (
           <BirthdaySettings
+            visible={showBirthdaySettings}
             friend={{
               id: 'temp',
               name: fullName || 'Friend',
@@ -305,6 +324,7 @@ export default function ManualAddScreen() {
                 setBirthdayNotificationEnabled(updates.birthdayNotificationEnabled);
               }
             }}
+            onClose={() => setShowBirthdaySettings(false)}
           />
         )}
 
@@ -501,6 +521,33 @@ const styles = StyleSheet.create({
   },
   photoPlaceholderText: {
     fontSize: 12,
+  },
+  birthdayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 12,
+    borderWidth: 1,
+  },
+  birthdayButtonIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  birthdayButtonContent: {
+    flex: 1,
+  },
+  birthdayButtonLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  birthdayButtonValue: {
+    fontSize: 12,
+  },
+  birthdayButtonArrow: {
+    fontSize: 24,
+    fontWeight: '300',
   },
   uploadingOverlay: {
     position: 'absolute',
