@@ -86,15 +86,18 @@ export default function StatsScreen() {
 
       // Save to file
       const fileName = `friendo_meetings_export_${Date.now()}.csv`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
       
-      await FileSystem.writeAsStringAsync(fileUri, csvContent, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
+      // Write the file
+      await FileSystem.writeAsStringAsync(fileUri, csvContent);
 
       // Share the file
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(fileUri);
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'text/csv',
+          dialogTitle: 'Export Friendo Meetings Data',
+          UTI: 'public.comma-separated-values-text'
+        });
         Alert.alert('Success', 'Meeting data exported successfully!');
       } else {
         Alert.alert('Success', `File saved to: ${fileUri}`);
