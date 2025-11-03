@@ -522,6 +522,15 @@ export default function FriendRow({
         </TouchableOpacity>
       )}
 
+      {isPremium && showBirthdaySettings && (
+        <BirthdaySettings
+          visible={true}
+          friend={friend}
+          onUpdate={handleBirthdayUpdate}
+          onClose={() => setShowBirthdaySettings(false)}
+        />
+      )}
+
       <CancellationModal
         visible={showCancellationModal}
         friendName={friend.name}
@@ -545,15 +554,6 @@ export default function FriendRow({
           friendName={friend.name}
           onUpload={handlePhotoUpload}
           onClose={() => setShowPhotoUpload(false)}
-        />
-      )}
-
-      {isPremium && showBirthdaySettings && (
-        <BirthdaySettings
-          visible={showBirthdaySettings}
-          friend={friend}
-          onUpdate={handleBirthdayUpdate}
-          onClose={() => setShowBirthdaySettings(false)}
         />
       )}
     </TouchableOpacity>
