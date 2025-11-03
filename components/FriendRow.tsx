@@ -506,7 +506,7 @@ export default function FriendRow({
       {isPremium && !deleteMode && (
         <TouchableOpacity
           style={[styles.favoriteButton, { 
-            backgroundColor: colors.isDarkMode ? 'rgba(255, 215, 0, 0.2)' : 'rgba(255, 215, 0, 0.1)'
+            backgroundColor: colors.purple
           }]}
           onPress={handleToggleFavorite}
         >
