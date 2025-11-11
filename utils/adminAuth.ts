@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const ADMIN_PASSWORD = 'Friendo2025Admin!'; // Change this to your secure password
+const ADMIN_PASSWORD = 'Fr!3nd0#Mgmt$2025@Pr0T3ct'; // Strong secure password
 const ADMIN_SESSION_KEY = '@admin_session';
 const SESSION_DURATION = 3600000; // 1 hour in milliseconds
 
