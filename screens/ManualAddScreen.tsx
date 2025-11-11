@@ -20,6 +20,7 @@ import BirthdaySettingsInline from '../components/BirthdaySettingsInline';
 import PhotoUploadModal from '../components/PhotoUploadModal';
 import { shouldShowPaywall, markPaywallShown } from '../utils/paywallUtils';
 import { isPremiumUser } from '../utils/premiumFeatures';
+import { shouldTriggerPaywall, setUserBaseline } from '../utils/adminPaywallControl';
 import { useTheme } from '../utils/themeContext';
 
 export default function ManualAddScreen() {
@@ -71,9 +72,30 @@ export default function ManualAddScreen() {
 
     try {
       const friends = await getFriends();
-      const maxFriends = isPremium ? 1000 : 50;
+      const currentCount = friends.length;
       
-      if (friends.length >= maxFriends) {
+      // Check dynamic paywall trigger first (admin-controlled)
+      if (!isPremium) {
+        const shouldTrigger = await shouldTriggerPaywall(currentCount + 1);
+        if (shouldTrigger) {
+          Alert.alert(
+            'Friend Limit Reached',
+            'You\'ve reached the maximum number of friends for free users. Upgrade to Premium to add unlimited friends!',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Upgrade to Premium', onPress: () => setShowPaywall(true) }
+            ]
+          );
+          return;
+        }
+        
+        // Set baseline if not set (for future dynamic triggers)
+        await setUserBaseline(currentCount);
+      }
+      
+      // Check default limit (50 for free, 1000 for premium)
+      const maxFriends = isPremium ? 1000 : 50;
+      if (currentCount >= maxFriends) {
         Alert.alert(
           'Friend Limit Reached',
           `You can only add up to ${maxFriends} friends${!isPremium ? '. Upgrade to Premium for up to 1000 friends!' : '.'}`,

@@ -8,23 +8,35 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  TextInput,
+  Switch,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { isAdminAuthenticated, clearAdminSession } from '../utils/adminAuth';
 import { getAllPartnerVenues, deletePartnerVenue, getVenueStats, PartnerVenue } from '../utils/adminVenueManager';
+import { 
+  setPaywallTrigger, 
+  disablePaywallTrigger, 
+  getPaywallTriggerConfig,
+  PaywallTriggerConfig 
+} from '../utils/adminPaywallControl';
 import { useTheme } from '../utils/themeContext';
 
 export default function AdminDashboardScreen() {
   const [venues, setVenues] = useState<PartnerVenue[]>([]);
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
+  const [paywallConfig, setPaywallConfig] = useState<PaywallTriggerConfig | null>(null);
+  const [paywallEnabled, setPaywallEnabled] = useState(false);
+  const [friendsUntilPaywall, setFriendsUntilPaywall] = useState('5');
   const navigation = useNavigation();
   const { colors } = useTheme();
 
   useEffect(() => {
     checkAuth();
     loadData();
+    loadPaywallConfig();
   }, []);
 
   const checkAuth = async () => {
@@ -49,6 +61,55 @@ export default function AdminDashboardScreen() {
     }
     
     setLoading(false);
+  };
+
+  const loadPaywallConfig = async () => {
+    const config = await getPaywallTriggerConfig();
+    setPaywallConfig(config);
+    setPaywallEnabled(config?.enabled || false);
+    if (config?.friendsUntilPaywall) {
+      setFriendsUntilPaywall(config.friendsUntilPaywall.toString());
+    }
+  };
+
+  const handleTogglePaywallTrigger = async (enabled: boolean) => {
+    if (enabled) {
+      const n = parseInt(friendsUntilPaywall, 10);
+      if (isNaN(n) || n < 1) {
+        Alert.alert('Invalid Input', 'Please enter a valid number (1 or more)');
+        return;
+      }
+      
+      const success = await setPaywallTrigger(n);
+      if (success) {
+        setPaywallEnabled(true);
+        Alert.alert(
+          'Paywall Trigger Activated',
+          `Free users will see the paywall after adding ${n} more friend${n > 1 ? 's' : ''}.`
+        );
+        await loadPaywallConfig();
+      }
+    } else {
+      Alert.alert(
+        'Disable Paywall Trigger',
+        'This will revert to the default 50-friend limit for free users. Continue?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Disable',
+            style: 'destructive',
+            onPress: async () => {
+              const success = await disablePaywallTrigger();
+              if (success) {
+                setPaywallEnabled(false);
+                Alert.alert('Success', 'Paywall trigger disabled. Default limit restored.');
+                await loadPaywallConfig();
+              }
+            }
+          }
+        ]
+      );
+    }
   };
 
   const handleLogout = async () => {
@@ -123,6 +184,52 @@ export default function AdminDashboardScreen() {
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Cities</Text>
             </View>
           </View>
+        </View>
+
+        {/* Dynamic Paywall Control */}
+        <View style={[styles.paywallCard, { backgroundColor: colors.cardBackground }]}>
+          <View style={styles.paywallHeader}>
+            <Text style={[styles.paywallTitle, { color: colors.text }]}>💰 Dynamic Paywall Trigger</Text>
+            <Switch
+              value={paywallEnabled}
+              onValueChange={handleTogglePaywallTrigger}
+              trackColor={{ false: colors.border, true: colors.orange }}
+              thumbColor={colors.white}
+            />
+          </View>
+          
+          <Text style={[styles.paywallDescription, { color: colors.textSecondary }]}>
+            {paywallEnabled 
+              ? 'Active: Free users will hit paywall after N more friends'
+              : 'Inactive: Default 50-friend limit for free users'}
+          </Text>
+          
+          <View style={styles.paywallInputRow}>
+            <Text style={[styles.paywallInputLabel, { color: colors.text }]}>
+              Friends until paywall:
+            </Text>
+            <TextInput
+              style={[styles.paywallInput, { 
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+                color: colors.text
+              }]}
+              value={friendsUntilPaywall}
+              onChangeText={setFriendsUntilPaywall}
+              keyboardType="number-pad"
+              editable={!paywallEnabled}
+              placeholder="5"
+              placeholderTextColor={colors.textTertiary}
+            />
+          </View>
+          
+          {paywallEnabled && paywallConfig && (
+            <View style={[styles.paywallStatus, { backgroundColor: colors.orangeLight }]}>
+              <Text style={[styles.paywallStatusText, { color: colors.orange }]}>
+                ⚡ Active: Users will see paywall after {paywallConfig.friendsUntilPaywall} more friend{paywallConfig.friendsUntilPaywall > 1 ? 's' : ''}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Add New Venue Button */}
@@ -330,5 +437,56 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  paywallCard: {
+    margin: 20,
+    marginTop: 0,
+    padding: 20,
+    borderRadius: 16,
+  },
+  paywallHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  paywallTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  paywallDescription: {
+    fontSize: 14,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  paywallInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  paywallInputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 12,
+    flex: 1,
+  },
+  paywallInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    fontSize: 16,
+    width: 80,
+    textAlign: 'center',
+  },
+  paywallStatus: {
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  paywallStatusText: {
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

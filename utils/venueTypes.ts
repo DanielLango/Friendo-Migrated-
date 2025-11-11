@@ -1,3 +1,5 @@
+import { fetchPartnerVenues as fetchFromSupabase } from './adminVenueManager';
+
 // Core venue categories for the business model
 export interface VenueCategory {
   id: string;
@@ -75,70 +77,55 @@ export const venueCategories: VenueCategory[] = [
   }
 ];
 
-// Partnership-ready venue database
-// This will be empty initially, but ready for partner venues
-export const partnerVenues: { [cityId: string]: { [categoryId: string]: PartnerVenue[] } } = {
-  // Example structure for when you add partners:
-  // 'new-york-ny-usa': {
-  //   'restaurant': [
-  //     {
-  //       id: 'joes-pizza-nyc',
-  //       name: 'Joes Pizza',
-  //       category: 'restaurant',
-  //       city: 'New York, NY, USA',
-  //       address: '123 Main St, New York, NY',
-  //       isPartner: true,
-  //       isFeatured: true,
-  //       partnershipLevel: 'premium',
-  //       specialOffers: ['10% off for Friendo users', 'Free appetizer with main course'],
-  //       rating: 4.5,
-  //       priceLevel: 2,
-  //       addedDate: '2024-01-15'
-  //     }
-  //   ]
-  // }
-};
+// Cache for partner venues to avoid repeated API calls
+let venueCache: { [key: string]: { data: PartnerVenue[], timestamp: number } } = {};
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Helper function to get partner venues for a city and category
-export const getPartnerVenues = (city: string, categoryId: string): PartnerVenue[] => {
-  const cityKey = city.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  const cityVenues = partnerVenues[cityKey];
+export const getPartnerVenues = async (city: string, categoryId: string): Promise<PartnerVenue[]> => {
+  const cacheKey = `${city}-${categoryId}`;
+  const now = Date.now();
   
-  if (cityVenues && cityVenues[categoryId]) {
-    return cityVenues[categoryId].sort((a, b) => {
-      // Sort by partnership level and featured status
-      if (a.isFeatured && !b.isFeatured) return -1;
-      if (!a.isFeatured && b.isFeatured) return 1;
-      if (a.partnershipLevel === 'featured' && b.partnershipLevel !== 'featured') return -1;
-      if (a.partnershipLevel !== 'featured' && b.partnershipLevel === 'featured') return 1;
-      return 0;
-    });
+  // Check cache first
+  if (venueCache[cacheKey] && (now - venueCache[cacheKey].timestamp) < CACHE_DURATION) {
+    return venueCache[cacheKey].data;
   }
   
-  return [];
+  try {
+    // Fetch from Supabase
+    const supabaseVenues = await fetchFromSupabase(city, categoryId);
+    
+    // Transform to match PartnerVenue interface
+    const venues: PartnerVenue[] = supabaseVenues.map(v => ({
+      id: v.id,
+      name: v.name,
+      category: v.category,
+      city: v.city,
+      address: v.address,
+      phone: v.phone,
+      website: v.website,
+      isPartner: v.is_partner,
+      isFeatured: v.is_featured,
+      partnershipLevel: v.partnership_level,
+      specialOffers: v.special_offers || undefined,
+      rating: v.rating || undefined,
+      priceLevel: v.price_level || undefined,
+      addedDate: v.created_at,
+    }));
+    
+    // Update cache
+    venueCache[cacheKey] = { data: venues, timestamp: now };
+    
+    return venues;
+  } catch (error) {
+    console.error('Error fetching partner venues:', error);
+    return [];
+  }
 };
 
-// Helper function to add a new partner venue (for future admin use)
-export const addPartnerVenue = (venue: Omit<PartnerVenue, 'id' | 'addedDate'>): PartnerVenue => {
-  const cityKey = venue.city.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  const venueId = `${venue.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${cityKey}`;
-  
-  const newVenue: PartnerVenue = {
-    ...venue,
-    id: venueId,
-    addedDate: new Date().toISOString()
-  };
-  
-  // Initialize city and category if they don't exist
-  if (!partnerVenues[cityKey]) {
-    partnerVenues[cityKey] = {};
-  }
-  if (!partnerVenues[cityKey][venue.category]) {
-    partnerVenues[cityKey][venue.category] = [];
-  }
-  
-  partnerVenues[cityKey][venue.category].push(newVenue);
-  return newVenue;
+// Clear cache (useful for admin updates)
+export const clearVenueCache = () => {
+  venueCache = {};
 };
 
 // Get venue category by ID

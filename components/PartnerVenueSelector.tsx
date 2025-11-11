@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { getPartnerVenues, getVenueCategory } from '../utils/venueTypes';
+import type { PartnerVenue } from '../utils/venueTypes';
 
 interface PartnerVenueSelectorProps {
   selectedVenue: string;
@@ -15,9 +16,29 @@ export default function PartnerVenueSelector({
   selectedCity,
   selectedCategory 
 }: PartnerVenueSelectorProps) {
-  
-  const partnerVenues = getPartnerVenues(selectedCity, selectedCategory);
+  const [partnerVenues, setPartnerVenues] = useState<PartnerVenue[]>([]);
+  const [loading, setLoading] = useState(true);
   const category = getVenueCategory(selectedCategory);
+
+  useEffect(() => {
+    loadVenues();
+  }, [selectedCity, selectedCategory]);
+
+  const loadVenues = async () => {
+    setLoading(true);
+    const venues = await getPartnerVenues(selectedCity, selectedCategory);
+    setPartnerVenues(venues);
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#8000FF" />
+        <Text style={styles.loadingText}>Loading partner venues...</Text>
+      </View>
+    );
+  }
 
   if (partnerVenues.length === 0) {
     return (
@@ -168,6 +189,15 @@ export default function PartnerVenueSelector({
 const styles = StyleSheet.create({
   container: {
     maxHeight: 400,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666666',
   },
   sectionTitle: {
     fontSize: 16,
