@@ -239,19 +239,17 @@ export default function ProfileScreen() {
               size={24} 
               color={isPremium ? colors.purple : colors.textDisabled} 
             />
-            <View style={styles.menuItemContent}>
-              {!isPremium && (
-                <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
-                  <Text style={styles.premiumBadgeText}>Pro</Text>
-                </View>
-              )}
-              <Text style={[
-                styles.menuItemText,
-                { color: isPremium ? colors.text : colors.textDisabled }
-              ]}>
-                Dark Mode
-              </Text>
-            </View>
+            <Text style={[
+              styles.menuItemText,
+              { color: isPremium ? colors.text : colors.textDisabled }
+            ]}>
+              Dark Mode
+            </Text>
+            {!isPremium && (
+              <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
+                <Text style={styles.premiumBadgeText}>Pro</Text>
+              </View>
+            )}
             {isPremium && (
               <Switch
                 value={isDarkMode}
@@ -272,19 +270,17 @@ export default function ProfileScreen() {
               size={24} 
               color={isPremium ? colors.purple : colors.textDisabled} 
             />
-            <View style={styles.menuItemContent}>
-              {!isPremium && (
-                <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
-                  <Text style={styles.premiumBadgeText}>Pro</Text>
-                </View>
-              )}
-              <Text style={[
-                styles.menuItemText,
-                { color: isPremium ? colors.text : colors.textDisabled }
-              ]}>
-                Batch Notifications
-              </Text>
-            </View>
+            <Text style={[
+              styles.menuItemText,
+              { color: isPremium ? colors.text : colors.textDisabled }
+            ]}>
+              Batch Notifications
+            </Text>
+            {!isPremium && (
+              <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
+                <Text style={styles.premiumBadgeText}>Pro</Text>
+              </View>
+            )}
             <MaterialIcons name="chevron-right" size={24} color={colors.textDisabled} />
           </TouchableOpacity>
           
@@ -461,12 +457,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 1,
   },
-  menuItemContent: {
-    flex: 1,
-    marginLeft: 15,
-  },
   menuItemText: {
+    flex: 1,
     fontSize: 16,
+    marginLeft: 15,
   },
   logoutText: {
     flex: 1,
@@ -513,8 +507,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 12,
-    alignSelf: 'flex-start',
-    marginBottom: 4,
+    marginRight: 8,
   },
   premiumBadgeText: {
     fontSize: 12,
