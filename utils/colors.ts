@@ -17,12 +17,12 @@ export const lightTheme = {
   purpleDark: '#6000CC',
   
   // Accent Colors
-  green: '#4ADE80',
-  pink: '#FF1493',
-  red: '#F87171',
-  orange: '#FB923C',
-  orangeLight: 'rgba(251, 146, 60, 0.15)',
-  gold: '#FCD34D',
+  green: '#4CAF50',
+  pink: '#FF0080',
+  red: '#EF4444',
+  orange: '#F97316',
+  orangeLight: '#FFF7ED',
+  gold: '#FFD700',
   
   // UI Elements
   border: '#E0E0E0',
@@ -74,6 +74,7 @@ export const darkTheme = {
   pink: '#FF1493',
   red: '#F87171',
   orange: '#FB923C',
+  orangeLight: 'rgba(251, 146, 60, 0.15)',
   gold: '#FCD34D',
   
   // UI Elements
