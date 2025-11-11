@@ -230,22 +230,22 @@ export default function ProfileScreen() {
           <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>ACCOUNT</Text>
           
           {/* Dark Mode Toggle - Premium Only */}
-          <View style={styles.premiumRow}>
-            <TouchableOpacity 
-              style={[styles.menuItem, { borderBottomColor: colors.borderLight, flex: 1 }]}
-              onPress={handleDarkModeToggle}
-            >
-              <MaterialIcons 
-                name="dark-mode" 
-                size={24} 
-                color={isPremium ? colors.purple : colors.textDisabled} 
-              />
-              <Text style={[
-                styles.menuItemText,
-                { color: isPremium ? colors.text : colors.textDisabled }
-              ]}>
-                Dark Mode
-              </Text>
+          <TouchableOpacity 
+            style={[styles.menuItem, { borderBottomColor: colors.borderLight }]}
+            onPress={handleDarkModeToggle}
+          >
+            <MaterialIcons 
+              name="dark-mode" 
+              size={24} 
+              color={isPremium ? colors.purple : colors.textDisabled} 
+            />
+            <Text style={[
+              styles.menuItemText,
+              { color: isPremium ? colors.text : colors.textDisabled }
+            ]}>
+              Dark Mode
+            </Text>
+            <View style={styles.badgeContainer}>
               {!isPremium && (
                 <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
                   <Text style={styles.premiumBadgeText}>Pro</Text>
@@ -260,33 +260,33 @@ export default function ProfileScreen() {
                   ios_backgroundColor={colors.border}
                 />
               )}
-            </TouchableOpacity>
-          </View>
+            </View>
+          </TouchableOpacity>
 
-          <View style={styles.premiumRow}>
-            <TouchableOpacity 
-              style={[styles.menuItem, { borderBottomColor: colors.borderLight, flex: 1 }]} 
-              onPress={handleBatchNotifications}
-            >
-              <MaterialCommunityIcons 
-                name="bell-badge" 
-                size={24} 
-                color={isPremium ? colors.purple : colors.textDisabled} 
-              />
-              <Text style={[
-                styles.menuItemText,
-                { color: isPremium ? colors.text : colors.textDisabled }
-              ]}>
-                Batch Notifications
-              </Text>
+          <TouchableOpacity 
+            style={[styles.menuItem, { borderBottomColor: colors.borderLight }]} 
+            onPress={handleBatchNotifications}
+          >
+            <MaterialCommunityIcons 
+              name="bell-badge" 
+              size={24} 
+              color={isPremium ? colors.purple : colors.textDisabled} 
+            />
+            <Text style={[
+              styles.menuItemText,
+              { color: isPremium ? colors.text : colors.textDisabled }
+            ]}>
+              Batch Notifications
+            </Text>
+            <View style={styles.badgeContainer}>
               {!isPremium && (
                 <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
                   <Text style={styles.premiumBadgeText}>Pro</Text>
                 </View>
               )}
-              <MaterialIcons name="chevron-right" size={24} color={colors.textDisabled} />
-            </TouchableOpacity>
-          </View>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={colors.textDisabled} />
+          </TouchableOpacity>
           
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.borderLight }]} onPress={handleLogout}>
             <MaterialIcons name="logout" size={24} color={colors.red} />
@@ -511,15 +511,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 12,
-    marginRight: 8,
+    height: 24,
+    justifyContent: 'center',
   },
   premiumBadgeText: {
     fontSize: 12,
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  premiumRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  badgeContainer: {
+    height: 24,
+    justifyContent: 'center',
+    marginRight: 8,
   },
 });
