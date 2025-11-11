@@ -1,9 +1,18 @@
+<<<<<<< Updated upstream
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initializeRevenueCat } from './utils/revenueCatConfig';
 import { ThemeProvider } from './utils/themeContext';
+=======
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { BasicProvider } from '@basictech/expo';
+import { schema } from './basic.config';
+>>>>>>> Stashed changes
 
 // Import screens
 import LoginScreen from './screens/LoginScreen';
@@ -16,12 +25,15 @@ import ManualAddScreen from './screens/ManualAddScreen';
 import MainScreen from './screens/MainScreen';
 import StatsScreen from './screens/StatsScreen';
 import MeetingCreateScreen from './screens/MeetingCreateScreen';
+<<<<<<< Updated upstream
 import ProfileScreen from './screens/ProfileScreen';
 import BatchNotificationsScreen from './screens/BatchNotificationsScreen';
 import AdminLoginScreen from './screens/AdminLoginScreen';
 import AdminDashboardScreen from './screens/AdminDashboardScreen';
 import AdminAddVenueScreen from './screens/AdminAddVenueScreen';
 import AdminEditVenueScreen from './screens/AdminEditVenueScreen';
+=======
+>>>>>>> Stashed changes
 
 export type RootStackParamList = {
   Login: undefined;
@@ -34,12 +46,15 @@ export type RootStackParamList = {
   Main: undefined;
   Stats: undefined;
   MeetingCreate: undefined;
+<<<<<<< Updated upstream
   Profile: undefined;
   BatchNotifications: undefined;
   AdminLogin: undefined;
   AdminDashboard: undefined;
   AdminAddVenue: { onSuccess?: () => void };
   AdminEditVenue: { venue: any; onSuccess?: () => void };
+=======
+>>>>>>> Stashed changes
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -55,11 +70,19 @@ export default function App() {
   }, []);
   
   return (
+<<<<<<< Updated upstream
     <ThemeProvider>
       <SafeAreaProvider>
         <NavigationContainer>
           <Stack.Navigator 
             id={undefined}
+=======
+    <SafeAreaProvider>
+      <BasicProvider project_id={schema.project_id} schema={schema}>
+        <NavigationContainer>
+          <Stack.Navigator 
+            id="RootStack"
+>>>>>>> Stashed changes
             initialRouteName="Login"
             screenOptions={{
               headerShown: false,
@@ -75,6 +98,7 @@ export default function App() {
             <Stack.Screen name="Main" component={MainScreen} />
             <Stack.Screen name="Stats" component={StatsScreen} />
             <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
+<<<<<<< Updated upstream
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="BatchNotifications" component={BatchNotificationsScreen} />
             <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
@@ -85,5 +109,11 @@ export default function App() {
         </NavigationContainer>
       </SafeAreaProvider>
     </ThemeProvider>
+=======
+          </Stack.Navigator>
+        </NavigationContainer>
+      </BasicProvider>
+    </SafeAreaProvider>
+>>>>>>> Stashed changes
   );
 }
