@@ -13,6 +13,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BasicProvider } from '@basictech/expo';
 import { schema } from './basic.config';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -30,12 +33,15 @@ import StatsScreen from './screens/StatsScreen';
 import MeetingCreateScreen from './screens/MeetingCreateScreen';
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import ProfileScreen from './screens/ProfileScreen';
 import BatchNotificationsScreen from './screens/BatchNotificationsScreen';
 import AdminLoginScreen from './screens/AdminLoginScreen';
 import AdminDashboardScreen from './screens/AdminDashboardScreen';
 import AdminAddVenueScreen from './screens/AdminAddVenueScreen';
 import AdminEditVenueScreen from './screens/AdminEditVenueScreen';
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -54,12 +60,15 @@ export type RootStackParamList = {
   MeetingCreate: undefined;
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   Profile: undefined;
   BatchNotifications: undefined;
   AdminLogin: undefined;
   AdminDashboard: undefined;
   AdminAddVenue: { onSuccess?: () => void };
   AdminEditVenue: { venue: any; onSuccess?: () => void };
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
@@ -81,6 +90,7 @@ export default function App() {
   return (
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     <ThemeProvider>
       <SafeAreaProvider>
         <NavigationContainer>
@@ -89,12 +99,17 @@ export default function App() {
 =======
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
     <SafeAreaProvider>
       <BasicProvider project_id={schema.project_id} schema={schema}>
         <NavigationContainer>
           <Stack.Navigator 
             id="RootStack"
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -115,6 +130,7 @@ export default function App() {
             <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="BatchNotifications" component={BatchNotificationsScreen} />
             <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
@@ -128,11 +144,16 @@ export default function App() {
 =======
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
           </Stack.Navigator>
         </NavigationContainer>
       </BasicProvider>
     </SafeAreaProvider>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
