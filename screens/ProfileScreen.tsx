@@ -285,7 +285,6 @@ export default function ProfileScreen() {
                 </View>
               )}
             </View>
-            <MaterialIcons name="chevron-right" size={24} color={colors.textDisabled} />
           </TouchableOpacity>
           
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.borderLight }]} onPress={handleLogout}>
