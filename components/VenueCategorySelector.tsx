@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { venueCategories, getPartnerVenues } from '../utils/venueTypes';
 import { useTheme } from '../utils/themeContext';
@@ -15,7 +15,25 @@ export default function VenueCategorySelector({
   selectedCity 
 }: VenueCategorySelectorProps) {
   const { colors } = useTheme();
+  const [partnerCounts, setPartnerCounts] = useState<{ [key: string]: number }>({});
   
+  useEffect(() => {
+    if (selectedCity) {
+      loadPartnerCounts();
+    }
+  }, [selectedCity]);
+
+  const loadPartnerCounts = async () => {
+    const counts: { [key: string]: number } = {};
+    
+    for (const category of venueCategories) {
+      const venues = await getPartnerVenues(selectedCity, category.id);
+      counts[category.id] = venues.length;
+    }
+    
+    setPartnerCounts(counts);
+  };
+
   const handleCategorySelect = (categoryId: string) => {
     onCategorySelect(categoryId);
   };
@@ -24,7 +42,7 @@ export default function VenueCategorySelector({
     <View style={styles.container}>
       <ScrollView style={styles.categoryList} nestedScrollEnabled>
         {venueCategories.map((category) => {
-          const partnerCount = selectedCity ? getPartnerVenues(selectedCity, category.id).length : 0;
+          const partnerCount = partnerCounts[category.id] || 0;
           
           return (
             <TouchableOpacity

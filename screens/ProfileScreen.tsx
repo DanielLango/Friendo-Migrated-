@@ -17,6 +17,7 @@ import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { logout } from '../utils/storage';
 import { isPremiumUser, toggleDebugPremium, getDebugPremiumStatus } from '../utils/premiumFeatures';
 import Paywall from '../components/Paywall';
+import TermsOfServiceScreen from './TermsOfServiceScreen';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useTheme } from '../utils/themeContext';
 
@@ -31,6 +32,7 @@ type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Prof
 export default function ProfileScreen() {
   const [isPremium, setIsPremium] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [debugPremium, setDebugPremium] = useState(false);
   const [tapCount, setTapCount] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
@@ -308,13 +310,11 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             style={[styles.menuItem, { borderBottomColor: colors.borderLight }]}
-            onPress={() => Alert.alert('Coming Soon', 'Terms of Service will be available soon.')}
+            onPress={() => setShowTerms(true)}
           >
             <MaterialCommunityIcons name="file-document" size={24} color={colors.purple} />
             <Text style={[styles.menuItemText, { color: colors.text }]}>Terms of Service</Text>
-            <View style={[styles.comingSoonBadge, { backgroundColor: isDarkMode ? colors.border : '#FFF7ED' }]}>
-              <Text style={[styles.comingSoonText, { color: colors.orange }]}>Coming Soon</Text>
-            </View>
+            <MaterialIcons name="chevron-right" size={24} color={colors.textDisabled} />
           </TouchableOpacity>
         </View>
 
@@ -347,6 +347,16 @@ export default function ProfileScreen() {
         onRequestClose={handlePaywallClose}
       >
         <Paywall onSuccess={handlePaywallSuccess} onClose={handlePaywallClose} />
+      </Modal>
+
+      {/* Terms of Service Modal */}
+      <Modal
+        visible={showTerms}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowTerms(false)}
+      >
+        <TermsOfServiceScreen onClose={() => setShowTerms(false)} />
       </Modal>
     </SafeAreaView>
   );

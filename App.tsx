@@ -22,6 +22,7 @@ import AdminLoginScreen from './screens/AdminLoginScreen';
 import AdminDashboardScreen from './screens/AdminDashboardScreen';
 import AdminAddVenueScreen from './screens/AdminAddVenueScreen';
 import AdminEditVenueScreen from './screens/AdminEditVenueScreen';
+import TermsOfServiceScreen from './screens/TermsOfServiceScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -40,6 +41,7 @@ export type RootStackParamList = {
   AdminDashboard: undefined;
   AdminAddVenue: { onSuccess?: () => void };
   AdminEditVenue: { venue: any; onSuccess?: () => void };
+  TermsOfService: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -81,6 +83,7 @@ export default function App() {
             <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
             <Stack.Screen name="AdminAddVenue" component={AdminAddVenueScreen} />
             <Stack.Screen name="AdminEditVenue" component={AdminEditVenueScreen} />
+            <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
