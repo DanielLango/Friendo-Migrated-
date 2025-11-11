@@ -80,6 +80,7 @@ const popularCities = [
   'Szombathely, Hungary',
   'Sopron, Hungary',
   'Makó, Hungary',
+  'Kövegy, Hungary',
   'Tatabánya, Hungary',
   'Kaposvár, Hungary',
   'Veszprém, Hungary',
