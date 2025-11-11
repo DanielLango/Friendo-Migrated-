@@ -508,6 +508,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 12,
     marginRight: 8,
+    alignSelf: 'flex-start',
   },
   premiumBadgeText: {
     fontSize: 12,
