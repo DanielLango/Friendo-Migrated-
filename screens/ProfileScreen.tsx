@@ -245,20 +245,22 @@ export default function ProfileScreen() {
             ]}>
               Dark Mode
             </Text>
-            {!isPremium && (
-              <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
-                <Text style={styles.premiumBadgeText}>Pro</Text>
-              </View>
-            )}
-            {isPremium && (
-              <Switch
-                value={isDarkMode}
-                onValueChange={toggleTheme}
-                trackColor={{ false: colors.border, true: colors.purple }}
-                thumbColor={colors.white}
-                ios_backgroundColor={colors.border}
-              />
-            )}
+            <View style={styles.rightContainer}>
+              {!isPremium && (
+                <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
+                  <Text style={styles.premiumBadgeText}>Pro</Text>
+                </View>
+              )}
+              {isPremium && (
+                <Switch
+                  value={isDarkMode}
+                  onValueChange={toggleTheme}
+                  trackColor={{ false: colors.border, true: colors.purple }}
+                  thumbColor={colors.white}
+                  ios_backgroundColor={colors.border}
+                />
+              )}
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -276,11 +278,13 @@ export default function ProfileScreen() {
             ]}>
               Batch Notifications
             </Text>
-            {!isPremium && (
-              <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
-                <Text style={styles.premiumBadgeText}>Pro</Text>
-              </View>
-            )}
+            <View style={styles.rightContainer}>
+              {!isPremium && (
+                <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
+                  <Text style={styles.premiumBadgeText}>Pro</Text>
+                </View>
+              )}
+            </View>
             <MaterialIcons name="chevron-right" size={24} color={colors.textDisabled} />
           </TouchableOpacity>
           
@@ -507,12 +511,16 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 12,
-    marginRight: 8,
   },
   premiumBadgeText: {
     fontSize: 12,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  rightContainer: {
+    minWidth: 60,
+    alignItems: 'flex-end',
+    marginRight: 8,
   },
   badgeContainer: {
     height: 24,
