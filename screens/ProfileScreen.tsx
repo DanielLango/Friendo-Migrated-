@@ -32,6 +32,8 @@ export default function ProfileScreen() {
   const [isPremium, setIsPremium] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [debugPremium, setDebugPremium] = useState(false);
+  const [tapCount, setTapCount] = useState(0);
+  const [lastTapTime, setLastTapTime] = useState(0);
   const navigation = useNavigation<ProfileScreenNavigationProp>();
   const { colors, isDarkMode, toggleTheme } = useTheme();
 
@@ -146,6 +148,25 @@ export default function ProfileScreen() {
       );
     } else {
       toggleTheme();
+    }
+  };
+
+  const handleSecretTap = () => {
+    const now = Date.now();
+    
+    // Reset if more than 2 seconds between taps
+    if (now - lastTapTime > 2000) {
+      setTapCount(1);
+    } else {
+      setTapCount(tapCount + 1);
+    }
+    
+    setLastTapTime(now);
+    
+    // 7 taps to access admin
+    if (tapCount + 1 === 7) {
+      setTapCount(0);
+      (navigation as any).navigate('AdminLogin');
     }
   };
 
@@ -296,7 +317,9 @@ export default function ProfileScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={[styles.versionText, { color: colors.textTertiary }]}>Friendo v1.0.0</Text>
+          <TouchableOpacity onPress={handleSecretTap} activeOpacity={1}>
+            <Text style={[styles.versionText, { color: colors.textTertiary }]}>Friendo v1.0.0</Text>
+          </TouchableOpacity>
           <Text style={[styles.footerText, { color: colors.textSecondary }]}>
             Made with <Text style={styles.heartEmoji}>💜</Text> by Daniel Lango
           </Text>

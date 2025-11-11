@@ -18,6 +18,10 @@ import StatsScreen from './screens/StatsScreen';
 import MeetingCreateScreen from './screens/MeetingCreateScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import BatchNotificationsScreen from './screens/BatchNotificationsScreen';
+import AdminLoginScreen from './screens/AdminLoginScreen';
+import AdminDashboardScreen from './screens/AdminDashboardScreen';
+import AdminAddVenueScreen from './screens/AdminAddVenueScreen';
+import AdminEditVenueScreen from './screens/AdminEditVenueScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -32,6 +36,10 @@ export type RootStackParamList = {
   MeetingCreate: undefined;
   Profile: undefined;
   BatchNotifications: undefined;
+  AdminLogin: undefined;
+  AdminDashboard: undefined;
+  AdminAddVenue: { onSuccess?: () => void };
+  AdminEditVenue: { venue: any; onSuccess?: () => void };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -69,6 +77,10 @@ export default function App() {
             <Stack.Screen name="MeetingCreate" component={MeetingCreateScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="BatchNotifications" component={BatchNotificationsScreen} />
+            <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
+            <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+            <Stack.Screen name="AdminAddVenue" component={AdminAddVenueScreen} />
+            <Stack.Screen name="AdminEditVenue" component={AdminEditVenueScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
