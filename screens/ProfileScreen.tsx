@@ -230,59 +230,63 @@ export default function ProfileScreen() {
           <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>ACCOUNT</Text>
           
           {/* Dark Mode Toggle - Premium Only */}
-          <TouchableOpacity 
-            style={[styles.menuItem, { borderBottomColor: colors.borderLight }]}
-            onPress={handleDarkModeToggle}
-          >
-            <MaterialIcons 
-              name="dark-mode" 
-              size={24} 
-              color={isPremium ? colors.purple : colors.textDisabled} 
-            />
-            <Text style={[
-              styles.menuItemText,
-              { color: isPremium ? colors.text : colors.textDisabled }
-            ]}>
-              Dark Mode
-            </Text>
-            {!isPremium && (
-              <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
-                <Text style={styles.premiumBadgeText}>Pro</Text>
-              </View>
-            )}
-            {isPremium && (
-              <Switch
-                value={isDarkMode}
-                onValueChange={toggleTheme}
-                trackColor={{ false: colors.border, true: colors.purple }}
-                thumbColor={colors.white}
-                ios_backgroundColor={colors.border}
+          <View style={styles.premiumRow}>
+            <TouchableOpacity 
+              style={[styles.menuItem, { borderBottomColor: colors.borderLight, flex: 1 }]}
+              onPress={handleDarkModeToggle}
+            >
+              <MaterialIcons 
+                name="dark-mode" 
+                size={24} 
+                color={isPremium ? colors.purple : colors.textDisabled} 
               />
-            )}
-          </TouchableOpacity>
+              <Text style={[
+                styles.menuItemText,
+                { color: isPremium ? colors.text : colors.textDisabled }
+              ]}>
+                Dark Mode
+              </Text>
+              {!isPremium && (
+                <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
+                  <Text style={styles.premiumBadgeText}>Pro</Text>
+                </View>
+              )}
+              {isPremium && (
+                <Switch
+                  value={isDarkMode}
+                  onValueChange={toggleTheme}
+                  trackColor={{ false: colors.border, true: colors.purple }}
+                  thumbColor={colors.white}
+                  ios_backgroundColor={colors.border}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity 
-            style={[styles.menuItem, { borderBottomColor: colors.borderLight }]} 
-            onPress={handleBatchNotifications}
-          >
-            <MaterialCommunityIcons 
-              name="bell-badge" 
-              size={24} 
-              color={isPremium ? colors.purple : colors.textDisabled} 
-            />
-            <Text style={[
-              styles.menuItemText,
-              { color: isPremium ? colors.text : colors.textDisabled }
-            ]}>
-              Batch Notifications
-            </Text>
-            {!isPremium && (
-              <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
-                <Text style={styles.premiumBadgeText}>Pro</Text>
-              </View>
-            )}
-            <MaterialIcons name="chevron-right" size={24} color={colors.textDisabled} />
-          </TouchableOpacity>
+          <View style={styles.premiumRow}>
+            <TouchableOpacity 
+              style={[styles.menuItem, { borderBottomColor: colors.borderLight, flex: 1 }]} 
+              onPress={handleBatchNotifications}
+            >
+              <MaterialCommunityIcons 
+                name="bell-badge" 
+                size={24} 
+                color={isPremium ? colors.purple : colors.textDisabled} 
+              />
+              <Text style={[
+                styles.menuItemText,
+                { color: isPremium ? colors.text : colors.textDisabled }
+              ]}>
+                Batch Notifications
+              </Text>
+              {!isPremium && (
+                <View style={[styles.premiumBadge, { backgroundColor: colors.purple }]}>
+                  <Text style={styles.premiumBadgeText}>Pro</Text>
+                </View>
+              )}
+              <MaterialIcons name="chevron-right" size={24} color={colors.textDisabled} />
+            </TouchableOpacity>
+          </View>
           
           <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.borderLight }]} onPress={handleLogout}>
             <MaterialIcons name="logout" size={24} color={colors.red} />
@@ -513,5 +517,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  premiumRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
